@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Main CypherVault Application
+  web:
+    build: .
+    container_name: cyphervault_web
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-hackathon-demo-key-change-in-production
+      - ENCRYPTION_KEY=hackathon-encryption-key-32chars
+      - ALLOWED_HOSTS=*
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    networks:
+      - cyphervault_network
+    restart: unless-stopped
+
+  # Ollama for Local LLM
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cyphervault_ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - cyphervault_network
+    restart: unless-stopped
+
+volumes:
+  static_volume:
+  media_volume:
+  ollama_data:
+
+networks:
+  cyphervault_network:
+    driver: bridge

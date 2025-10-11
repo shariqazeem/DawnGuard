@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="cyber-card p-4 mb-4">
+                <h2 class="mb-4"><i class="bi bi-gear"></i> Settings</h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Privacy Settings</h5>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="enable_encryption" 
+                                   name="enable_encryption" {% if profile.enable_encryption %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_encryption">
+                                Enable End-to-End Encryption
+                            </label>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="local_only_mode" 
+                                   name="local_only_mode" {% if profile.local_only_mode %}checked{% endif %}>
+                            <label class="form-check-label" for="local_only_mode">
+                                Local-Only Mode (No internet access)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">AI Configuration</h5>
+                        
+                        <div class="mb-3">
+                            <label for="ai_model" class="form-label">AI Model</label>
+                            <select class="form-select bg-dark text-white border-secondary" 
+                                    id="ai_model" name="ai_model">
+                                {% for model in available_models %}
+                                    <option value="{{ model }}" {% if profile.ai_model == model %}selected{% endif %}>
+                                        {{ model }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="temperature" class="form-label">
+                                Temperature (Creativity): {{ profile.temperature }}
+                            </label>
+                            <input type="range" class="form-range" id="temperature" name="temperature" 
+                                   min="0" max="2" step="0.1" value="{{ profile.temperature }}">
+                            <small class="text-secondary">Lower = More focused, Higher = More creative</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Data Management</h5>
+                        
+                        <div class="mb-3">
+                            <label for="auto_delete_days" class="form-label">Auto-Delete After (days)</label>
+                            <input type="number" class="form-control bg-dark text-white border-secondary" 
+                                   id="auto_delete_days" name="auto_delete_days" 
+                                   value="{{ profile.auto_delete_days }}" min="1" max="365">
+                            <small class="text-secondary">Messages older than this will be automatically deleted</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-cyber">
+                        <i class="bi bi-save"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+            
+            <div class="cyber-card p-4">
+                <h5 class="mb-3"><i class="bi bi-info-circle"></i> System Status</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <small class="text-secondary">LLM Status:</small>
+                        <div class="fw-bold">
+                            {% if llm_status %}
+                                <span class="badge bg-success">{{ llm_status }}</span>
+                            {% else %}
+                                <span class="badge bg-warning">Offline</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-secondary">Encryption:</small>
+                        <div class="fw-bold">
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
