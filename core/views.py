@@ -11,6 +11,7 @@ import json
 from .models import Conversation, Message, Document, UserProfile, SystemStats
 from .utils.llm_handler import LLMHandler
 from .utils.encryption import EncryptionManager
+from django.contrib.auth import logout
 
 # Initialize handlers
 llm_handler = LLMHandler()
@@ -67,18 +68,12 @@ def chat_view(request, conversation_id=None):
     conversations = Conversation.objects.filter(user=request.user, is_active=True)
     
     # Get messages for this conversation
-    messages_list = []
-    for msg in conversation.messages.all():
-        messages_list.append({
-            'role': msg.role,
-            'content': msg.get_decrypted_content(),
-            'timestamp': msg.timestamp
-        })
-    
+    chat_messages = conversation.messages.all().order_by('timestamp')
+
     context = {
         'conversation': conversation,
         'conversations': conversations,
-        'messages': messages_list,
+        'chat_messages': chat_messages,  # Changed from 'messages' to 'chat_messages'
     }
     return render(request, 'chat.html', context)
 
@@ -201,3 +196,9 @@ def register_view(request):
         form = UserCreationForm()
     
     return render(request, 'registration/register.html', {'form': form})
+
+def logout_view(request):
+    """Custom logout view with confirmation"""
+    logout(request)
+    messages.success(request, '👋 You have been successfully logged out. Your data remains secure!')
+    return redirect('home')

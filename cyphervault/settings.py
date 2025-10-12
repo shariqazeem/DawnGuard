@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'channels',
     'core',
+    
 ]
 
 MIDDLEWARE = [
@@ -110,3 +111,8 @@ ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', 'default-key-change-this')
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
+
+# Authentication redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'home'
