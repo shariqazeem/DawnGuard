@@ -3,18 +3,22 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-5" style="background: var(--dawn-cream);">
     <!-- Welcome Header -->
-    <div class="row mb-4">
+    <div class="row mb-5">
         <div class="col-12">
-            <div class="cyber-card p-4">
+            <div class="dawn-card">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h2 class="mb-2">Welcome back, <span class="glow-text">{{ user.username }}</span>! 👋</h2>
-                        <p class="text-secondary mb-0">Your private AI assistant is ready. All data encrypted and local.</p>
+                        <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            Welcome back, <span class="glow-text">{{ user.username }}</span>! 👋
+                        </h2>
+                        <p class="mb-0" style="color: #666;">
+                            Your private AI assistant is ready. All data encrypted and local.
+                        </p>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <a href="{% url 'chat' %}" class="btn btn-cyber btn-lg">
+                        <a href="{% url 'chat' %}" class="btn btn-dawn btn-lg">
                             <i class="bi bi-chat-dots-fill"></i> New Chat
                         </a>
                     </div>
@@ -23,25 +27,25 @@
         </div>
     </div>
     
-    <!-- Stats Overview -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="cyber-card p-4 text-center h-100">
-                <div class="h2 mb-2 glow-text">{{ total_messages }}</div>
-                <div class="text-secondary">Total Messages</div>
-                <div class="mt-2">
-                    <small class="text-success">
+    <!-- Stats Overview - DAWN Cards -->
+    <div class="row mb-5 g-4">
+        <div class="col-md-3">
+            <div class="dawn-card text-center h-100">
+                <div class="h2 mb-2 glow-text fw-bold">{{ total_messages }}</div>
+                <div class="mb-3" style="color: #666; font-weight: 500;">Total Messages</div>
+                <div class="mt-auto">
+                    <small class="privacy-badge">
                         <i class="bi bi-shield-check"></i> {{ encrypted_messages }} Encrypted
                     </small>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="cyber-card p-4 text-center h-100">
-                <div class="h2 mb-2 glow-text">{{ conversations.count }}</div>
-                <div class="text-secondary">Active Chats</div>
-                <div class="mt-2">
+        <div class="col-md-3">
+            <div class="dawn-card text-center h-100">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-purple);">{{ conversations.count }}</div>
+                <div class="mb-3" style="color: #666; font-weight: 500;">Active Chats</div>
+                <div class="mt-auto">
                     <small class="privacy-badge">
                         <i class="bi bi-lock-fill"></i> Private
                     </small>
@@ -49,62 +53,63 @@
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="cyber-card p-4 text-center h-100">
-                <div class="h2 mb-2 glow-text">{{ documents.count }}</div>
-                <div class="text-secondary">Documents</div>
-                <div class="mt-2">
-                    <small class="text-info">
+        <div class="col-md-3">
+            <div class="dawn-card text-center h-100">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-blue);">{{ documents.count }}</div>
+                <div class="mb-3" style="color: #666; font-weight: 500;">Documents</div>
+                <div class="mt-auto">
+                    <small style="background: rgba(74,144,226,0.1); border: 1.5px solid var(--dawn-blue); color: var(--dawn-blue); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">
                         <i class="bi bi-file-earmark-text"></i> Encrypted
                     </small>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="cyber-card p-4 text-center h-100">
+        <div class="col-md-3">
+            <div class="dawn-card text-center h-100">
                 <div class="mb-2">
                     {% if llm_status == 'Online' %}
-                        <span class="badge bg-success" style="font-size: 1.2rem;">🟢 Online</span>
+                        <span class="badge bg-success" style="font-size: 1.2rem; padding: 10px 20px; border-radius: 24px;">🟢 Online</span>
                     {% else %}
-                        <span class="badge bg-warning" style="font-size: 1.2rem;">🟡 Mock</span>
+                        <span class="badge bg-warning" style="font-size: 1.2rem; padding: 10px 20px; border-radius: 24px;">🟡 Mock</span>
                     {% endif %}
                 </div>
-                <div class="text-secondary">AI Status</div>
-                <div class="mt-2">
-                    <small class="text-secondary">{{ llm_status }}</small>
+                <div class="mb-3" style="color: #666; font-weight: 500;">AI Status</div>
+                <div class="mt-auto">
+                    <small style="color: #999;">{{ llm_status }}</small>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Main Content Grid -->
-    <div class="row">
+    <div class="row g-4">
         <!-- Recent Conversations -->
-        <div class="col-lg-8 mb-4">
-            <div class="cyber-card p-4">
+        <div class="col-lg-8">
+            <div class="dawn-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">
+                    <h4 class="mb-0 fw-bold" style="color: var(--dawn-dark);">
                         <i class="bi bi-chat-left-text"></i> Recent Conversations
                     </h4>
-                    <a href="{% url 'chat' %}" class="btn btn-sm btn-outline-light">View All</a>
+                    <a href="{% url 'chat' %}" class="btn btn-sm btn-outline-dawn">View All</a>
                 </div>
                 
                 {% if conversations %}
                     <div class="list-group list-group-flush">
                         {% for conv in conversations %}
                         <a href="{% url 'chat_with_id' conv.id %}" 
-                           class="list-group-item bg-transparent text-white border-bottom border-secondary py-3 hover-highlight">
+                           class="list-group-item bg-transparent border-0 py-3 hover-highlight"
+                           style="border-left: 3px solid transparent !important; padding-left: 16px; border-radius: 12px; margin-bottom: 4px; color: var(--dawn-dark);">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div style="flex: 1;">
-                                    <h6 class="mb-1">{{ conv.title }}</h6>
-                                    <small class="text-secondary">
+                                    <h6 class="mb-1 fw-bold">{{ conv.title }}</h6>
+                                    <small style="color: #999;">
                                         <i class="bi bi-chat"></i> {{ conv.get_message_count }} messages • 
                                         <i class="bi bi-clock"></i> {{ conv.updated_at|timesince }} ago
                                     </small>
                                 </div>
                                 <div>
-                                    <span class="badge privacy-badge">🔒</span>
+                                    <span class="privacy-badge">🔒</span>
                                 </div>
                             </div>
                         </a>
@@ -112,9 +117,9 @@
                     </div>
                 {% else %}
                     <div class="text-center py-5">
-                        <i class="bi bi-chat-dots" style="font-size: 48px; opacity: 0.3;"></i>
-                        <p class="text-secondary mt-3 mb-0">No conversations yet</p>
-                        <a href="{% url 'chat' %}" class="btn btn-cyber mt-3">Start Your First Chat</a>
+                        <i class="bi bi-chat-dots" style="font-size: 48px; opacity: 0.2; color: #999;"></i>
+                        <p style="color: #999;" class="mt-3 mb-0">No conversations yet</p>
+                        <a href="{% url 'chat' %}" class="btn btn-dawn mt-3">Start Your First Chat</a>
                     </div>
                 {% endif %}
             </div>
@@ -123,92 +128,92 @@
         <!-- Sidebar -->
         <div class="col-lg-4">
             <!-- Quick Actions -->
-            <div class="cyber-card p-4 mb-4">
-                <h5 class="mb-3">
+            <div class="dawn-card mb-4">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
                     <i class="bi bi-lightning-fill"></i> Quick Actions
                 </h5>
                 <div class="d-grid gap-2">
-                    <a href="{% url 'chat' %}" class="btn btn-cyber">
+                    <a href="{% url 'chat' %}" class="btn btn-dawn">
                         <i class="bi bi-chat-dots"></i> New Conversation
                     </a>
-                    <a href="{% url 'settings' %}" class="btn btn-outline-light">
+                    <a href="{% url 'settings' %}" class="btn btn-outline-dawn">
                         <i class="bi bi-gear"></i> Settings
                     </a>
-                    <button class="btn btn-outline-light" onclick="showPrivacyInfo()">
+                    <button class="btn btn-outline-dawn" onclick="showPrivacyInfo()">
                         <i class="bi bi-shield-check"></i> Privacy Info
                     </button>
                 </div>
             </div>
             
             <!-- Privacy Status -->
-            <div class="cyber-card p-4 mb-4">
-                <h5 class="mb-3">
+            <div class="dawn-card mb-4">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
                     <i class="bi bi-shield-lock"></i> Privacy Status
                 </h5>
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-secondary">Encryption</span>
-                        <span class="badge bg-success">
+                        <span style="color: #666;">Encryption</span>
+                        <span class="badge bg-success" style="border-radius: 12px;">
                             {% if profile.enable_encryption %}Enabled{% else %}Disabled{% endif %}
                         </span>
                     </div>
-                    <div class="progress" style="height: 4px;">
-                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    <div class="progress" style="height: 6px; border-radius: 12px; background: rgba(76,175,80,0.1);">
+                        <div class="progress-bar bg-success" style="width: 100%; border-radius: 12px;"></div>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-secondary">Local Mode</span>
-                        <span class="badge bg-success">
+                        <span style="color: #666;">Local Mode</span>
+                        <span class="badge bg-success" style="border-radius: 12px;">
                             {% if profile.local_only_mode %}Active{% else %}Off{% endif %}
                         </span>
                     </div>
-                    <div class="progress" style="height: 4px;">
-                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    <div class="progress" style="height: 6px; border-radius: 12px; background: rgba(76,175,80,0.1);">
+                        <div class="progress-bar bg-success" style="width: 100%; border-radius: 12px;"></div>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-secondary">Data Collection</span>
-                        <span class="badge bg-success">Zero</span>
+                        <span style="color: #666;">Data Collection</span>
+                        <span class="badge bg-success" style="border-radius: 12px;">Zero</span>
                     </div>
-                    <div class="progress" style="height: 4px;">
-                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    <div class="progress" style="height: 6px; border-radius: 12px; background: rgba(76,175,80,0.1);">
+                        <div class="progress-bar bg-success" style="width: 100%; border-radius: 12px;"></div>
                     </div>
                 </div>
                 
                 <div class="text-center mt-3">
-                    <small class="text-success">
+                    <small class="text-success fw-bold">
                         <i class="bi bi-check-circle-fill"></i> All systems secure
                     </small>
                 </div>
             </div>
             
             <!-- System Info -->
-            <div class="cyber-card p-4">
-                <h5 class="mb-3">
+            <div class="dawn-card">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
                     <i class="bi bi-cpu"></i> System Info
                 </h5>
-                <div class="mb-2">
-                    <small class="text-secondary">AI Model:</small>
-                    <div class="fw-bold">{{ profile.ai_model }}</div>
+                <div class="mb-3">
+                    <small style="color: #999;">AI Model:</small>
+                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.ai_model }}</div>
                 </div>
-                <div class="mb-2">
-                    <small class="text-secondary">Temperature:</small>
-                    <div class="fw-bold">{{ profile.temperature }}</div>
+                <div class="mb-3">
+                    <small style="color: #999;">Temperature:</small>
+                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.temperature }}</div>
                 </div>
-                <div class="mb-2">
-                    <small class="text-secondary">Max Tokens:</small>
-                    <div class="fw-bold">{{ profile.max_tokens }}</div>
+                <div class="mb-3">
+                    <small style="color: #999;">Max Tokens:</small>
+                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.max_tokens }}</div>
                 </div>
-                <div class="mb-2">
-                    <small class="text-secondary">Auto-Delete:</small>
-                    <div class="fw-bold">{{ profile.auto_delete_days }} days</div>
+                <div class="mb-3">
+                    <small style="color: #999;">Auto-Delete:</small>
+                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.auto_delete_days }} days</div>
                 </div>
                 
-                <a href="{% url 'settings' %}" class="btn btn-sm btn-outline-light w-100 mt-3">
+                <a href="{% url 'settings' %}" class="btn btn-outline-dawn w-100 mt-3">
                     Configure
                 </a>
             </div>
@@ -216,39 +221,39 @@
     </div>
     
     <!-- Privacy Features Highlight -->
-    <div class="row mt-4">
+    <div class="row mt-5">
         <div class="col-12">
-            <div class="cyber-card p-4">
-                <h5 class="mb-3">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(255,107,53,0.03), rgba(107,53,255,0.03));">
+                <h5 class="mb-4 fw-bold text-center" style="color: var(--dawn-dark);">
                     <i class="bi bi-info-circle"></i> What Makes CypherVault Secure?
                 </h5>
-                <div class="row">
-                    <div class="col-md-3 mb-3">
+                <div class="row g-4">
+                    <div class="col-md-3">
                         <div class="text-center">
-                            <i class="bi bi-lock-fill" style="font-size: 2rem; color: var(--primary-accent);"></i>
-                            <div class="mt-2 fw-bold">End-to-End Encryption</div>
-                            <small class="text-secondary">Messages encrypted before storage</small>
+                            <i class="bi bi-lock-fill" style="font-size: 2.5rem; color: var(--dawn-orange);"></i>
+                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">End-to-End Encryption</div>
+                            <small style="color: #666;">Messages encrypted before storage</small>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
                         <div class="text-center">
-                            <i class="bi bi-hdd-network" style="font-size: 2rem; color: var(--primary-accent);"></i>
-                            <div class="mt-2 fw-bold">Local Processing</div>
-                            <small class="text-secondary">AI runs on your Black Box</small>
+                            <i class="bi bi-hdd-network" style="font-size: 2.5rem; color: var(--dawn-purple);"></i>
+                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">Local Processing</div>
+                            <small style="color: #666;">AI runs on your Black Box</small>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
                         <div class="text-center">
-                            <i class="bi bi-eye-slash" style="font-size: 2rem; color: var(--primary-accent);"></i>
-                            <div class="mt-2 fw-bold">Zero Tracking</div>
-                            <small class="text-secondary">No analytics or telemetry</small>
+                            <i class="bi bi-eye-slash" style="font-size: 2.5rem; color: #4CAF50;"></i>
+                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">Zero Tracking</div>
+                            <small style="color: #666;">No analytics or telemetry</small>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
                         <div class="text-center">
-                            <i class="bi bi-code-square" style="font-size: 2rem; color: var(--primary-accent);"></i>
-                            <div class="mt-2 fw-bold">Open Source</div>
-                            <small class="text-secondary">Fully auditable code</small>
+                            <i class="bi bi-code-square" style="font-size: 2.5rem; color: var(--dawn-blue);"></i>
+                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">Open Source</div>
+                            <small style="color: #666;">Fully auditable code</small>
                         </div>
                     </div>
                 </div>
@@ -259,12 +264,12 @@
 
 <style>
 .hover-highlight {
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .hover-highlight:hover {
-    background: rgba(0, 212, 255, 0.05) !important;
-    border-left: 3px solid var(--primary-accent) !important;
+    background: rgba(255, 107, 53, 0.05) !important;
+    border-left: 3px solid var(--dawn-orange) !important;
     transform: translateX(5px);
 }
 </style>
@@ -274,6 +279,4 @@ function showPrivacyInfo() {
     alert(`🔒 CypherVault Privacy Guarantee:\n\n✓ All messages encrypted end-to-end\n✓ AI processing happens locally on your device\n✓ Zero data collection or tracking\n✓ No cloud services or external APIs\n✓ Your data never leaves your Black Box\n\nYour privacy is absolute.`);
 }
 </script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 {% endblock %}

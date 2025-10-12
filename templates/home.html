@@ -3,234 +3,211 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <!-- Hero Section -->
-    <div class="row min-vh-100 align-items-center">
-        <div class="col-lg-6">
-            <div class="mb-4">
-                <span class="badge privacy-badge mb-3">🔒 PRIVACY-FIRST AI</span>
-                <h1 class="display-3 fw-bold glow-text mb-4">
-                    Your AI.<br>
-                    Your Data.<br>
-                    Your Control.
-                </h1>
-                <p class="lead text-secondary mb-4">
-                    CypherVault is a privacy-first AI assistant that runs entirely on your DAWN Black Box. 
-                    No cloud. No tracking. No compromises.
-                </p>
-            </div>
-            
-            <div class="d-flex gap-3 mb-5">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="btn btn-cyber btn-lg">
-                        Open Dashboard →
-                    </a>
-                {% else %}
-                    <a href="{% url 'register' %}" class="btn btn-cyber btn-lg">
-                        Get Started →
-                    </a>
-                    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
-                        Sign In
-                    </a>
-                {% endif %}
-            </div>
-            
-            <!-- Trust Indicators -->
-            <div class="row g-3">
-                <div class="col-4">
-                    <div class="cyber-card p-3 text-center">
-                        <div class="h3 mb-0 glow-text">{{ stats.total_conversations|default:0 }}+</div>
-                        <small class="text-secondary">Conversations</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="cyber-card p-3 text-center">
-                        <div class="h3 mb-0 glow-text">{{ stats.messages_encrypted|default:0 }}+</div>
-                        <small class="text-secondary">Messages Encrypted</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="cyber-card p-3 text-center">
-                        <div class="h3 mb-0 glow-text">100%</div>
-                        <small class="text-secondary">Private</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6">
-            <!-- Interactive Demo Card -->
-            <div class="cyber-card p-4 position-relative">
-                <div class="position-absolute top-0 end-0 m-3">
-                    <span class="privacy-badge">🟢 LIVE DEMO</span>
-                </div>
-                
-                <h5 class="mb-4">Try CypherVault</h5>
-                
-                <div id="demo-chat" class="mb-3" style="height: 300px; overflow-y: auto;">
-                    <div class="message-wrapper mb-3">
-                        <div class="d-flex">
-                            <div class="message-bubble p-3 rounded-3" style="max-width: 80%; background: var(--secondary);">
-                                <div class="mb-2">
-                                    <span class="badge" style="background: rgba(0,0,0,0.2); font-size: 10px;">🤖 AI</span>
-                                </div>
-                                Hello! I'm CypherVault, your private AI assistant. Ask me anything - all conversations stay on your device.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="input-group">
-                    <input type="text" id="demo-input" class="form-control bg-dark text-white border-secondary" 
-                           placeholder="Try: 'What makes you different?'">
-                    <button class="btn btn-cyber" onclick="sendDemoMessage()">Send</button>
-                </div>
-                
-                <div class="text-center mt-3">
-                    <small class="text-secondary">
-                        <i class="bi bi-shield-check"></i> This demo runs locally in your browser
-                    </small>
-                </div>
-            </div>
-        </div>
+<!-- Hero Section with Wave Pattern -->
+<div class="position-relative overflow-hidden">
+    <!-- Decorative Wave Background -->
+    <div style="position: absolute; top: 0; right: 0; width: 60%; height: 600px; opacity: 0.15; pointer-events: none;">
+        <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,100 Q200,50 400,100 T800,100 L800,0 L0,0 Z" fill="url(#gradient1)"/>
+            <path d="M0,200 Q200,150 400,200 T800,200 L800,0 L0,0 Z" fill="url(#gradient2)" opacity="0.5"/>
+            <defs>
+                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#6B35FF;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#FFB800;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#FF6B35;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+        </svg>
     </div>
-    
-    <!-- Features Section -->
-    <div class="row py-5">
-        <div class="col-12 text-center mb-5">
-            <h2 class="display-5 fw-bold glow-text">Why CypherVault?</h2>
-            <p class="lead text-secondary">Built for privacy, powered by your Black Box</p>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="cyber-card p-4 h-100 text-center">
-                <div class="mb-3" style="font-size: 48px;">🔒</div>
-                <h4 class="mb-3">End-to-End Encryption</h4>
-                <p class="text-secondary">
-                    Every message is encrypted before storage. Not even the server can read your conversations.
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="cyber-card p-4 h-100 text-center">
-                <div class="mb-3" style="font-size: 48px;">💻</div>
-                <h4 class="mb-3">100% Local Processing</h4>
-                <p class="text-secondary">
-                    AI runs on your Black Box using Ollama. No cloud APIs, no external servers, no data leaks.
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="cyber-card p-4 h-100 text-center">
-                <div class="mb-3" style="font-size: 48px;">⚡</div>
-                <h4 class="mb-3">Lightning Fast</h4>
-                <p class="text-secondary">
-                    No network latency. Your AI responds instantly because it runs right on your hardware.
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="cyber-card p-4 h-100 text-center">
-                <div class="mb-3" style="font-size: 48px;">🛡️</div>
-                <h4 class="mb-3">Zero Data Collection</h4>
-                <p class="text-secondary">
-                    We don't collect, store, or analyze your data. Ever. Your privacy is non-negotiable.
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="cyber-card p-4 h-100 text-center">
-                <div class="mb-3" style="font-size: 48px;">🌐</div>
-                <h4 class="mb-3">DePIN Ready</h4>
-                <p class="text-secondary">
-                    Built for DAWN's Black Box. Earn rewards while maintaining complete data sovereignty.
-                </p>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="cyber-card p-4 h-100 text-center">
-                <div class="mb-3" style="font-size: 48px;">🔧</div>
-                <h4 class="mb-3">Open Source</h4>
-                <p class="text-secondary">
-                    Fully auditable code. No black boxes (except the Black Box itself). Trust through transparency.
-                </p>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Technical Stack Section -->
-    <div class="row py-5">
-        <div class="col-12 text-center mb-5">
-            <h2 class="display-5 fw-bold glow-text">Powered By</h2>
-            <p class="lead text-secondary">Modern privacy tech stack</p>
-        </div>
-        
-        <div class="col-lg-8 offset-lg-2">
-            <div class="cyber-card p-4">
-                <div class="row g-3 text-center">
-                    <div class="col-6 col-md-3">
-                        <div class="p-3">
-                            <div class="fw-bold mb-1">Ollama</div>
-                            <small class="text-secondary">Local LLM</small>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3">
-                            <div class="fw-bold mb-1">Django</div>
-                            <small class="text-secondary">Backend</small>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3">
-                            <div class="fw-bold mb-1">Fernet</div>
-                            <small class="text-secondary">Encryption</small>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="p-3">
-                            <div class="fw-bold mb-1">Docker</div>
-                            <small class="text-secondary">Container</small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-4">
-                    <span class="badge privacy-badge">
-                        {% if llm_available %}
-                            🟢 LLM Online
-                        {% else %}
-                            🟡 Mock Mode (Install Ollama for full features)
-                        {% endif %}
+
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="row min-vh-100 align-items-center py-5">
+            <div class="col-lg-6 pe-lg-5">
+                <div class="mb-4">
+                    <span class="blackbox-badge mb-4 d-inline-flex">
+                        <i class="bi bi-shield-check"></i> PRIVACY-FIRST AI
                     </span>
+                    <h1 class="display-2 fw-bold mb-4" style="line-height: 1.1; color: var(--dawn-dark);">
+                        Your AI.<br>
+                        Your Data.<br>
+                        <span class="glow-text">Your Control.</span>
+                    </h1>
+                    <p class="lead mb-4" style="color: #666; font-size: 1.25rem;">
+                        CypherVault is a privacy-first AI assistant that runs entirely on your DAWN Black Box. 
+                        No cloud. No tracking. No compromises.
+                    </p>
+                </div>
+                
+                <div class="d-flex gap-3 mb-5">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-dawn btn-lg">
+                            Open Dashboard <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-dawn btn-lg">
+                            Get Started <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-dawn btn-lg">
+                            Sign In
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Trust Indicators -->
+                <div class="row g-3">
+                    <div class="col-4">
+                        <div class="text-center p-3" style="background: rgba(255,107,53,0.05); border-radius: 16px;">
+                            <div class="h2 mb-0 glow-text fw-bold">{{ stats.total_conversations|default:"1K" }}+</div>
+                            <small style="color: #666; font-weight: 500;">Conversations</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-3" style="background: rgba(107,53,255,0.05); border-radius: 16px;">
+                            <div class="h2 mb-0 fw-bold" style="color: var(--dawn-purple);">{{ stats.messages_encrypted|default:"10K" }}+</div>
+                            <small style="color: #666; font-weight: 500;">Encrypted</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-3" style="background: rgba(76,175,80,0.05); border-radius: 16px;">
+                            <div class="h2 mb-0 fw-bold" style="color: #4CAF50;">100%</div>
+                            <small style="color: #666; font-weight: 500;">Private</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 ps-lg-5">
+                <!-- Black Box Vision Video -->
+                <div class="dawn-card position-relative" style="overflow: hidden;">
+                    <div class="position-absolute top-0 end-0 m-3" style="z-index: 10;">
+                        <span class="badge" style="background: #4CAF50; color: white; padding: 8px 14px; border-radius: 20px; font-weight: 600;">
+                            <i class="bi bi-circle-fill" style="font-size: 8px; animation: pulse 2s infinite;"></i> LIVE DEMO
+                        </span>
+                    </div>
+                    
+                    <!-- Embed Black Box Vision Video -->
+                    <div class="ratio ratio-16x9 mb-3" style="border-radius: 16px; overflow: hidden;">
+                        <iframe 
+                            src="https://video.twimg.com/amplify_video/1945100411947339776/vid/avc1/1280x720/V-6Cexra9zCrMMgP.mp4?tag=14" 
+                            title="DAWN Black Box Vision" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                            style="border-radius: 16px;">
+                        </iframe>
+                    </div>
+                    
+                    <div class="text-center">
+                        <h5 class="fw-bold mb-2" style="color: var(--dawn-dark);">Powered by DAWN Black Box</h5>
+                        <p style="color: #666; font-size: 0.95rem;">
+                            <i class="bi bi-shield-check" style="color: #4CAF50;"></i> Enterprise-grade privacy in your home
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- CTA Section -->
-    <div class="row py-5 my-5">
-        <div class="col-lg-8 offset-lg-2 text-center">
-            <div class="cyber-card p-5">
-                <h2 class="display-5 fw-bold glow-text mb-4">Ready to take control?</h2>
-                <p class="lead text-secondary mb-4">
+</div>
+
+<!-- Features Section - DAWN Style Cards -->
+<div style="background: var(--dawn-blue-light); padding: 100px 0;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="blackbox-badge mb-3">WHY CYPHERVAULT</span>
+            <h2 class="display-4 fw-bold mb-3" style="color: var(--dawn-dark);">Built for Privacy</h2>
+            <p class="lead" style="color: #666;">Powered by your Black Box, protected by design</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="dawn-card h-100 text-center">
+                    <div class="mb-4" style="font-size: 56px;">🔒</div>
+                    <h4 class="fw-bold mb-3" style="color: var(--dawn-dark);">End-to-End Encryption</h4>
+                    <p style="color: #666;">
+                        Every message is encrypted before storage. Not even the server can read your conversations.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="dawn-card h-100 text-center">
+                    <div class="mb-4" style="font-size: 56px;">💻</div>
+                    <h4 class="fw-bold mb-3" style="color: var(--dawn-dark);">100% Local Processing</h4>
+                    <p style="color: #666;">
+                        AI runs on your Black Box using Ollama. No cloud APIs, no external servers, no data leaks.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="dawn-card h-100 text-center">
+                    <div class="mb-4" style="font-size: 56px;">⚡</div>
+                    <h4 class="fw-bold mb-3" style="color: var(--dawn-dark);">Lightning Fast</h4>
+                    <p style="color: #666;">
+                        No network latency. Your AI responds instantly because it runs right on your hardware.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="dawn-card h-100 text-center">
+                    <div class="mb-4" style="font-size: 56px;">🛡️</div>
+                    <h4 class="fw-bold mb-3" style="color: var(--dawn-dark);">Zero Data Collection</h4>
+                    <p style="color: #666;">
+                        We don't collect, store, or analyze your data. Ever. Your privacy is non-negotiable.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="dawn-card h-100 text-center">
+                    <div class="mb-4" style="font-size: 56px;">🌐</div>
+                    <h4 class="fw-bold mb-3" style="color: var(--dawn-dark);">DePIN Ready</h4>
+                    <p style="color: #666;">
+                        Built for DAWN's Black Box. Earn rewards while maintaining complete data sovereignty.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="dawn-card h-100 text-center">
+                    <div class="mb-4" style="font-size: 56px;">🔧</div>
+                    <h4 class="fw-bold mb-3" style="color: var(--dawn-dark);">Open Source</h4>
+                    <p style="color: #666;">
+                        Fully auditable code. No black boxes (except the Black Box itself). Trust through transparency.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="container py-5 my-5">
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="dawn-card text-center" style="background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(107,53,255,0.05)); padding: 80px 40px;">
+                <h2 class="display-4 fw-bold mb-4" style="color: var(--dawn-dark);">
+                    Ready to take control?
+                </h2>
+                <p class="lead mb-5" style="color: #666; max-width: 600px; margin: 0 auto;">
                     Join the privacy revolution. Your AI assistant that truly respects your data.
                 </p>
                 {% if not user.is_authenticated %}
-                <a href="{% url 'register' %}" class="btn btn-cyber btn-lg">
-                    Start Using CypherVault →
+                <a href="{% url 'register' %}" class="btn btn-dawn btn-lg">
+                    Start Using CypherVault <i class="bi bi-arrow-right ms-2"></i>
                 </a>
                 {% else %}
-                <a href="{% url 'dashboard' %}" class="btn btn-cyber btn-lg">
-                    Go to Dashboard →
+                <a href="{% url 'dashboard' %}" class="btn btn-dawn btn-lg">
+                    Go to Dashboard <i class="bi bi-arrow-right ms-2"></i>
                 </a>
                 {% endif %}
                 <div class="mt-4">
-                    <small class="text-secondary">
+                    <small style="color: #999; font-weight: 500;">
                         🐳 Runs in Docker • 🔒 End-to-End Encrypted • ⚡ No Setup Required
                     </small>
                 </div>
@@ -240,13 +217,9 @@
 </div>
 
 <style>
-.message-bubble {
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 </style>
 
