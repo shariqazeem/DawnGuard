@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            <i class="bi bi-diagram-3"></i> P2P Knowledge Network
+                        </h2>
+                        <p class="mb-0" style="color: #666;">
+                            Secure, encrypted knowledge sharing between Black Boxes • Your Node: <code>{{ node.node_id|slice:":12" }}...</code>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <button class="btn btn-dawn" onclick="showShareModal()">
+                            <i class="bi bi-share"></i> Share Knowledge
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Network Stats -->
+    <div class="row mb-4 g-4">
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 glow-text fw-bold">{{ total_nodes }}</div>
+                <div style="color: #666; font-weight: 500;">Active Nodes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-purple);">{{ my_shared_knowledge }}</div>
+                <div style="color: #666; font-weight: 500;">Shared by You</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-blue);">{{ received_knowledge }}</div>
+                <div style="color: #666; font-weight: 500;">Downloaded</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 fw-bold" style="color: #4CAF50;">{{ active_connections }}</div>
+                <div style="color: #666; font-weight: 500;">Connections</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Public Knowledge Network -->
+        <div class="col-lg-8">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-globe"></i> Public Knowledge Network
+                </h4>
+                
+                <div class="knowledge-grid">
+                    {% for knowledge in public_knowledge %}
+                    <div class="knowledge-card p-3 mb-3" style="background: rgba(255,107,53,0.03); border-radius: 16px; border-left: 4px solid var(--dawn-orange);">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0 fw-bold" style="color: var(--dawn-dark);">{{ knowledge.title }}</h6>
+                            <span class="badge" style="background: var(--dawn-purple); color: white;">{{ knowledge.category }}</span>
+                        </div>
+                        <p class="mb-2 small" style="color: #666;">
+                            Shared by: <code>{{ knowledge.shared_by.node_id|slice:":8" }}...</code>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small style="color: #999;">
+                                <i class="bi bi-download"></i> {{ knowledge.downloads }} • 
+                                <i class="bi bi-arrow-up-circle"></i> {{ knowledge.upvotes }}
+                            </small>
+                            <button class="btn btn-sm btn-dawn" onclick="downloadKnowledge({{ knowledge.id }})">
+                                <i class="bi bi-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 48px; opacity: 0.2;"></i>
+                        <p class="mt-3" style="color: #999;">No public knowledge available yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Your Shared Knowledge -->
+            <div class="dawn-card mb-4">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-box-seam"></i> Your Knowledge
+                </h5>
+                {% for knowledge in my_knowledge %}
+                <div class="p-2 mb-2" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
+                    <div class="fw-bold small">{{ knowledge.title|truncatechars:30 }}</div>
+                    <small style="color: #999;">
+                        <i class="bi bi-download"></i> {{ knowledge.downloads }} downloads
+                    </small>
+                </div>
+                {% empty %}
+                <p class="text-center small" style="color: #999;">No knowledge shared yet</p>
+                {% endfor %}
+            </div>
+            
+            <!-- Connected Nodes -->
+            <div class="dawn-card">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-diagram-3"></i> Connected Nodes
+                </h5>
+                {% for connected_node in connected_nodes %}
+                <div class="d-flex align-items-center mb-2 p-2" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
+                    <div class="me-2">
+                        <span class="badge bg-success" style="width: 12px; height: 12px; border-radius: 50%; padding: 0;"></span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="small fw-bold">{{ connected_node.node_id|slice:":12" }}...</div>
+                        <small style="color: #999;">Rep: {{ connected_node.reputation_score }}</small>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center small" style="color: #999;">No connections yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Knowledge Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <h5 class="modal-title fw-bold">Share Knowledge</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Title</label>
+                    <input type="text" class="form-control" id="knowledge-title" placeholder="Knowledge title">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Content</label>
+                    <textarea class="form-control" id="knowledge-content" rows="5" placeholder="Enter your knowledge..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Category</label>
+                    <select class="form-select" id="knowledge-category">
+                        <option value="general">General</option>
+                        <option value="technology">Technology</option>
+                        <option value="science">Science</option>
+                        <option value="education">Education</option>
+                        <option value="privacy">Privacy & Security</option>
+                    </select>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="knowledge-public" checked>
+                    <label class="form-check-label" for="knowledge-public">
+                        Make public in P2P network
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05);">
+                <button type="button" class="btn btn-outline-dawn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dawn" onclick="shareKnowledge()">
+                    <i class="bi bi-share"></i> Share
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showShareModal() {
+    new bootstrap.Modal(document.getElementById('shareModal')).show();
+}
+
+async function shareKnowledge() {
+    const title = document.getElementById('knowledge-title').value;
+    const content = document.getElementById('knowledge-content').value;
+    const category = document.getElementById('knowledge-category').value;
+    const isPublic = document.getElementById('knowledge-public').checked;
+    
+    if (!title || !content) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/p2p/share/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                category: category,
+                is_public: isPublic
+            })
+        });
+        
+        const data = await response.json();
+        
+if (data.success) {
+            showNotification('✅ Knowledge shared successfully on P2P network!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Network error: ' + error.message, 'error');
+    }
+}
+
+async function downloadKnowledge(knowledgeId) {
+    try {
+        const response = await fetch(`/p2p/download/${knowledgeId}/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('✅ Knowledge downloaded!', 'success');
+            
+            // Display downloaded content
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content" style="border-radius: 20px;">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold">${escapeHtml(data.title)}</h5>
+                                <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <span class="badge" style="background: var(--dawn-purple);">${data.category}</span>
+                                    <span class="badge bg-secondary">From: ${data.shared_by}</span>
+                                </div>
+                                <div style="white-space: pre-wrap; padding: 20px; background: #F5F5F5; border-radius: 12px;">
+                                    ${escapeHtml(data.content)}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-dawn" onclick="copyToClipboard('${escapeHtml(data.content)}')">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <button class="btn btn-outline-dawn" onclick="this.closest('.modal').remove()">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Network error: ' + error.message, 'error');
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text);
+    showNotification('📋 Copied to clipboard!', 'success');
+}
+
+function showNotification(message, type = 'success') {
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);`;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+.knowledge-card {
+    transition: all 0.3s ease;
+}
+
+.knowledge-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

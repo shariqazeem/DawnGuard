@@ -5,62 +5,291 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="cyber-card p-5">
+            <div class="dawn-card p-5">
                 <div class="text-center mb-4">
-                    <h2 class="glow-text mb-2">Welcome Back</h2>
-                    <p class="text-secondary">Sign in to your private AI assistant</p>
+                    <h2 class="fw-bold mb-2" style="color: var(--dawn-dark);">Welcome Back</h2>
+                    <p style="color: #666;">Sign in to your private AI assistant</p>
                 </div>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            Invalid username or password. Please try again.
+
+                <!-- Login Method Tabs -->
+                <ul class="nav nav-pills mb-4" style="background: rgba(0,0,0,0.05); border-radius: 12px; padding: 4px;">
+                    <li class="nav-item" style="flex: 1;">
+                        <a class="nav-link active" id="password-tab" data-bs-toggle="pill" href="#password-login"
+                            style="border-radius: 10px; text-align: center;">
+                            <i class="bi bi-key"></i> Password
+                        </a>
+                    </li>
+                    <li class="nav-item" style="flex: 1;">
+                        <a class="nav-link" id="zkp-tab" data-bs-toggle="pill" href="#zkp-login"
+                            style="border-radius: 10px; text-align: center;">
+                            <i class="bi bi-shield-lock"></i> Zero-Knowledge
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Traditional Password Login -->
+                    <div class="tab-pane fade show active" id="password-login">
+                        <form method="post">
+                            {% csrf_token %}
+
+                            {% if form.errors %}
+                            <div class="alert alert-danger" style="border-radius: 12px;">
+                                Invalid username or password. Please try again.
+                            </div>
+                            {% endif %}
+
+                            <div class="mb-3">
+                                <label for="{{ form.username.id_for_label }}"
+                                    class="form-label fw-bold">Username</label>
+                                <input type="text" name="{{ form.username.name }}" class="form-control"
+                                    id="{{ form.username.id_for_label }}"
+                                    style="border-radius: 12px; background: #F5F5F5; border: none;" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="{{ form.password.id_for_label }}"
+                                    class="form-label fw-bold">Password</label>
+                                <input type="password" name="{{ form.password.name }}" class="form-control"
+                                    id="{{ form.password.id_for_label }}"
+                                    style="border-radius: 12px; background: #F5F5F5; border: none;" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-dawn w-100 mb-3">
+                                <i class="bi bi-lock-fill"></i> Sign In Securely
+                            </button>
+                            <input type="hidden" name="next" value="{{ next }}">
+                        </form>
+                    </div>
+
+                    <!-- Zero-Knowledge Proof Login -->
+                    <div class="tab-pane fade" id="zkp-login">
+                        <div class="alert alert-info"
+                            style="border-radius: 12px; border-left: 4px solid var(--dawn-blue);">
+                            <small>
+                                <strong>🔐 Zero-Knowledge Proof Login</strong><br>
+                                Use your ZKP secret phrase (NOT your password). If you haven't setup ZKP yet,
+                                <a href="{% url 'setup_zkp_view' %}" target="_blank"
+                                    style="color: var(--dawn-orange);">set it up here</a>.
+                            </small>
                         </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        <input type="text" 
-                               name="{{ form.username.name }}" 
-                               class="form-control bg-dark text-white border-secondary" 
-                               id="{{ form.username.id_for_label }}"
-                               required>
+
+                        <div id="zkp-login-step-1">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Username</label>
+                                <input type="text" id="zkp-username" class="form-control"
+                                    style="border-radius: 12px; background: #F5F5F5; border: none;"
+                                    placeholder="Enter your username" required>
+                            </div>
+                            <button class="btn btn-dawn w-100" onclick="startZKPLogin()">
+                                <i class="bi bi-arrow-right-circle"></i> Request Challenge
+                            </button>
+                        </div>
+
+                        <div id="zkp-login-step-2" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Challenge Code:</label>
+                                <div class="p-3 mb-3"
+                                    style="background: #000; color: #0f0; border-radius: 12px; font-family: monospace; word-break: break-all; font-size: 12px;">
+                                    <code id="zkp-challenge-display" style="color: #0f0;"></code>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Your Secret Passphrase:</label>
+                                <input type="password" id="zkp-secret" class="form-control"
+                                    style="border-radius: 12px; background: #F5F5F5; border: none;"
+                                    placeholder="Enter your secret passphrase" required>
+                                <small style="color: #666;">This must match the secret you registered with</small>
+                            </div>
+                            <button class="btn btn-dawn w-100" onclick="submitZKPLogin()">
+                                <i class="bi bi-check-circle"></i> Verify & Login
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                        <input type="password" 
-                               name="{{ form.password.name }}" 
-                               class="form-control bg-dark text-white border-secondary" 
-                               id="{{ form.password.id_for_label }}"
-                               required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-cyber w-100 mb-3">
-                        <i class="bi bi-lock-fill"></i> Sign In Securely
-                    </button>
-                    
-                    <input type="hidden" name="next" value="{{ next }}">
-                </form>
-                
+                </div>
+
                 <div class="text-center mt-4">
-                    <p class="text-secondary mb-0">
-                        Don't have an account? 
-                        <a href="{% url 'register' %}" class="text-decoration-none" style="color: var(--primary-accent);">
+                    <p style="color: #666;" class="mb-0">
+                        Don't have an account?
+                        <a href="{% url 'register' %}" class="text-decoration-none"
+                            style="color: var(--dawn-orange); font-weight: 600;">
                             Create one
                         </a>
                     </p>
                 </div>
-                
-                <div class="mt-4 p-3 rounded" style="background: rgba(0, 255, 0, 0.05); border: 1px solid rgba(0, 255, 0, 0.2);">
-                    <small class="text-success">
-                        <i class="bi bi-shield-check"></i> Your credentials never leave your device
+
+                <div class="mt-4 p-3"
+                    style="background: rgba(76,175,80,0.05); border-radius: 12px; border: 1px solid rgba(76,175,80,0.2);">
+                    <small class="text-success d-block mb-1">
+                        <i class="bi bi-shield-check"></i> End-to-end encrypted
+                    </small>
+                    <small class="text-success d-block">
+                        <i class="bi bi-cpu"></i> Local AI processing only
                     </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    let zkpChallenge = null;
+
+    async function startZKPLogin() {
+        const username = document.getElementById('zkp-username').value;
+
+        if (!username) {
+            showNotification('⚠️ Please enter your username', 'warning');
+            return;
+        }
+
+        try {
+            // First, check if this user has ZKP enabled
+            const checkResponse = await fetch('/zkp/check/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ username: username })
+            });
+
+            const checkData = await checkResponse.json();
+
+            if (!checkData.zkp_enabled) {
+                showNotification('⚠️ ZKP not enabled for this account. Please use password login or setup ZKP first.', 'warning');
+                return;
+            }
+
+            // Request challenge from server
+            const response = await fetch('/zkp/challenge/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ username: username })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                zkpChallenge = data.challenge;
+                document.getElementById('zkp-challenge-display').textContent = data.challenge;
+                document.getElementById('zkp-login-step-1').style.display = 'none';
+                document.getElementById('zkp-login-step-2').style.display = 'block';
+                showNotification('🎲 Challenge received! Enter your ZKP secret phrase.', 'success');
+            } else {
+                showNotification('❌ Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Full error:', error);
+            showNotification('❌ Network error: ' + error.message, 'error');
+        }
+    }
+
+    async function submitZKPLogin() {
+        const username = document.getElementById('zkp-username').value;
+        const secret = document.getElementById('zkp-secret').value;
+
+        if (!secret) {
+            showNotification('⚠️ Please enter your secret passphrase', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/zkp/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    username: username,
+                    response: secret
+                })
+            });
+
+            // Check if response is ok
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('✅ Authentication successful!', 'success');
+                setTimeout(() => {
+                    window.location.href = data.redirect || '/dashboard/';
+                }, 1000);
+            } else {
+                showNotification('❌ Authentication failed: ' + data.error, 'error');
+                // Reset
+                document.getElementById('zkp-login-step-1').style.display = 'block';
+                document.getElementById('zkp-login-step-2').style.display = 'none';
+                document.getElementById('zkp-secret').value = '';
+            }
+        } catch (error) {
+            console.error('Full error:', error);
+            showNotification('❌ Authentication error: ' + error.message, 'error');
+            // Reset on error
+            document.getElementById('zkp-login-step-1').style.display = 'block';
+            document.getElementById('zkp-login-step-2').style.display = 'none';
+            document.getElementById('zkp-secret').value = '';
+        }
+    }
+
+    function showNotification(message, type = 'success') {
+        const colors = {
+            success: '#4CAF50',
+            error: '#f44336',
+            warning: '#ff9800'
+        };
+
+        const notification = document.createElement('div');
+        notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+        notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+<style>
+    .nav-pills .nav-link {
+        color: #666;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .nav-pills .nav-link.active {
+        background: var(--dawn-orange) !important;
+        color: white;
+    }
+
+    .nav-pills .nav-link:hover:not(.active) {
+        background: rgba(255, 107, 53, 0.1);
+        color: var(--dawn-orange);
+    }
+</style>
 {% endblock %}

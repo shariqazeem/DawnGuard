@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="dawn-card p-5">
+                <div class="text-center mb-4">
+                    <div class="mb-3" style="font-size: 64px;">🔐</div>
+                    <h2 class="fw-bold mb-2" style="color: var(--dawn-dark);">
+                        Setup Zero-Knowledge Proof
+                    </h2>
+                    <p style="color: #666;">
+                        Create a separate secret for advanced authentication
+                    </p>
+                </div>
+
+                <div class="alert alert-warning mb-4" style="border-radius: 12px; border-left: 4px solid #ff9800;">
+                    <strong>⚠️ Important:</strong> Choose a DIFFERENT secret than your password. This secret will NEVER be sent over the network - only cryptographic proofs.
+                </div>
+
+                <form id="zkp-setup-form">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Current Password</label>
+                        <input type="password" id="current-password" class="form-control" 
+                               style="border-radius: 12px; background: #F5F5F5; border: none;"
+                               placeholder="Verify your identity" required>
+                        <small style="color: #666;">To confirm it's you</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ZKP Secret Phrase</label>
+                        <input type="password" id="zkp-secret" class="form-control" 
+                               style="border-radius: 12px; background: #F5F5F5; border: none;"
+                               placeholder="Enter a unique secret phrase" required>
+                        <small style="color: #666;">This can be ANYTHING - a phrase, sentence, or random text</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Confirm ZKP Secret</label>
+                        <input type="password" id="zkp-secret-confirm" class="form-control" 
+                               style="border-radius: 12px; background: #F5F5F5; border: none;"
+                               placeholder="Re-enter your secret phrase" required>
+                    </div>
+
+                    <div class="alert alert-info mb-3" style="border-radius: 12px; border-left: 4px solid var(--dawn-blue);">
+                        <small>
+                            <strong>💡 Examples of good ZKP secrets:</strong><br>
+                            • "I love pizza on Tuesdays at 3pm"<br>
+                            • "My cat's name is Fluffy2024"<br>
+                            • "The quick brown fox jumps"<br>
+                            <br>
+                            Make it memorable but unique!
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-dawn w-100 mb-3">
+                        <i class="bi bi-shield-check"></i> Enable ZKP Authentication
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'dashboard' %}" style="color: #666; text-decoration: none;">
+                        ← Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('zkp-setup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const currentPassword = document.getElementById('current-password').value;
+    const zkpSecret = document.getElementById('zkp-secret').value;
+    const zkpSecretConfirm = document.getElementById('zkp-secret-confirm').value;
+    
+    if (zkpSecret !== zkpSecretConfirm) {
+        showNotification('⚠️ ZKP secrets do not match!', 'warning');
+        return;
+    }
+    
+    if (zkpSecret === currentPassword) {
+        showNotification('⚠️ ZKP secret must be DIFFERENT from your password!', 'warning');
+        return;
+    }
+    
+    if (zkpSecret.length < 8) {
+        showNotification('⚠️ ZKP secret must be at least 8 characters!', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/zkp/setup/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                zkp_secret: zkpSecret
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('✅ ZKP Authentication enabled successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = '/dashboard/';
+            }, 2000);
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Network error: ' + error.message, 'error');
+    }
+});
+
+function showNotification(message, type = 'success') {
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);`;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

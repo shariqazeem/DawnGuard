@@ -6,6 +6,8 @@ from cryptography.fernet import Fernet
 import base64
 import json
 from django.conf import settings
+import hashlib
+import secrets
 
 def get_cipher():
     """Get or create Fernet cipher for encryption"""
@@ -88,7 +90,9 @@ class UserProfile(models.Model):
     max_tokens = models.IntegerField(default=2048)
     temperature = models.FloatField(default=0.7)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+        # Zero-Knowledge Proof
+    zkp_secret_hash = models.CharField(max_length=64, blank=True, null=True)
+    zkp_enabled = models.BooleanField(default=False)
     def __str__(self):
         return f"Profile: {self.user.username}"
 
@@ -104,3 +108,91 @@ class SystemStats(models.Model):
     
     def __str__(self):
         return f"Stats for {self.date}"
+
+class BlackBoxNode(models.Model):
+    """Represents a Black Box node in the P2P network"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='blackbox_node')
+    node_id = models.CharField(max_length=64, unique=True)  # SHA256 hash
+    public_key = models.TextField()  # For P2P encryption
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    port = models.IntegerField(default=8000)
+    is_online = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(auto_now=True)
+    reputation_score = models.IntegerField(default=100)  # For trust
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"BlackBox-{self.node_id[:8]}"
+    
+    def generate_node_id(self):
+        """Generate unique node ID"""
+        data = f"{self.user.username}{secrets.token_hex(16)}"
+        self.node_id = hashlib.sha256(data.encode()).hexdigest()
+        return self.node_id
+
+class SharedKnowledge(models.Model):
+    """P2P shared knowledge between Black Boxes"""
+    title = models.CharField(max_length=200)
+    content = models.TextField()  # Encrypted content
+    encryption_key_hash = models.CharField(max_length=64)  # Hash of the key
+    
+    shared_by = models.ForeignKey(BlackBoxNode, on_delete=models.CASCADE, related_name='shared_knowledge')
+    shared_with = models.ManyToManyField(BlackBoxNode, related_name='received_knowledge', blank=True)
+    
+    is_public = models.BooleanField(default=False)  # Public in the P2P network
+    category = models.CharField(max_length=50, default='general')
+    
+    downloads = models.IntegerField(default=0)
+    upvotes = models.IntegerField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.title
+
+class ZKProof(models.Model):
+    """Zero-Knowledge Proof for authentication"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='zk_proofs')
+    challenge = models.CharField(max_length=128)  # Random challenge
+    response = models.CharField(max_length=256)  # User's response
+    proof_hash = models.CharField(max_length=64)  # Hash of the proof
+    
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def verify_proof(self, user_response):
+        """Verify ZK proof without revealing the secret"""
+        expected = hashlib.sha256(f"{self.challenge}{user_response}".encode()).hexdigest()
+        return expected == self.proof_hash
+
+class P2PConnection(models.Model):
+    """Track P2P connections between Black Boxes"""
+    from_node = models.ForeignKey(BlackBoxNode, on_delete=models.CASCADE, related_name='outgoing_connections')
+    to_node = models.ForeignKey(BlackBoxNode, on_delete=models.CASCADE, related_name='incoming_connections')  # Fixed: models.CASCADE instead of CASCADE
+    
+    connection_type = models.CharField(max_length=20, choices=[
+        ('direct', 'Direct'),
+        ('relay', 'Relay'),
+        ('mesh', 'Mesh')
+    ], default='direct')
+    
+    is_active = models.BooleanField(default=True)
+    shared_keys = models.TextField()  # Encrypted shared session keys
+    
+    established_at = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['from_node', 'to_node']
+    
+    def __str__(self):
+        return f"{self.from_node} -> {self.to_node}"

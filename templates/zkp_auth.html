@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5" style="background: var(--dawn-cream);">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <div class="text-center">
+                    <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                        🔐 Zero-Knowledge Proof Authentication
+                    </h2>
+                    <p class="mb-0" style="color: #666;">
+                        Prove your identity without revealing your secret
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- ZKP Demo -->
+        <div class="col-lg-8">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-shield-lock"></i> Generate Zero-Knowledge Proof
+                </h4>
+                
+                <div class="alert alert-info" style="border-radius: 16px; border-left: 4px solid var(--dawn-blue);">
+                    <strong>How it works:</strong> You'll receive a challenge. Provide your secret response, and we'll verify you know the secret WITHOUT ever seeing it!
+                </div>
+                
+                <div id="zkp-steps">
+                    <!-- Step 1: Generate Challenge -->
+                    <div id="step-1" class="zkp-step active">
+                        <div class="p-4 mb-3" style="background: rgba(255,107,53,0.05); border-radius: 16px;">
+                            <h5 class="mb-3 fw-bold">Step 1: Request Challenge</h5>
+                            <p style="color: #666;">Click to receive a cryptographic challenge from the server.</p>
+                            <button class="btn btn-dawn btn-lg" onclick="generateChallenge()">
+                                <i class="bi bi-arrow-right-circle"></i> Generate Challenge
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Show Challenge -->
+                    <div id="step-2" class="zkp-step" style="display: none;">
+                        <div class="p-4 mb-3" style="background: rgba(107,53,255,0.05); border-radius: 16px;">
+                            <h5 class="mb-3 fw-bold">Step 2: Challenge Received</h5>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Challenge Code:</label>
+                                <div class="p-3" style="background: #000; color: #0f0; border-radius: 12px; font-family: monospace; word-break: break-all;">
+                                    <code id="challenge-code" style="color: #0f0;"></code>
+                                </div>
+                            </div>
+                            <p style="color: #666;">Enter your secret passphrase to generate the proof:</p>
+                            <div class="mb-3">
+                                <input type="password" class="form-control form-control-lg" id="secret-input" 
+                                       placeholder="Enter your secret passphrase" style="border-radius: 12px;">
+                            </div>
+                            <button class="btn btn-dawn btn-lg" onclick="submitProof()">
+                                <i class="bi bi-check-circle"></i> Submit Proof
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Verification -->
+                    <div id="step-3" class="zkp-step" style="display: none;">
+                        <div class="p-4 mb-3" style="background: rgba(76,175,80,0.1); border-radius: 16px; border: 2px solid #4CAF50;">
+                            <div class="text-center">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 64px;"></i>
+                                <h5 class="mt-3 mb-3 fw-bold text-success">Proof Verified! ✓</h5>
+                                <p style="color: #666;">
+                                    You've successfully proven your identity without revealing your secret!
+                                </p>
+                                <div class="mt-4">
+                                    <small class="text-muted">Proof ID: <code id="proof-id"></code></small><br>
+                                    <small class="text-muted">Expires: <span id="proof-expires"></span></small>
+                                </div>
+                                <button class="btn btn-dawn mt-4" onclick="resetZKP()">
+                                    <i class="bi bi-arrow-clockwise"></i> Generate Another Proof
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Indicator -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="step-indicator active" id="indicator-1">1. Challenge</span>
+                        <span class="step-indicator" id="indicator-2">2. Response</span>
+                        <span class="step-indicator" id="indicator-3">3. Verified</span>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div id="progress-bar" class="progress-bar" style="width: 33%; background: var(--dawn-orange); transition: width 0.5s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar: Info & History -->
+        <div class="col-lg-4">
+            <!-- What is ZKP? -->
+            <div class="dawn-card mb-4">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-info-circle"></i> What is Zero-Knowledge Proof?
+                </h5>
+                <p class="small" style="color: #666;">
+                    Zero-Knowledge Proof allows you to prove you know a secret <strong>without revealing the secret itself</strong>.
+                </p>
+                <div class="mt-3 p-3" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
+                    <div class="mb-2">
+                        <i class="bi bi-shield-check text-success"></i>
+                        <strong class="small">Private:</strong>
+                        <p class="small mb-0" style="color: #666;">Your secret never leaves your device</p>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-lock text-warning"></i>
+                        <strong class="small">Secure:</strong>
+                        <p class="small mb-0" style="color: #666;">Cryptographically unbreakable</p>
+                    </div>
+                    <div>
+                        <i class="bi bi-eye-slash text-primary"></i>
+                        <strong class="small">Cypherpunk:</strong>
+                        <p class="small mb-0" style="color: #666;">True privacy by design</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Proofs -->
+            <div class="dawn-card">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-clock-history"></i> Recent Proofs
+                </h5>
+                {% for proof in zkp_proofs %}
+                <div class="p-2 mb-2" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="small fw-bold">
+                                {% if proof.is_verified %}
+                                    <i class="bi bi-check-circle-fill text-success"></i> Verified
+                                {% else %}
+                                    <i class="bi bi-x-circle-fill text-danger"></i> Failed
+                                {% endif %}
+                            </div>
+                            <small style="color: #999;">{{ proof.created_at|timesince }} ago</small>
+                        </div>
+                        <code style="font-size: 10px;">{{ proof.proof_hash|slice:":8" }}</code>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center small" style="color: #999;">No proofs yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- How ZKP Works Explanation -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(255,107,53,0.03), rgba(107,53,255,0.03));">
+                <h4 class="mb-4 text-center fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-diagram-3"></i> How Zero-Knowledge Proof Works
+                </h4>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="mb-3" style="font-size: 48px;">🎲</div>
+                            <h6 class="fw-bold">1. Challenge</h6>
+                            <p class="small" style="color: #666;">
+                                Server generates a random cryptographic challenge
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="mb-3" style="font-size: 48px;">🔐</div>
+                            <h6 class="fw-bold">2. Proof</h6>
+                            <p class="small" style="color: #666;">
+                                You combine your secret with the challenge to create a proof
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="mb-3" style="font-size: 48px;">✅</div>
+                            <h6 class="fw-bold">3. Verify</h6>
+                            <p class="small" style="color: #666;">
+                                Server verifies proof without ever seeing your secret
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentChallenge = null;
+
+async function generateChallenge() {
+    try {
+        const response = await fetch('/zkp/challenge/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentChallenge = data.challenge;
+            document.getElementById('challenge-code').textContent = data.challenge;
+            
+            // Move to step 2
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'block';
+            document.getElementById('indicator-2').classList.add('active');
+            document.getElementById('progress-bar').style.width = '66%';
+            
+            showNotification('🎲 Challenge generated!', 'success');
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Network error: ' + error.message, 'error');
+    }
+}
+
+async function submitProof() {
+    const secret = document.getElementById('secret-input').value;
+    
+    if (!secret) {
+        showNotification('⚠️ Please enter your secret passphrase', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/zkp/verify/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                response: secret
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('proof-id').textContent = data.proof_id;
+            document.getElementById('proof-expires').textContent = new Date(data.expires_at).toLocaleString();
+            
+            // Move to step 3
+            document.getElementById('step-2').style.display = 'none';
+            document.getElementById('step-3').style.display = 'block';
+            document.getElementById('indicator-3').classList.add('active');
+            document.getElementById('progress-bar').style.width = '100%';
+            
+            showNotification('✅ Proof verified successfully!', 'success');
+        } else {
+            showNotification('❌ Verification failed: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Network error: ' + error.message, 'error');
+    }
+}
+
+function resetZKP() {
+    // Reset to step 1
+    document.getElementById('step-1').style.display = 'block';
+    document.getElementById('step-2').style.display = 'none';
+    document.getElementById('step-3').style.display = 'none';
+    
+    document.getElementById('indicator-2').classList.remove('active');
+    document.getElementById('indicator-3').classList.remove('active');
+    document.getElementById('progress-bar').style.width = '33%';
+    
+    document.getElementById('secret-input').value = '';
+    currentChallenge = null;
+}
+
+function showNotification(message, type = 'success') {
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);`;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+.step-indicator {
+    color: #999;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.05);
+    transition: all 0.3s;
+}
+
+.step-indicator.active {
+    color: var(--dawn-orange);
+    background: rgba(255,107,53,0.1);
+}
+
+.zkp-step {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
