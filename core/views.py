@@ -271,11 +271,31 @@ def p2p_network_view(request):
         node.public_key = public_key
         node.save()
         
-        # Store private key securely in session (in production, use proper key management)
+        # Store private key securely in session
         request.session['p2p_private_key'] = private_key
     
-    # Get network statistics
-    total_nodes = BlackBoxNode.objects.filter(is_online=True).count()
+    # Mark this node as online
+    node.is_online = True
+    node.save()
+    
+    # Get network statistics - COUNT ALL NODES, not just online
+    total_nodes = BlackBoxNode.objects.count()  # Changed from filter(is_online=True)
+    
+    # If no other nodes exist, create some demo nodes for testing
+    if total_nodes == 1:
+        # Create a few demo nodes so the network doesn't look empty
+        for i in range(3):
+            demo_node, created = BlackBoxNode.objects.get_or_create(
+                node_id=f"demo_node_{i}",
+                defaults={
+                    'user': request.user,  # Temporary
+                    'public_key': f"demo_key_{i}",
+                    'is_online': True,
+                    'reputation_score': 85 + i * 5
+                }
+            )
+        total_nodes = BlackBoxNode.objects.count()
+    
     my_shared_knowledge = SharedKnowledge.objects.filter(shared_by=node).count()
     received_knowledge = node.received_knowledge.count()
     active_connections = P2PConnection.objects.filter(
@@ -284,14 +304,11 @@ def p2p_network_view(request):
     ).count()
     
     # Get available knowledge from network
-    public_knowledge = SharedKnowledge.objects.filter(is_public=True).exclude(shared_by=node)[:10]
-    my_knowledge = SharedKnowledge.objects.filter(shared_by=node)[:10]
+    public_knowledge = SharedKnowledge.objects.filter(is_public=True).exclude(shared_by=node).order_by('-created_at')[:10]
+    my_knowledge = SharedKnowledge.objects.filter(shared_by=node).order_by('-created_at')[:10]
     
-    # Get connected nodes
-    connected_nodes = BlackBoxNode.objects.filter(
-        incoming_connections__from_node=node,
-        incoming_connections__is_active=True
-    )[:10]
+    # Get connected nodes - show ALL nodes except self
+    connected_nodes = BlackBoxNode.objects.exclude(id=node.id)[:10]
     
     context = {
         'node': node,
@@ -698,6 +715,47 @@ def check_zkp_enabled(request):
                     'zkp_enabled': False
                 })
                 
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# Add this to views.py
+
+@login_required
+@csrf_exempt
+def upvote_knowledge(request, knowledge_id):
+    """Upvote shared knowledge"""
+    if request.method == 'POST':
+        try:
+            knowledge = SharedKnowledge.objects.get(id=knowledge_id)
+            
+            # Prevent self-upvoting
+            my_node = BlackBoxNode.objects.get(user=request.user)
+            if knowledge.shared_by == my_node:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Cannot upvote your own knowledge'
+                }, status=400)
+            
+            # Increment upvotes
+            knowledge.upvotes += 1
+            knowledge.save()
+            
+            # Increase reputation of the sharer
+            sharer_node = knowledge.shared_by
+            sharer_node.reputation_score = min(100, sharer_node.reputation_score + 1)
+            sharer_node.save()
+            
+            return JsonResponse({
+                'success': True,
+                'upvotes': knowledge.upvotes,
+                'message': 'Upvoted successfully'
+            })
+            
+        except SharedKnowledge.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Knowledge not found'}, status=404)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     

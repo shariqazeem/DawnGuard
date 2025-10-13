@@ -18,6 +18,7 @@ urlpatterns = [
     path('p2p/share/', views.share_knowledge, name='share_knowledge'),
     path('p2p/connect/<str:node_id>/', views.connect_to_node, name='connect_to_node'),
     path('p2p/download/<int:knowledge_id>/', views.download_knowledge, name='download_knowledge'),
+    path('p2p/upvote/<int:knowledge_id>/', views.upvote_knowledge, name='upvote_knowledge'),
     
     # Zero-Knowledge Proof
     path('zkp/', views.zkp_auth_view, name='zkp_auth'),

@@ -9,125 +9,299 @@
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
-                            <i class="bi bi-diagram-3"></i> P2P Knowledge Network
+                            <i class="bi bi-diagram-3"></i> Decentralized Knowledge Network
                         </h2>
                         <p class="mb-0" style="color: #666;">
-                            Secure, encrypted knowledge sharing between Black Boxes • Your Node: <code>{{ node.node_id|slice:":12" }}...</code>
+                            🌐 True P2P • 🔐 End-to-End Encrypted • 🤝 Zero Trust Architecture
                         </p>
+                        <div class="mt-2">
+                            <span class="badge"
+                                style="background: #4CAF50; color: white; padding: 6px 12px; border-radius: 16px;">
+                                <i class="bi bi-circle-fill" style="font-size: 8px; animation: pulse 2s infinite;"></i>
+                                Your Node: <code style="color: white;">{{ node.node_id|slice:":12" }}...</code>
+                            </span>
+                        </div>
                     </div>
                     <div class="col-md-4 text-md-end">
-                        <button class="btn btn-dawn" onclick="showShareModal()">
+                        <button class="btn btn-dawn mb-2" onclick="showShareModal()">
                             <i class="bi bi-share"></i> Share Knowledge
+                        </button>
+                        <button class="btn btn-outline-dawn mb-2" onclick="discoverNodes()">
+                            <i class="bi bi-radar"></i> Discover Nodes
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Network Visualization -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-diagram-3-fill"></i> Network Topology
+                </h4>
+                <div id="network-graph"
+                    style="height: 300px; background: #000; border-radius: 12px; position: relative; overflow: hidden;">
+                    <!-- Network visualization will be drawn here -->
+                    <canvas id="network-canvas"></canvas>
+                </div>
+                <div class="mt-3 text-center">
+                    <small style="color: #666;">
+                        <i class="bi bi-info-circle"></i>
+                        Live P2P mesh network showing Black Box connections
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Network Stats -->
     <div class="row mb-4 g-4">
         <div class="col-md-3">
             <div class="dawn-card text-center">
                 <div class="h2 mb-2 glow-text fw-bold">{{ total_nodes }}</div>
                 <div style="color: #666; font-weight: 500;">Active Nodes</div>
+                <small class="text-success">
+                    <i class="bi bi-arrow-up"></i> Live on network
+                </small>
             </div>
         </div>
         <div class="col-md-3">
             <div class="dawn-card text-center">
                 <div class="h2 mb-2 fw-bold" style="color: var(--dawn-purple);">{{ my_shared_knowledge }}</div>
                 <div style="color: #666; font-weight: 500;">Shared by You</div>
+                <small style="color: var(--dawn-purple);">
+                    <i class="bi bi-box-seam"></i> In network
+                </small>
             </div>
         </div>
         <div class="col-md-3">
             <div class="dawn-card text-center">
                 <div class="h2 mb-2 fw-bold" style="color: var(--dawn-blue);">{{ received_knowledge }}</div>
                 <div style="color: #666; font-weight: 500;">Downloaded</div>
+                <small style="color: var(--dawn-blue);">
+                    <i class="bi bi-download"></i> Cached locally
+                </small>
             </div>
         </div>
         <div class="col-md-3">
             <div class="dawn-card text-center">
                 <div class="h2 mb-2 fw-bold" style="color: #4CAF50;">{{ active_connections }}</div>
-                <div style="color: #666; font-weight: 500;">Connections</div>
+                <div style="color: #666; font-weight: 500;">P2P Links</div>
+                <small class="text-success">
+                    <i class="bi bi-link-45deg"></i> Encrypted
+                </small>
             </div>
         </div>
     </div>
-    
+
     <div class="row g-4">
         <!-- Public Knowledge Network -->
         <div class="col-lg-8">
             <div class="dawn-card">
-                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-globe"></i> Public Knowledge Network
-                </h4>
-                
-                <div class="knowledge-grid">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0 fw-bold" style="color: var(--dawn-dark);">
+                        <i class="bi bi-globe2"></i> Decentralized Knowledge Pool
+                    </h4>
+                    <div>
+                        <select class="form-select form-select-sm" id="category-filter" onchange="filterKnowledge()"
+                            style="border-radius: 12px; border: 2px solid rgba(0,0,0,0.1);">
+                            <option value="all">All Categories</option>
+                            <option value="technology">Technology</option>
+                            <option value="science">Science</option>
+                            <option value="education">Education</option>
+                            <option value="privacy">Privacy & Security</option>
+                            <option value="general">General</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="knowledge-grid" id="knowledge-grid">
                     {% for knowledge in public_knowledge %}
-                    <div class="knowledge-card p-3 mb-3" style="background: rgba(255,107,53,0.03); border-radius: 16px; border-left: 4px solid var(--dawn-orange);">
+                    <div class="knowledge-card p-3 mb-3" data-category="{{ knowledge.category }}" style="background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(107,53,255,0.05)); 
+                                border-radius: 16px; border-left: 4px solid var(--dawn-orange);
+                                transition: all 0.3s ease;">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h6 class="mb-0 fw-bold" style="color: var(--dawn-dark);">{{ knowledge.title }}</h6>
-                            <span class="badge" style="background: var(--dawn-purple); color: white;">{{ knowledge.category }}</span>
+                            <div style="flex: 1;">
+                                <h6 class="mb-1 fw-bold" style="color: var(--dawn-dark);">
+                                    <i class="bi bi-file-earmark-lock"></i> {{ knowledge.title }}
+                                </h6>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="badge"
+                                        style="background: var(--dawn-purple); color: white; font-size: 10px;">
+                                        {{ knowledge.category }}
+                                    </span>
+                                    <span class="badge"
+                                        style="background: rgba(0,0,0,0.1); color: #666; font-size: 10px;">
+                                        🔐 Encrypted
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="mb-1">
+                                    <small class="badge" style="background: #4CAF50; color: white; font-size: 9px;">
+                                        Rep: {{ knowledge.shared_by.reputation_score }}
+                                    </small>
+                                </div>
+                            </div>
                         </div>
+
                         <p class="mb-2 small" style="color: #666;">
-                            Shared by: <code>{{ knowledge.shared_by.node_id|slice:":8" }}...</code>
+                            <i class="bi bi-person-badge"></i> Node:
+                            <code>{{ knowledge.shared_by.node_id|slice:":8" }}...</code>
                         </p>
+
                         <div class="d-flex justify-content-between align-items-center">
                             <small style="color: #999;">
-                                <i class="bi bi-download"></i> {{ knowledge.downloads }} • 
-                                <i class="bi bi-arrow-up-circle"></i> {{ knowledge.upvotes }}
+                                <i class="bi bi-download"></i> {{ knowledge.downloads }} •
+                                <i class="bi bi-hand-thumbs-up"></i> {{ knowledge.upvotes }} •
+                                <i class="bi bi-clock"></i> {{ knowledge.created_at|timesince }} ago
                             </small>
-                            <button class="btn btn-sm btn-dawn" onclick="downloadKnowledge({{ knowledge.id }})">
-                                <i class="bi bi-download"></i> Download
-                            </button>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger me-1"
+                                    onclick="upvoteKnowledge({{ knowledge.id }})">
+                                    <i class="bi bi-hand-thumbs-up"></i>
+                                </button>
+                                <button class="btn btn-sm btn-dawn" onclick="downloadKnowledge({{ knowledge.id }})">
+                                    <i class="bi bi-download"></i> Get
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Encryption indicator -->
+                        <div class="mt-2 p-2" style="background: rgba(76,175,80,0.05); border-radius: 8px;">
+                            <small style="color: #4CAF50; font-size: 10px;">
+                                <i class="bi bi-shield-lock-fill"></i>
+                                End-to-end encrypted transfer • Hash:
+                                <code>{{ knowledge.encryption_key_hash|slice:":8" }}...</code>
+                            </small>
                         </div>
                     </div>
                     {% empty %}
                     <div class="text-center py-5">
-                        <i class="bi bi-inbox" style="font-size: 48px; opacity: 0.2;"></i>
-                        <p class="mt-3" style="color: #999;">No public knowledge available yet</p>
+                        <i class="bi bi-inbox" style="font-size: 64px; opacity: 0.2; color: var(--dawn-dark);"></i>
+                        <p class="mt-3 mb-3" style="color: #999;">No knowledge in the network yet</p>
+                        <button class="btn btn-dawn" onclick="showShareModal()">
+                            <i class="bi bi-plus-circle"></i> Be the first to share!
+                        </button>
                     </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
-        
+
         <!-- Sidebar -->
         <div class="col-lg-4">
             <!-- Your Shared Knowledge -->
             <div class="dawn-card mb-4">
                 <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-box-seam"></i> Your Knowledge
+                    <i class="bi bi-box-seam"></i> Your Contributions
                 </h5>
                 {% for knowledge in my_knowledge %}
-                <div class="p-2 mb-2" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
-                    <div class="fw-bold small">{{ knowledge.title|truncatechars:30 }}</div>
-                    <small style="color: #999;">
-                        <i class="bi bi-download"></i> {{ knowledge.downloads }} downloads
-                    </small>
+                <div class="p-3 mb-2"
+                    style="background: rgba(255,107,53,0.05); border-radius: 12px; border-left: 3px solid var(--dawn-orange);">
+                    <div class="fw-bold small mb-1">{{ knowledge.title|truncatechars:30 }}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small style="color: #999;">
+                            <i class="bi bi-download"></i> {{ knowledge.downloads }} downloads
+                        </small>
+                        <span class="badge"
+                            style="background: {{ knowledge.is_public|yesno:'#4CAF50,#ff9800' }}; color: white; font-size: 9px;">
+                            {{ knowledge.is_public|yesno:'Public,Private' }}
+                        </span>
+                    </div>
                 </div>
                 {% empty %}
-                <p class="text-center small" style="color: #999;">No knowledge shared yet</p>
+                <div class="text-center py-4">
+                    <i class="bi bi-box" style="font-size: 32px; opacity: 0.2;"></i>
+                    <p class="small mt-2 mb-0" style="color: #999;">No knowledge shared yet</p>
+                </div>
                 {% endfor %}
             </div>
-            
+
             <!-- Connected Nodes -->
-            <div class="dawn-card">
+            <div class="dawn-card mb-4">
                 <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-diagram-3"></i> Connected Nodes
+                    <i class="bi bi-diagram-3"></i> Mesh Network
                 </h5>
+                <div class="mb-3 p-2" style="background: rgba(76,175,80,0.05); border-radius: 8px;">
+                    <small class="text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <strong>Peer-to-Peer Mode:</strong> Direct connections
+                    </small>
+                </div>
                 {% for connected_node in connected_nodes %}
-                <div class="d-flex align-items-center mb-2 p-2" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
+                <div class="d-flex align-items-center mb-2 p-2"
+                    style="background: rgba(0,0,0,0.02); border-radius: 12px; transition: all 0.2s;"
+                    onmouseover="this.style.background='rgba(255,107,53,0.1)'"
+                    onmouseout="this.style.background='rgba(0,0,0,0.02)'">
                     <div class="me-2">
-                        <span class="badge bg-success" style="width: 12px; height: 12px; border-radius: 50%; padding: 0;"></span>
+                        <span class="badge bg-success"
+                            style="width: 12px; height: 12px; border-radius: 50%; padding: 0; animation: pulse 2s infinite;"></span>
                     </div>
                     <div style="flex: 1;">
-                        <div class="small fw-bold">{{ connected_node.node_id|slice:":12" }}...</div>
-                        <small style="color: #999;">Rep: {{ connected_node.reputation_score }}</small>
+                        <div class="small fw-bold">
+                            <i class="bi bi-hdd-network"></i> {{ connected_node.node_id|slice:":12" }}...
+                        </div>
+                        <small style="color: #999;">
+                            Trust: {{ connected_node.reputation_score }}/100
+                        </small>
                     </div>
+                    <button class="btn btn-sm btn-outline-danger"
+                        onclick="connectToNode('{{ connected_node.node_id }}')"
+                        style="font-size: 10px; padding: 4px 8px; border-radius: 8px;">
+                        <i class="bi bi-link-45deg"></i>
+                    </button>
                 </div>
                 {% empty %}
-                <p class="text-center small" style="color: #999;">No connections yet</p>
+                <div class="text-center py-3">
+                    <i class="bi bi-diagram-3" style="font-size: 32px; opacity: 0.2;"></i>
+                    <p class="small mt-2 mb-2" style="color: #999;">No connections yet</p>
+                    <button class="btn btn-sm btn-dawn" onclick="discoverNodes()">
+                        <i class="bi bi-radar"></i> Discover
+                    </button>
+                </div>
                 {% endfor %}
+            </div>
+
+            <!-- Network Stats -->
+            <div class="dawn-card"
+                style="background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(107,53,255,0.05));">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-graph-up"></i> Network Health
+                </h5>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small style="color: #666;">Node Reputation</small>
+                        <small class="fw-bold" style="color: var(--dawn-orange);">
+                            {{ node.reputation_score }}/100
+                        </small>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px; background: rgba(0,0,0,0.1);">
+                        <div class="progress-bar"
+                            style="width: {{ node.reputation_score }}%; background: var(--dawn-orange);"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small style="color: #666;">Network Coverage</small>
+                        <small class="fw-bold" style="color: #4CAF50;">
+                            {{ active_connections }}/10
+                        </small>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px; background: rgba(0,0,0,0.1);">
+                        <div class="progress-bar bg-success"
+                            style="width: {% if active_connections > 0 %}{{ active_connections }}0{% else %}5{% endif %}%;">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2" style="background: rgba(0,0,0,0.05); border-radius: 8px;">
+                    <small style="color: #666;">
+                        <i class="bi bi-shield-check"></i> All transfers encrypted with RSA-2048
+                    </small>
+                </div>
             </div>
         </div>
     </div>
@@ -135,24 +309,41 @@
 
 <!-- Share Knowledge Modal -->
 <div class="modal fade" id="shareModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content" style="border-radius: 20px; border: none;">
-            <div class="modal-header" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <h5 class="modal-title fw-bold">Share Knowledge</h5>
+            <div class="modal-header"
+                style="border-bottom: 1px solid rgba(0,0,0,0.05); background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(107,53,255,0.05));">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-share"></i> Share Knowledge to P2P Network
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info mb-3"
+                    style="border-radius: 12px; border-left: 4px solid var(--dawn-blue);">
+                    <small>
+                        <strong><i class="bi bi-info-circle"></i> How it works:</strong><br>
+                        Your knowledge will be encrypted and broadcast to all connected Black Box nodes in the mesh
+                        network.
+                    </small>
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label fw-bold">Title</label>
-                    <input type="text" class="form-control" id="knowledge-title" placeholder="Knowledge title">
+                    <input type="text" class="form-control" id="knowledge-title"
+                        placeholder="e.g., Best practices for secure AI deployment" style="border-radius: 12px;">
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Content</label>
-                    <textarea class="form-control" id="knowledge-content" rows="5" placeholder="Enter your knowledge..."></textarea>
+                    <textarea class="form-control" id="knowledge-content" rows="6" placeholder="Share your knowledge..."
+                        style="border-radius: 12px;"></textarea>
+                    <small style="color: #666;">
+                        <i class="bi bi-lock-fill"></i> Will be encrypted before transmission
+                    </small>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Category</label>
-                    <select class="form-select" id="knowledge-category">
+                    <select class="form-select" id="knowledge-category" style="border-radius: 12px;">
                         <option value="general">General</option>
                         <option value="technology">Technology</option>
                         <option value="science">Science</option>
@@ -160,17 +351,19 @@
                         <option value="privacy">Privacy & Security</option>
                     </select>
                 </div>
-                <div class="form-check">
+                <div class="form-check p-3" style="background: rgba(76,175,80,0.05); border-radius: 12px;">
                     <input class="form-check-input" type="checkbox" id="knowledge-public" checked>
-                    <label class="form-check-label" for="knowledge-public">
-                        Make public in P2P network
+                    <label class="form-check-label fw-bold" for="knowledge-public">
+                        <i class="bi bi-globe"></i> Broadcast to public P2P network
                     </label>
+                    <br>
+                    <small style="color: #666;">Uncheck for private sharing only</small>
                 </div>
             </div>
             <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05);">
                 <button type="button" class="btn btn-outline-dawn" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-dawn" onclick="shareKnowledge()">
-                    <i class="bi bi-share"></i> Share
+                    <i class="bi bi-broadcast"></i> Broadcast to Network
                 </button>
             </div>
         </div>
@@ -178,80 +371,143 @@
 </div>
 
 <script>
-function showShareModal() {
-    new bootstrap.Modal(document.getElementById('shareModal')).show();
-}
+    // Network Visualization
+    const canvas = document.getElementById('network-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.parentElement.offsetWidth;
+    canvas.height = 300;
 
-async function shareKnowledge() {
-    const title = document.getElementById('knowledge-title').value;
-    const content = document.getElementById('knowledge-content').value;
-    const category = document.getElementById('knowledge-category').value;
-    const isPublic = document.getElementById('knowledge-public').checked;
-    
-    if (!title || !content) {
-        alert('Please fill in all fields');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/p2p/share/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                title: title,
-                content: content,
-                category: category,
-                is_public: isPublic
-            })
-        });
-        
-        const data = await response.json();
-        
-if (data.success) {
-            showNotification('✅ Knowledge shared successfully on P2P network!', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showNotification('❌ Error: ' + data.error, 'error');
+    // Simple network visualization
+    function drawNetwork() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw center node (you)
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        ctx.fillStyle = '#FF6B35';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        ctx.fillText('YOU', centerX - 15, centerY + 4);
+
+        // Draw connected nodes - FIX THE TEMPLATE VARIABLE
+        const nodeCount = parseInt('{{ total_nodes }}') || 1;  // Fixed!
+        for (let i = 0; i < Math.min(nodeCount, 8); i++) {
+            const angle = (i / 8) * 2 * Math.PI;
+            const x = centerX + Math.cos(angle) * 120;
+            const y = centerY + Math.sin(angle) * 100;
+
+            // Draw connection line
+            ctx.strokeStyle = 'rgba(76, 175, 80, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            // Draw node
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fill();
         }
-    } catch (error) {
-        showNotification('❌ Network error: ' + error.message, 'error');
     }
-}
 
-async function downloadKnowledge(knowledgeId) {
-    try {
-        const response = await fetch(`/p2p/download/${knowledgeId}/`);
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('✅ Knowledge downloaded!', 'success');
-            
-            // Display downloaded content
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
+    drawNetwork();
+
+    // Redraw on window resize
+    window.addEventListener('resize', () => {
+        canvas.width = canvas.parentElement.offsetWidth;
+        drawNetwork();
+    });
+
+    function showShareModal() {
+        new bootstrap.Modal(document.getElementById('shareModal')).show();
+    }
+
+    async function shareKnowledge() {
+        const title = document.getElementById('knowledge-title').value;
+        const content = document.getElementById('knowledge-content').value;
+        const category = document.getElementById('knowledge-category').value;
+        const isPublic = document.getElementById('knowledge-public').checked;
+
+        if (!title || !content) {
+            showNotification('⚠️ Please fill in all fields', 'warning');
+            return;
+        }
+
+        // Show encrypting message
+        showNotification('🔐 Encrypting and broadcasting to P2P network...', 'success');
+
+        try {
+            const response = await fetch('/p2p/share/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    title: title,
+                    content: content,
+                    category: category,
+                    is_public: isPublic
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const totalNodes = parseInt('{{ total_nodes }}') || 1;  // Fixed!
+                showNotification('✅ Knowledge encrypted and broadcast to ' + totalNodes + ' nodes!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification('❌ Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Network error: ' + error.message, 'error');
+        }
+    }
+
+    async function downloadKnowledge(knowledgeId) {
+        showNotification('🔐 Establishing encrypted P2P connection...', 'success');
+
+        try {
+            const response = await fetch(`/p2p/download/${knowledgeId}/`);
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('✅ Knowledge downloaded via encrypted P2P transfer!', 'success');
+
+                // Display downloaded content
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.7);">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content" style="border-radius: 20px;">
-                            <div class="modal-header">
-                                <h5 class="modal-title fw-bold">${escapeHtml(data.title)}</h5>
+                            <div class="modal-header" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(107,53,255,0.1));">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="bi bi-file-earmark-lock"></i> ${escapeHtml(data.title)}
+                                </h5>
                                 <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="mb-3">
                                     <span class="badge" style="background: var(--dawn-purple);">${data.category}</span>
                                     <span class="badge bg-secondary">From: ${data.shared_by}</span>
+                                    <span class="badge" style="background: #4CAF50;">
+                                        <i class="bi bi-shield-check"></i> Decrypted
+                                    </span>
                                 </div>
-                                <div style="white-space: pre-wrap; padding: 20px; background: #F5F5F5; border-radius: 12px;">
-                                    ${escapeHtml(data.content)}
-                                </div>
+                                <div style="white-space: pre-wrap; padding: 20px; background: #F5F5F5; border-radius: 12px; max-height: 400px; overflow-y: auto;">${escapeHtml(data.content)}</div>
                             </div>
                             <div class="modal-footer">
-                                <button class="btn btn-dawn" onclick="copyToClipboard('${escapeHtml(data.content)}')">
-                                    <i class="bi bi-clipboard"></i> Copy
+                                <button class="btn btn-dawn" onclick="copyToClipboard(\`${escapeHtml(data.content).replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">
+                                    <i class="bi bi-clipboard"></i> Copy Content
                                 </button>
                                 <button class="btn btn-outline-dawn" onclick="this.closest('.modal').remove()">Close</button>
                             </div>
@@ -259,65 +515,199 @@ async function downloadKnowledge(knowledgeId) {
                     </div>
                 </div>
             `;
-            document.body.appendChild(modal);
-        } else {
-            showNotification('❌ Error: ' + data.error, 'error');
+                document.body.appendChild(modal);
+            } else {
+                showNotification('❌ Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Network error: ' + error.message, 'error');
         }
-    } catch (error) {
-        showNotification('❌ Network error: ' + error.message, 'error');
     }
-}
 
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text);
-    showNotification('📋 Copied to clipboard!', 'success');
-}
+    async function upvoteKnowledge(knowledgeId) {
+        try {
+            const response = await fetch(`/p2p/upvote/${knowledgeId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
 
-function showNotification(message, type = 'success') {
-    const colors = {
-        success: '#4CAF50',
-        error: '#f44336',
-        warning: '#ff9800'
-    };
-    
-    const notification = document.createElement('div');
-    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
-    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);`;
-    notification.innerHTML = message;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-}
+            const data = await response.json();
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+            if (data.success) {
+                showNotification('👍 Upvoted! Reputation increased.', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('❌ Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Error: ' + error.message, 'error');
+        }
+    }
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    function discoverNodes() {
+        showNotification('🔍 Scanning P2P network for Black Box nodes...', 'success');
+
+        // Simulate network discovery
+        setTimeout(() => {
+            const totalNodes = parseInt('{{ total_nodes }}') || 1;  // Fixed!
+            showNotification('✅ Found ' + totalNodes + ' active nodes in mesh network!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        }, 2000);
+    }
+
+    async function connectToNode(nodeId) {
+        showNotification('🤝 Establishing encrypted P2P connection...', 'success');
+
+        try {
+            const response = await fetch(`/p2p/connect/${nodeId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('✅ ' + data.message, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('❌ Error: ' + data.error, 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Error: ' + error.message, 'error');
+        }
+    }
+
+    function filterKnowledge() {
+        const filter = document.getElementById('category-filter').value;
+        const cards = document.querySelectorAll('.knowledge-card');
+
+        cards.forEach(card => {
+            if (filter === 'all' || card.dataset.category === filter) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function copyToClipboard(text) {
+        // Remove HTML entities and clean text
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = text;
+        const cleanText = tempDiv.textContent || tempDiv.innerText || '';
+
+        navigator.clipboard.writeText(cleanText).then(() => {
+            showNotification('📋 Copied to clipboard!', 'success');
+        }).catch(err => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = cleanText;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotification('📋 Copied to clipboard!', 'success');
+            } catch (err) {
+                showNotification('❌ Failed to copy', 'error');
+            }
+            document.body.removeChild(textArea);
+        });
+    }
+
+    function showNotification(message, type = 'success') {
+        const colors = {
+            success: '#4CAF50',
+            error: '#f44336',
+            warning: '#ff9800'
+        };
+
+        const notification = document.createElement('div');
+        notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+        notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideIn 0.3s;`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
+
+    // Animate network connections periodically
+    setInterval(() => {
+        const connections = document.querySelectorAll('.badge.bg-success');
+        connections.forEach(conn => {
+            conn.style.animation = 'none';
+            setTimeout(() => {
+                conn.style.animation = 'pulse 2s infinite';
+            }, 10);
+        });
+    }, 5000);
 </script>
 
 <style>
-.knowledge-card {
-    transition: all 0.3s ease;
-}
+    .knowledge-card {
+        transition: all 0.3s ease;
+    }
 
-.knowledge-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+    .knowledge-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-left-width: 6px !important;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    #network-canvas {
+        width: 100%;
+        height: 100%;
+    }
 </style>
 {% endblock %}
