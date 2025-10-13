@@ -12,6 +12,8 @@ from .models import Conversation, Message, Document, UserProfile, SystemStats
 from .utils.llm_handler import LLMHandler
 from .utils.encryption import EncryptionManager
 from django.contrib.auth import logout
+from django.http import StreamingHttpResponse
+import time
 
 # Initialize handlers
 llm_handler = LLMHandler()
@@ -67,20 +69,29 @@ def chat_view(request, conversation_id=None):
     # Get all user conversations for sidebar
     conversations = Conversation.objects.filter(user=request.user, is_active=True)
     
-    # Get messages for this conversation
-    chat_messages = conversation.messages.all().order_by('timestamp')
+    # Get messages for this conversation and decrypt them
+    messages = conversation.messages.all().order_by('timestamp')
+    chat_messages = []
+    
+    for msg in messages:
+        chat_messages.append({
+            'role': msg.role,
+            'content': msg.get_decrypted_content(),  # Decrypt here
+            'timestamp': msg.timestamp,
+            'id': msg.id
+        })
 
     context = {
         'conversation': conversation,
         'conversations': conversations,
-        'chat_messages': chat_messages,  # Changed from 'messages' to 'chat_messages'
+        'chat_messages': chat_messages,
     }
     return render(request, 'chat.html', context)
 
 @login_required
 @csrf_exempt
 def send_message(request, conversation_id):
-    """Handle message sending and AI response"""
+    """Handle message sending and AI response with streaming"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=405)
     
@@ -104,7 +115,7 @@ def send_message(request, conversation_id):
         # Get conversation context for LLM (last 10 messages)
         recent_messages = []
         all_messages = list(conversation.messages.all().order_by('-timestamp')[:10])
-        all_messages.reverse()  # Put them in chronological order
+        all_messages.reverse()
         
         for msg in all_messages:
             recent_messages.append({
@@ -112,36 +123,50 @@ def send_message(request, conversation_id):
                 'content': msg.get_decrypted_content()
             })
         
-        # Generate AI response (exclude the message we just added)
+        # Generate AI response streaming
         context_for_ai = recent_messages[:-1] if len(recent_messages) > 1 else []
-        ai_response = llm_handler.generate_response(user_message, context_for_ai)
         
-        # Save AI response (encrypted)
-        ai_msg = Message.objects.create(
-            conversation=conversation,
-            content=ai_response,
-            role='assistant',
-            is_encrypted=True,
-            tokens_used=len(ai_response.split())  # Rough estimate
-        )
+        def generate_stream():
+            full_response = ""
+            
+            try:
+                # Use the streaming generator from LLM handler
+                for chunk in llm_handler.generate_response_stream(user_message, context_for_ai):
+                    full_response += chunk
+                    
+                    # Send chunk as SSE
+                    yield f"data: {json.dumps({'chunk': chunk, 'done': False})}\n\n"
+                
+                # Save complete AI response
+                ai_msg = Message.objects.create(
+                    conversation=conversation,
+                    content=full_response.strip(),
+                    role='assistant',
+                    is_encrypted=True,
+                    tokens_used=len(full_response.split())
+                )
+                
+                # Update conversation timestamp
+                conversation.updated_at = timezone.now()
+                conversation.save()
+                
+                # Update stats
+                today = timezone.now().date()
+                stats, created = SystemStats.objects.get_or_create(date=today)
+                stats.total_messages += 2
+                stats.encryption_operations += 2
+                stats.save()
+                
+                # Send completion signal
+                yield f"data: {json.dumps({'chunk': '', 'done': True, 'message_id': ai_msg.id})}\n\n"
+                
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
         
-        # Update conversation timestamp
-        conversation.updated_at = timezone.now()
-        conversation.save()
-        
-        # Update stats
-        today = timezone.now().date()
-        stats, created = SystemStats.objects.get_or_create(date=today)
-        stats.total_messages += 2
-        stats.encryption_operations += 2
-        stats.save()
-        
-        return JsonResponse({
-            'success': True,
-            'response': ai_response,
-            'message_id': ai_msg.id,
-            'encrypted': True
-        })
+        response = StreamingHttpResponse(generate_stream(), content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
         
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)

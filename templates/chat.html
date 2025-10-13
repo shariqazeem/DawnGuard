@@ -13,14 +13,15 @@
                     <h6 class="mb-0 fw-bold" style="color: var(--dawn-dark);">
                         <i class="bi bi-chat-dots"></i> Your Chats
                     </h6>
-                    <span class="badge" style="background: var(--dawn-orange); color: white;">{{ conversations.count }}</span>
+                    <span class="badge" style="background: var(--dawn-orange); color: white;">{{ conversations.count
+                        }}</span>
                 </div>
-                
+
                 <div class="list-group list-group-flush" style="max-height: 50vh; overflow-y: auto;">
                     {% for conv in conversations %}
-                    <a href="{% url 'chat_with_id' conv.id %}" 
-                       class="list-group-item bg-transparent border-0 {% if conv.id == conversation.id %}active-chat{% endif %}"
-                       style="border-left: 3px solid {% if conv.id == conversation.id %}var(--dawn-orange){% else %}transparent{% endif %} !important; padding-left: 12px; color: var(--dawn-dark); border-radius: 8px; margin-bottom: 4px;">
+                    <a href="{% url 'chat_with_id' conv.id %}"
+                        class="list-group-item bg-transparent border-0 {% if conv.id == conversation.id %}active-chat{% endif %}"
+                        style="border-left: 3px solid {% if conv.id == conversation.id %}var(--dawn-orange){% else %}transparent{% endif %} !important; padding-left: 12px; color: var(--dawn-dark); border-radius: 8px; margin-bottom: 4px;">
                         <div class="d-flex justify-content-between align-items-start">
                             <div style="flex: 1;">
                                 <div class="fw-bold">{{ conv.title|truncatechars:20 }}</div>
@@ -35,12 +36,12 @@
                     </div>
                     {% endfor %}
                 </div>
-                
+
                 <a href="{% url 'chat' %}" class="btn btn-dawn w-100 mt-3">
                     <i class="bi bi-plus-circle"></i> New Chat
                 </a>
             </div>
-            
+
             <!-- Privacy Status -->
             <div class="dawn-card p-3">
                 <h6 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
@@ -60,71 +61,75 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Main Chat Area -->
         <div class="col-md-9">
             <div class="dawn-card p-0" style="height: 85vh; display: flex; flex-direction: column; overflow: hidden;">
                 <!-- Chat Header -->
-                <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-3" style="border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;">
+                <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-3"
+                    style="border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;">
                     <div>
                         <h5 class="mb-1 fw-bold" style="color: var(--dawn-dark);">{{ conversation.title }}</h5>
                         <small style="color: #999;">
-                            <i class="bi bi-lock-fill"></i> Encrypted • 
-                            <i class="bi bi-cpu"></i> Local AI • 
+                            <i class="bi bi-lock-fill"></i> Encrypted •
+                            <i class="bi bi-cpu"></i> Local AI •
                             <span id="status-indicator" class="text-success">Ready</span>
                         </small>
                     </div>
                     <div>
-                        <a href="{% url 'delete_conversation' conversation.id %}" 
-                           class="btn btn-sm btn-outline-danger"
-                           style="border-radius: 12px;"
-                           onclick="return confirm('Are you sure you want to delete this conversation?')">
+                        <a href="{% url 'delete_conversation' conversation.id %}" class="btn btn-sm btn-outline-danger"
+                            style="border-radius: 12px;"
+                            onclick="return confirm('Are you sure you want to delete this conversation?')">
                             <i class="bi bi-trash"></i>
                         </a>
                     </div>
                 </div>
-                
+
                 <!-- Messages Container -->
                 <div id="chat-messages" class="flex-grow-1 overflow-auto px-4 py-3" style="scroll-behavior: smooth;">
                     {% if chat_messages %}
-                        {% for message in chat_messages %}
-                        <div class="message-wrapper mb-3">
-                            <div class="d-flex {% if message.role == 'user' %}justify-content-end{% endif %}">
-                                <div class="message-bubble p-3" 
-                                     style="max-width: 75%; {% if message.role == 'user' %}background: var(--dawn-orange); color: white;{% else %}background: #F5F5F5; color: var(--dawn-dark);{% endif %} border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                                    
-                                    <div class="mb-2">
-                                        <span class="badge" style="background: rgba(0,0,0,0.1); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
-                                            {% if message.role == 'user' %}👤 You{% else %}🤖 AI{% endif %}
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="message-content" style="line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">{{ message|decrypt_content|format_message|safe }}</div>
-                                    
-                                    <div class="text-end mt-2">
-                                        <small style="opacity: 0.6; font-size: 11px;">
-                                            {{ message.timestamp|date:"H:i" }}
-                                        </small>
-                                    </div>
+                    {% for message in chat_messages %}
+                    <div class="message-wrapper mb-3">
+                        <div class="d-flex {% if message.role == 'user' %}justify-content-end{% endif %}">
+                            <div class="message-bubble p-3"
+                                style="max-width: 75%; {% if message.role == 'user' %}background: var(--dawn-orange); color: white;{% else %}background: #F5F5F5; color: var(--dawn-dark);{% endif %} border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+
+                                <div class="mb-2">
+                                    <span class="badge"
+                                        style="background: rgba(0,0,0,0.1); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
+                                        {% if message.role == 'user' %}👤 You{% else %}🤖 AI{% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="message-content"
+    style="line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">{{ message.content }}</div>
+
+                                <div class="text-end mt-2">
+                                    <small style="opacity: 0.6; font-size: 11px;">
+                                        {{ message.timestamp|date:"H:i" }}
+                                    </small>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <div id="empty-state" class="text-center" style="color: #999; margin-top: 15vh;">
-                            <i class="bi bi-chat-dots" style="font-size: 64px; opacity: 0.2;"></i>
-                            <h5 class="mt-4 mb-2" style="color: var(--dawn-dark);">Start a Conversation</h5>
-                            <p class="mb-0">Ask your private AI assistant anything</p>
-                            <p class="small">Everything stays encrypted and local on your Black Box</p>
-                        </div>
+                    <div id="empty-state" class="text-center" style="color: #999; margin-top: 15vh;">
+                        <i class="bi bi-chat-dots" style="font-size: 64px; opacity: 0.2;"></i>
+                        <h5 class="mt-4 mb-2" style="color: var(--dawn-dark);">Start a Conversation</h5>
+                        <p class="mb-0">Ask your private AI assistant anything</p>
+                        <p class="small">Everything stays encrypted and local on your Black Box</p>
+                    </div>
                     {% endif %}
-                    
+
                     <!-- Typing Indicator -->
                     <div id="typing-indicator" class="message-wrapper mb-3" style="display: none;">
                         <div class="d-flex">
-                            <div class="message-bubble p-3" style="background: #F5F5F5; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <div class="message-bubble p-3"
+                                style="background: #F5F5F5; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                                 <div class="mb-2">
-                                    <span class="badge" style="background: rgba(0,0,0,0.1); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
+                                    <span class="badge"
+                                        style="background: rgba(0,0,0,0.1); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 12px;">
                                         🤖 AI
                                     </span>
                                 </div>
@@ -135,20 +140,21 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Input Area -->
                 <div class="px-4 pb-4" style="flex-shrink: 0;">
                     <div style="background: #F5F5F5; border-radius: 16px; padding: 12px;">
                         <div class="d-flex gap-2">
-                            <textarea 
-                                id="message-input" 
-                                class="form-control border-0" 
-                                placeholder="Ask anything... Your data never leaves this device 🔒"
-                                rows="2"
-                                style="resize: none; box-shadow: none; background: white; border-radius: 12px; color: var(--dawn-dark);"
-                            ></textarea>
-                            <button class="btn btn-dawn align-self-end" onclick="sendMessage()" id="send-btn" style="border-radius: 12px; padding: 12px 24px;">
+                            <textarea id="message-input" class="form-control border-0"
+                                placeholder="Ask anything... Your data never leaves this device 🔒" rows="2"
+                                style="resize: none; box-shadow: none; background: white; border-radius: 12px; color: var(--dawn-dark);"></textarea>
+                            <button class="btn btn-dawn align-self-end" onclick="sendMessage()" id="send-btn"
+                                style="border-radius: 12px; padding: 12px 24px;">
                                 <i class="bi bi-send-fill"></i>
+                            </button>
+                            <button class="btn btn-danger align-self-end" onclick="stopGeneration()" id="stop-btn"
+                                style="border-radius: 12px; padding: 12px 24px; display: none;">
+                                <i class="bi bi-stop-circle-fill"></i> Stop
                             </button>
                         </div>
                     </div>
@@ -159,150 +165,201 @@
 </div>
 
 <style>
-/* Message animations */
-.message-wrapper {
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+    /* Message animations */
+    .message-wrapper {
+        animation: slideUp 0.3s ease-out;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-}
 
-/* Typing animation */
-.typing-animation span {
-    width: 8px;
-    height: 8px;
-    background: var(--dawn-orange);
-    border-radius: 50%;
-    display: inline-block;
-    animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.typing-animation span:nth-child(1) { animation-delay: -0.32s; }
-.typing-animation span:nth-child(2) { animation-delay: -0.16s; }
-.typing-animation span:nth-child(3) { animation-delay: 0s; }
-
-@keyframes bounce {
-    0%, 80%, 100% { 
-        transform: translateY(0) scale(0.8);
-        opacity: 0.5;
+    /* Typing animation */
+    .typing-animation span {
+        width: 8px;
+        height: 8px;
+        background: var(--dawn-orange);
+        border-radius: 50%;
+        display: inline-block;
+        animation: bounce 1.4s infinite ease-in-out both;
     }
-    40% { 
-        transform: translateY(-8px) scale(1);
-        opacity: 1;
+
+    .typing-animation span:nth-child(1) {
+        animation-delay: -0.32s;
     }
-}
 
-/* Chat sidebar */
-.active-chat {
-    background: rgba(255, 107, 53, 0.05) !important;
-}
+    .typing-animation span:nth-child(2) {
+        animation-delay: -0.16s;
+    }
 
-.active-chat:hover {
-    background: rgba(255, 107, 53, 0.1) !important;
-}
+    .typing-animation span:nth-child(3) {
+        animation-delay: 0s;
+    }
 
-.list-group-item {
-    transition: all 0.2s ease;
-}
+    @keyframes bounce {
 
-.list-group-item:hover {
-    background: rgba(255, 107, 53, 0.03) !important;
-    transform: translateX(2px);
-}
+        0%,
+        80%,
+        100% {
+            transform: translateY(0) scale(0.8);
+            opacity: 0.5;
+        }
 
-/* Message bubbles hover effect */
-.message-bubble {
-    transition: all 0.2s ease;
-}
+        40% {
+            transform: translateY(-8px) scale(1);
+            opacity: 1;
+        }
+    }
 
-.message-bubble:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
-}
+    /* Chat sidebar */
+    .active-chat {
+        background: rgba(255, 107, 53, 0.05) !important;
+    }
 
-/* Scrollbar styling */
-#chat-messages::-webkit-scrollbar {
-    width: 8px;
-}
+    .active-chat:hover {
+        background: rgba(255, 107, 53, 0.1) !important;
+    }
 
-#chat-messages::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 10px;
-}
+    .list-group-item {
+        transition: all 0.2s ease;
+    }
 
-#chat-messages::-webkit-scrollbar-thumb {
-    background: var(--dawn-orange);
-    border-radius: 10px;
-}
+    .list-group-item:hover {
+        background: rgba(255, 107, 53, 0.03) !important;
+        transform: translateX(2px);
+    }
 
-#chat-messages::-webkit-scrollbar-thumb:hover {
-    background: #ff5722;
-}
+    /* Message bubbles hover effect */
+    .message-bubble {
+        transition: all 0.2s ease;
+    }
 
-/* Sidebar scrollbar */
-.list-group-flush::-webkit-scrollbar {
-    width: 6px;
-}
+    .message-bubble:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    }
 
-.list-group-flush::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 10px;
-}
+    /* Scrollbar styling */
+    #chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
 
-.list-group-flush::-webkit-scrollbar-thumb {
-    background: rgba(255, 107, 53, 0.3);
-    border-radius: 10px;
-}
+    #chat-messages::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 10px;
+    }
 
-/* Input area focus effect */
-#message-input:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1) !important;
-}
+    #chat-messages::-webkit-scrollbar-thumb {
+        background: var(--dawn-orange);
+        border-radius: 10px;
+    }
 
-/* Send button animation */
-#send-btn {
-    transition: all 0.3s ease;
-}
+    #chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #ff5722;
+    }
 
-#send-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
-}
+    /* Sidebar scrollbar */
+    .list-group-flush::-webkit-scrollbar {
+        width: 6px;
+    }
 
-#send-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
+    .list-group-flush::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 10px;
+    }
+
+    .list-group-flush::-webkit-scrollbar-thumb {
+        background: rgba(255, 107, 53, 0.3);
+        border-radius: 10px;
+    }
+
+    /* Input area focus effect */
+    #message-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1) !important;
+    }
+
+    /* Send button animation */
+    #send-btn {
+        transition: all 0.3s ease;
+    }
+
+    #send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+    }
+
+    #send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Typing cursor animation */
+    .typing-cursor {
+        display: inline-block;
+        animation: blink 1s infinite;
+        margin-left: 2px;
+        font-weight: bold;
+        color: var(--dawn-orange);
+    }
+
+    @keyframes blink {
+
+        0%,
+        49% {
+            opacity: 1;
+        }
+
+        50%,
+        100% {
+            opacity: 0;
+        }
+    }
+
+    /* Streaming text */
+    .streaming-text {
+        display: inline;
+    }
+
+    /* Stop button hover effect */
+    #stop-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.3);
+    }
 </style>
 
 <script>
-const conversationId = {{ conversation.id }};
+    const conversationId = {{ conversation.id }};
+    let currentEventSource = null;
+    let currentAIMessage = '';
+    let isGenerating = false;
 
-function addMessageToUI(message, role) {
-    const messagesDiv = document.getElementById('chat-messages');
-    const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    
-    // Remove empty state if it exists
-    const emptyState = document.getElementById('empty-state');
-    if (emptyState) {
-        emptyState.remove();
-    }
-    
-    const bgColor = role === 'user' ? 'var(--dawn-orange)' : '#F5F5F5';
-    const textColor = role === 'user' ? 'white' : 'var(--dawn-dark)';
-    const alignment = role === 'user' ? 'justify-content-end' : '';
-    
-    const messageHtml = `
-        <div class="message-wrapper mb-3">
+    function addMessageToUI(message, role, isStreaming = false) {
+        const messagesDiv = document.getElementById('chat-messages');
+        const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        // Remove empty state if it exists
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        const bgColor = role === 'user' ? 'var(--dawn-orange)' : '#F5F5F5';
+        const textColor = role === 'user' ? 'white' : 'var(--dawn-dark)';
+        const alignment = role === 'user' ? 'justify-content-end' : '';
+
+        const messageId = isStreaming ? 'streaming-message' : `message-${Date.now()}`;
+
+        const messageHtml = `
+        <div class="message-wrapper mb-3" id="${messageId}">
             <div class="d-flex ${alignment}">
                 <div class="message-bubble p-3" 
                      style="max-width: 75%; background: ${bgColor}; color: ${textColor}; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
@@ -313,7 +370,7 @@ function addMessageToUI(message, role) {
                         </span>
                     </div>
                     
-                    <div class="message-content" style="line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">${formatMessage(escapeHtml(message))}</div>
+                    <div class="message-content" style="line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">${isStreaming ? '<span class="streaming-text"></span><span class="typing-cursor">|</span>' : formatMessage(escapeHtml(message))}</div>
                     
                     <div class="text-end mt-2">
                         <small style="opacity: 0.6; font-size: 11px;">
@@ -324,165 +381,240 @@ function addMessageToUI(message, role) {
             </div>
         </div>
     `;
-    
-    // Find typing indicator
-    const typingIndicator = document.getElementById('typing-indicator');
-    
-    if (typingIndicator && role === 'assistant') {
-        // Insert AI message before typing indicator
-        typingIndicator.insertAdjacentHTML('beforebegin', messageHtml);
-    } else {
-        // For user messages, check if typing indicator exists
-        if (typingIndicator) {
-            typingIndicator.insertAdjacentHTML('beforebegin', messageHtml);
-        } else {
-            messagesDiv.insertAdjacentHTML('beforeend', messageHtml);
-        }
-    }
-    
-    // Smooth scroll to bottom
-    setTimeout(() => {
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }, 100);
-}
 
-function sendMessage() {
-    const input = document.getElementById('message-input');
-    const message = input.value.trim();
-    const sendBtn = document.getElementById('send-btn');
-    
-    if (!message) return;
-    
-    // Disable input
-    input.disabled = true;
-    sendBtn.disabled = true;
-    sendBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
-    
-    // Add user message to UI
-    addMessageToUI(message, 'user');
-    input.value = '';
-    
-    // Show typing indicator AFTER user message
-    setTimeout(() => {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.style.display = 'block';
+        messagesDiv.insertAdjacentHTML('beforeend', messageHtml);
+
+        // Smooth scroll to bottom
+        setTimeout(() => {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }, 100);
+    }
+
+    function updateStreamingMessage(chunk) {
+        const streamingMsg = document.querySelector('#streaming-message .streaming-text');
+        if (streamingMsg) {
+            currentAIMessage += chunk;
+            streamingMsg.innerHTML = formatMessage(escapeHtml(currentAIMessage));
+
+            // Auto-scroll
             const messagesDiv = document.getElementById('chat-messages');
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
-    }, 300);
-    
-    document.getElementById('status-indicator').textContent = 'Processing...';
-    document.getElementById('status-indicator').className = 'text-warning';
-    
-    // Send to backend
-    fetch(`/chat/${conversationId}/send/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({ message: message })
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Hide typing indicator
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.style.display = 'none';
+    }
+
+    function finalizeStreamingMessage() {
+        const streamingMsg = document.getElementById('streaming-message');
+        if (streamingMsg) {
+            // Remove cursor
+            const cursor = streamingMsg.querySelector('.typing-cursor');
+            if (cursor) cursor.remove();
+
+            // Remove streaming ID
+            streamingMsg.id = `message-${Date.now()}`;
         }
-        
-        if (data.success) {
-            addMessageToUI(data.response, 'assistant');
-            showEncryptionNotification();
-        } else {
-            showError(data.error || 'Failed to send message');
+    }
+
+    function stopGeneration() {
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
         }
-    })
-    .catch(error => {
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.style.display = 'none';
-        }
-        showError('Network error. Please try again.');
-        console.error('Error:', error);
-    })
-    .finally(() => {
-        // Re-enable input
+
+        isGenerating = false;
+
+        // Finalize the message
+        finalizeStreamingMessage();
+
+        // Reset UI
+        const input = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const stopBtn = document.getElementById('stop-btn');
+
         input.disabled = false;
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<i class="bi bi-send-fill"></i>';
+        sendBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
         input.focus();
+
         document.getElementById('status-indicator').textContent = 'Ready';
         document.getElementById('status-indicator').className = 'text-success';
-    });
-}
 
-function showEncryptionNotification() {
-    const notification = document.createElement('div');
-    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
-    notification.style.cssText = 'background: rgba(76, 175, 80, 0.95); color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.1);';
-    notification.innerHTML = '🔐 <strong>Message Encrypted</strong><br><small>Stored securely on your device</small>';
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 2500);
-}
+        showNotification('⚠️ Generation stopped', 'warning');
+    }
 
-function showError(message) {
-    const notification = document.createElement('div');
-    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
-    notification.style.cssText = 'background: #f44336; color: white; z-index: 9999; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);';
-    notification.innerHTML = `❌ <strong>Error:</strong> ${message}`;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-}
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        const sendBtn = document.getElementById('send-btn');
+        const stopBtn = document.getElementById('stop-btn');
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-function formatMessage(text) {
-    // Convert **bold** markdown to HTML bold
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Convert * list items to bullet points (only at start of line or after newline)
-    text = text.replace(/^(\s*)\* (.+)$/gm, '$1<span style="display: block; margin-left: 20px;">• $2</span>');
-    
-    // Convert numbered lists to better formatting
-    text = text.replace(/^(\s*)(\d+)\. (.+)$/gm, '$1<span style="display: block; margin-left: 20px;"><strong>$2.</strong> $3</span>');
-    
-    return text;
-}
+        if (!message || isGenerating) return;
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+        isGenerating = true;
+        currentAIMessage = '';
+
+        // Disable input and show stop button
+        input.disabled = true;
+        sendBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-block';
+
+        // Add user message to UI
+        addMessageToUI(message, 'user');
+        input.value = '';
+
+        // Add streaming AI message container
+        setTimeout(() => {
+            addMessageToUI('', 'assistant', true);
+        }, 300);
+
+        document.getElementById('status-indicator').textContent = 'Generating...';
+        document.getElementById('status-indicator').className = 'text-warning';
+
+        // Create EventSource for streaming
+        currentEventSource = new EventSource(`/chat/${conversationId}/send/?message=${encodeURIComponent(message)}`);
+
+        // For POST request, we need to use fetch with streaming
+        fetch(`/chat/${conversationId}/send/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ message: message })
+        })
+            .then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                function readChunk() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            finalizeStreamingMessage();
+                            isGenerating = false;
+
+                            // Reset UI
+                            input.disabled = false;
+                            sendBtn.style.display = 'inline-block';
+                            stopBtn.style.display = 'none';
+                            input.focus();
+
+                            document.getElementById('status-indicator').textContent = 'Ready';
+                            document.getElementById('status-indicator').className = 'text-success';
+
+                            showEncryptionNotification();
+                            return;
+                        }
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n\n');
+
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const data = JSON.parse(line.substring(6));
+                                    if (data.chunk && !data.done) {
+                                        updateStreamingMessage(data.chunk);
+                                    }
+                                } catch (e) {
+                                    console.error('Parse error:', e);
+                                }
+                            }
+                        });
+
+                        readChunk();
+                    });
+                }
+
+                readChunk();
+            })
+            .catch(error => {
+                finalizeStreamingMessage();
+                isGenerating = false;
+
+                input.disabled = false;
+                sendBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+
+                showError('Network error. Please try again.');
+                console.error('Error:', error);
+
+                document.getElementById('status-indicator').textContent = 'Ready';
+                document.getElementById('status-indicator').className = 'text-success';
+            });
+    }
+
+    function showEncryptionNotification() {
+        showNotification('🔐 <strong>Message Encrypted</strong><br><small>Stored securely on your device</small>', 'success');
+    }
+
+    function showError(message) {
+        showNotification(`❌ <strong>Error:</strong> ${message}`, 'error');
+    }
+
+    function showNotification(message, type = 'success') {
+        const colors = {
+            success: 'rgba(76, 175, 80, 0.95)',
+            error: '#f44336',
+            warning: '#ff9800'
+        };
+
+        const notification = document.createElement('div');
+        notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+        notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.1);`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 2500);
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatMessage(text) {
+        if (!text) return '';
+
+        // Convert **bold** markdown to HTML bold
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Convert * list items to bullet points
+        text = text.replace(/^(\s*)\* (.+)$/gm, '$1<span style="display: block; margin-left: 20px;">• $2</span>');
+
+        // Convert numbered lists
+        text = text.replace(/^(\s*)(\d+)\. (.+)$/gm, '$1<span style="display: block; margin-left: 20px;"><strong>$2.</strong> $3</span>');
+
+        return text;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-// Enter key support (Shift+Enter for new line)
-document.getElementById('message-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-});
+    // Enter key support
+    document.getElementById('message-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 
-// Auto-scroll to bottom on load
-window.addEventListener('load', () => {
-    const messagesDiv = document.getElementById('chat-messages');
-    if (messagesDiv) {
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-});
+    // Auto-scroll to bottom on load
+    window.addEventListener('load', () => {
+        const messagesDiv = document.getElementById('chat-messages');
+        if (messagesDiv) {
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    });
 </script>
 {% endblock %}
