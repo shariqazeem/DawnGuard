@@ -616,5 +616,27 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
     });
+    // Format existing messages on page load
+window.addEventListener('DOMContentLoaded', () => {
+    // Find all message content divs that were loaded from the database
+    const existingMessages = document.querySelectorAll('.message-content');
+    
+    existingMessages.forEach(messageDiv => {
+        // Get the text content
+        let text = messageDiv.textContent || messageDiv.innerText;
+        
+        // Apply formatting
+        text = formatMessage(escapeHtml(text));
+        
+        // Update the HTML
+        messageDiv.innerHTML = text;
+    });
+    
+    // Auto-scroll to bottom
+    const messagesDiv = document.getElementById('chat-messages');
+    if (messagesDiv) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+});
 </script>
 {% endblock %}
