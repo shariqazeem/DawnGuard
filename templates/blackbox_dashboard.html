@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-hdd-rack"></i> Black Box Hardware Dashboard
+                </h2>
+                <p class="mb-0" style="color: #666;">
+                    Real-time monitoring of your DAWN Black Box device
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Resources -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <canvas id="cpu-chart" width="150" height="150"></canvas>
+                <div class="mt-3">
+                    <h6 class="fw-bold">CPU Usage</h6>
+                    <div class="h3 glow-text" id="cpu-value">0%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <canvas id="memory-chart" width="150" height="150"></canvas>
+                <div class="mt-3">
+                    <h6 class="fw-bold">Memory</h6>
+                    <div class="h3" style="color: var(--dawn-purple);" id="memory-value">0%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <canvas id="disk-chart" width="150" height="150"></canvas>
+                <div class="mt-3">
+                    <h6 class="fw-bold">Disk Space</h6>
+                    <div class="h3" style="color: var(--dawn-blue);" id="disk-value">0%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center">
+                <div style="font-size: 64px;" class="mb-3">🤖</div>
+                <h6 class="fw-bold">Ollama AI</h6>
+                <div class="h3 text-success" id="ollama-status">Running</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Info -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold">
+                    <i class="bi bi-info-circle"></i> Device Information
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--dawn-dark);">Hostname</td>
+                                <td id="hostname">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--dawn-dark);">Local IP</td>
+                                <td id="local-ip">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--dawn-dark);">Platform</td>
+                                <td id="platform">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--dawn-dark);">CPU Cores</td>
+                                <td id="cpu-cores">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--dawn-dark);">Total RAM</td>
+                                <td id="total-ram">-</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--dawn-dark);">Total Disk</td>
+                                <td id="total-disk">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="dawn-card">
+                <h5 class="mb-3 fw-bold">
+                    <i class="bi bi-lightning-charge"></i> Performance
+                </h5>
+                <div class="mb-3">
+                    <small style="color: #666;">AI Processing</small>
+                    <div class="progress mt-1" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar" style="width: 85%; background: var(--dawn-orange);"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <small style="color: #666;">Network Throughput</small>
+                    <div class="progress mt-1" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar bg-success" style="width: 92%;"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <small style="color: #666;">Encryption Speed</small>
+                    <div class="progress mt-1" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar" style="width: 78%; background: var(--dawn-purple);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dawn-card mt-4">
+                <h5 class="mb-3 fw-bold">
+                    <i class="bi bi-activity"></i> Live Stats
+                </h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <small>Active Connections</small>
+                    <span class="badge bg-success">{{ active_connections }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <small>Messages Processed</small>
+                    <span class="badge" style="background: var(--dawn-orange);">{{ total_messages }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <small>Uptime</small>
+                    <span class="badge" style="background: var(--dawn-blue);" id="uptime">24h 32m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let cpuChart, memoryChart, diskChart;
+
+function createGaugeChart(canvasId, color) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            datasets: [{
+                data: [0, 100],
+                backgroundColor: [color, 'rgba(0,0,0,0.05)'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            circumference: 180,
+            rotation: 270,
+            cutout: '75%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        }
+    });
+}
+
+function updateDashboard() {
+    fetch('/blackbox/status/')
+        .then(res => res.json())
+        .then(data => {
+            // Update gauges
+            if (cpuChart) {
+                cpuChart.data.datasets[0].data = [data.cpu_percent, 100 - data.cpu_percent];
+                cpuChart.update();
+            }
+            if (memoryChart) {
+                memoryChart.data.datasets[0].data = [data.memory_percent, 100 - data.memory_percent];
+                memoryChart.update();
+            }
+            if (diskChart) {
+                diskChart.data.datasets[0].data = [data.disk_percent, 100 - data.disk_percent];
+                diskChart.update();
+            }
+
+            // Update values
+            document.getElementById('cpu-value').textContent = data.cpu_percent.toFixed(1) + '%';
+            document.getElementById('memory-value').textContent = data.memory_percent.toFixed(1) + '%';
+            document.getElementById('disk-value').textContent = data.disk_percent.toFixed(1) + '%';
+            
+            document.getElementById('hostname').textContent = data.hostname;
+            document.getElementById('local-ip').textContent = data.local_ip;
+            document.getElementById('platform').textContent = data.platform + ' ' + data.platform_version;
+            document.getElementById('total-ram').textContent = data.memory_total.toFixed(2) + ' GB';
+            document.getElementById('total-disk').textContent = data.disk_total.toFixed(2) + ' GB';
+            
+            const ollamaStatus = document.getElementById('ollama-status');
+            ollamaStatus.textContent = data.ollama_status;
+            ollamaStatus.className = data.ollama_status === 'Running' ? 'h3 text-success' : 'h3 text-danger';
+        });
+}
+
+// Initialize charts
+document.addEventListener('DOMContentLoaded', () => {
+    cpuChart = createGaugeChart('cpu-chart', '#FF6B35');
+    memoryChart = createGaugeChart('memory-chart', '#6B35FF');
+    diskChart = createGaugeChart('disk-chart', '#4A90E2');
+    
+    updateDashboard();
+    setInterval(updateDashboard, 3000); // Update every 3 seconds
+});
+</script>
+{% endblock %}

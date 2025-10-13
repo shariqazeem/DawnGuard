@@ -12,7 +12,10 @@ urlpatterns = [
     path('chat/<int:conversation_id>/send/', views.send_message, name='send_message'),
     path('chat/<int:conversation_id>/delete/', views.delete_conversation, name='delete_conversation'),
     path('settings/', views.settings_view, name='settings'),
-    
+    path('blackbox/dashboard/', views.blackbox_dashboard_view, name='blackbox_dashboard'),
+    path('blackbox/status/', views.blackbox_status, name='blackbox_status'),
+    path('analytics/', views.analytics_view, name='analytics'),
+
     # P2P Network
     path('p2p/', views.p2p_network_view, name='p2p_network'),
     path('p2p/share/', views.share_knowledge, name='share_knowledge'),

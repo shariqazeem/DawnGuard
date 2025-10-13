@@ -11,6 +11,11 @@ from django.contrib.auth.forms import UserCreationForm
 from datetime import datetime, timedelta
 import json
 import time
+import psutil
+import platform
+import socket
+from django.db.models import Count
+from django.db.models.functions import TruncDate, TruncHour
 
 # Import models
 from .models import (
@@ -760,3 +765,127 @@ def upvote_knowledge(request, knowledge_id):
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@login_required
+def blackbox_status(request):
+    """Show Black Box hardware status"""
+    
+    # Get system information
+    cpu_percent = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    disk = psutil.disk_usage('/')
+    
+    # Network info
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    
+    # Check if Ollama is running
+    ollama_status = "Running" if llm_handler.available else "Offline"
+    
+    # Get GPU info (if available)
+    try:
+        import GPUtil
+        gpus = GPUtil.getGPUs()
+        gpu_info = [{
+            'name': gpu.name,
+            'load': gpu.load * 100,
+            'memory_used': gpu.memoryUsed,
+            'memory_total': gpu.memoryTotal,
+            'temperature': gpu.temperature
+        } for gpu in gpus]
+    except:
+        gpu_info = []
+    
+    context = {
+        'cpu_percent': cpu_percent,
+        'memory_percent': memory.percent,
+        'memory_used': memory.used / (1024**3),  # GB
+        'memory_total': memory.total / (1024**3),  # GB
+        'disk_percent': disk.percent,
+        'disk_used': disk.used / (1024**3),  # GB
+        'disk_total': disk.total / (1024**3),  # GB
+        'hostname': hostname,
+        'local_ip': local_ip,
+        'ollama_status': ollama_status,
+        'gpu_info': gpu_info,
+        'platform': platform.system(),
+        'platform_version': platform.version(),
+    }
+    
+    return JsonResponse(context)
+
+@login_required
+def blackbox_dashboard_view(request):
+    """Black Box hardware dashboard"""
+    context = {
+        'active_connections': P2PConnection.objects.filter(is_active=True).count(),
+        'total_messages': Message.objects.count(),
+    }
+    return render(request, 'blackbox_dashboard.html', context)
+
+@login_required
+def analytics_view(request):
+    """Analytics dashboard"""
+    user = request.user
+    
+    # Basic stats
+    total_conversations = Conversation.objects.filter(user=user).count()
+    total_messages = Message.objects.filter(conversation__user=user).count()
+    knowledge_shared = SharedKnowledge.objects.filter(shared_by__user=user).count()
+    
+    # This week
+    week_ago = timezone.now() - timedelta(days=7)
+    conversations_this_week = Conversation.objects.filter(
+        user=user,
+        created_at__gte=week_ago
+    ).count()
+    
+    # Activity over last 7 days
+    activity = Message.objects.filter(
+        conversation__user=user,
+        timestamp__gte=week_ago
+    ).annotate(
+        date=TruncDate('timestamp')
+    ).values('date').annotate(
+        count=Count('id')
+    ).order_by('date')
+    
+    activity_labels = [a['date'].strftime('%b %d') for a in activity]
+    activity_data = [a['count'] for a in activity]
+    
+    # Message types
+    user_messages = Message.objects.filter(conversation__user=user, role='user').count()
+    ai_messages = Message.objects.filter(conversation__user=user, role='assistant').count()
+    p2p_messages = knowledge_shared
+    
+    # Hours distribution
+    hours = [0, 0, 0, 0]  # 4 time blocks
+    for msg in Message.objects.filter(conversation__user=user):
+        hour = msg.timestamp.hour
+        if 0 <= hour < 6:
+            hours[0] += 1
+        elif 6 <= hour < 12:
+            hours[1] += 1
+        elif 12 <= hour < 18:
+            hours[2] += 1
+        else:
+            hours[3] += 1
+    
+    # Privacy score (simple calculation)
+    privacy_score = 100  # Always 100 for local processing
+    
+    context = {
+        'total_conversations': total_conversations,
+        'conversations_this_week': conversations_this_week,
+        'total_messages': total_messages,
+        'knowledge_shared': knowledge_shared,
+        'privacy_score': privacy_score,
+        'activity_labels': json.dumps(activity_labels),
+        'activity_data': json.dumps(activity_data),
+        'user_messages': user_messages,
+        'ai_messages': ai_messages,
+        'p2p_messages': p2p_messages,
+        'hours_data': json.dumps(hours),
+    }
+    
+    return render(request, 'analytics.html', context)

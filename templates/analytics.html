@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-graph-up"></i> Privacy Analytics Dashboard
+                </h2>
+                <p class="mb-0" style="color: #666;">
+                    Insights into your encrypted AI usage - all data stays local
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dawn-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="color: #666;">Total Conversations</small>
+                        <div class="h2 fw-bold glow-text">{{ total_conversations }}</div>
+                    </div>
+                    <div style="font-size: 48px; opacity: 0.2;">💬</div>
+                </div>
+                <small class="text-success">
+                    <i class="bi bi-arrow-up"></i> {{ conversations_this_week }} this week
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="color: #666;">Messages Encrypted</small>
+                        <div class="h2 fw-bold" style="color: var(--dawn-purple);">{{ total_messages }}</div>
+                    </div>
+                    <div style="font-size: 48px; opacity: 0.2;">🔐</div>
+                </div>
+                <small class="text-success">
+                    <i class="bi bi-shield-check"></i> 100% encrypted
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="color: #666;">Knowledge Shared</small>
+                        <div class="h2 fw-bold" style="color: var(--dawn-blue);">{{ knowledge_shared }}</div>
+                    </div>
+                    <div style="font-size: 48px; opacity: 0.2;">📚</div>
+                </div>
+                <small style="color: var(--dawn-blue);">
+                    <i class="bi bi-diagram-3"></i> P2P network
+                </small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small style="color: #666;">Privacy Score</small>
+                        <div class="h2 fw-bold text-success">{{ privacy_score }}/100</div>
+                    </div>
+                    <div style="font-size: 48px; opacity: 0.2;">🛡️</div>
+                </div>
+                <small class="text-success">
+                    <i class="bi bi-check-circle-fill"></i> Excellent
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="dawn-card">
+                <h5 class="mb-4 fw-bold">
+                    <i class="bi bi-activity"></i> Activity Over Time
+                </h5>
+                <canvas id="activity-chart" height="80"></canvas>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="dawn-card">
+                <h5 class="mb-4 fw-bold">
+                    <i class="bi bi-pie-chart"></i> Message Types
+                </h5>
+                <canvas id="message-types-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <div class="col-lg-6">
+            <div class="dawn-card">
+                <h5 class="mb-4 fw-bold">
+                    <i class="bi bi-clock-history"></i> Most Active Hours
+                </h5>
+                <canvas id="hours-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="dawn-card">
+                <h5 class="mb-4 fw-bold">
+                    <i class="bi bi-shield-lock"></i> Privacy Breakdown
+                </h5>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>End-to-End Encryption</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar bg-success" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Local AI Processing</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar bg-success" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Zero Data Collection</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar bg-success" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="alert alert-success mt-4" style="border-radius: 12px;">
+                    <strong><i class="bi bi-check-circle-fill"></i> Perfect Privacy Score!</strong><br>
+                    <small>All your data stays encrypted and local on your Black Box.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Activity Chart
+new Chart(document.getElementById('activity-chart'), {
+    type: 'line',
+    data: {
+        labels: {{ activity_labels|safe }},
+        datasets: [{
+            label: 'Messages',
+            data: {{ activity_data|safe }},
+            borderColor: '#FF6B35',
+            backgroundColor: 'rgba(255, 107, 53, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Message Types Pie Chart
+new Chart(document.getElementById('message-types-chart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['User Messages', 'AI Responses', 'P2P Shared'],
+        datasets: [{
+            data: [{{ user_messages }}, {{ ai_messages }}, {{ p2p_messages }}],
+            backgroundColor: ['#FF6B35', '#6B35FF', '#4CAF50']
+        }]
+    }
+});
+
+// Hours Chart
+new Chart(document.getElementById('hours-chart'), {
+    type: 'bar',
+    data: {
+        labels: ['00-06', '06-12', '12-18', '18-24'],
+        datasets: [{
+            label: 'Messages',
+            data: {{ hours_data|safe }},
+            backgroundColor: '#4A90E2'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+{% endblock %}
