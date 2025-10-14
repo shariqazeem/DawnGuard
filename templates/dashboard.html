@@ -3,126 +3,206 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-5" style="background: var(--dawn-cream);">
-    <!-- Welcome Header -->
-    <div class="row mb-5">
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+    <!-- Hero Welcome Section -->
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="dawn-card">
-                <div class="row align-items-center">
+            <div class="dawn-card"
+                style="background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(107,53,255,0.05)); border: none; overflow: hidden; position: relative;">
+                <!-- Decorative Background Pattern -->
+                <div
+                    style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%); border-radius: 50%;">
+                </div>
+                <div
+                    style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(107,53,255,0.1) 0%, transparent 70%); border-radius: 50%;">
+                </div>
+
+                <div class="row align-items-center position-relative" style="z-index: 1;">
                     <div class="col-md-8">
-                        <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
-                            Welcome back, <span class="glow-text">{{ user.username }}</span>! 👋
-                        </h2>
-                        <p class="mb-0" style="color: #666;">
-                            Your private AI assistant is ready. All data encrypted and local.
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="dawn-logo me-3" style="width: 64px; height: 64px; font-size: 32px;">☀️</div>
+                            <div>
+                                <h1 class="mb-1 fw-bold" style="color: var(--dawn-dark); font-size: 2rem;">
+                                    Welcome back! 👋
+                                </h1>
+                                {% if profile.solana_wallet %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge"
+                                        style="background: var(--dawn-purple); color: white; padding: 8px 16px; border-radius: 20px; font-family: monospace; font-size: 0.9rem;">
+                                        <i class="bi bi-wallet2 me-1"></i>{{ profile.solana_wallet|slice:":6" }}...{{ profile.solana_wallet|slice:"-6:" }}
+                                    </span>
+                                    <span class="badge bg-success" style="padding: 6px 12px; border-radius: 16px;">
+                                        <i class="bi bi-patch-check-fill"></i> Verified
+                                    </span>
+                                </div>
+                                {% else %}
+                                <p class="mb-0" style="color: #666; font-size: 1.1rem;">
+                                    <strong>{{ user.username }}</strong> • Your private AI is ready
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="mb-0" style="color: #666; font-size: 0.95rem; max-width: 600px;">
+                            <i class="bi bi-shield-check text-success me-1"></i>
+                            All data encrypted and processed locally on your DAWN Black Box
                         </p>
                     </div>
-                    <div class="col-md-4 text-md-end">
-                        <a href="{% url 'chat' %}" class="btn btn-dawn btn-lg">
-                            <i class="bi bi-chat-dots-fill"></i> New Chat
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="{% url 'chat' %}" class="btn btn-dawn btn-lg mb-2 w-100 w-md-auto">
+                            <i class="bi bi-chat-dots-fill me-2"></i> Start New Chat
+                        </a>
+                        {% if not profile.solana_wallet %}
+                        <a href="{% url 'wallet_login' %}" class="btn btn-outline-dawn w-100 w-md-auto">
+                            <i class="bi bi-wallet2 me-2"></i> Link Wallet
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards - Redesigned -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255,107,53,0.1); color: var(--dawn-orange);">
+                    <i class="bi bi-chat-dots-fill"></i>
+                </div>
+                <div class="stat-value glow-text">{{ total_messages }}</div>
+                <div class="stat-label">Total Messages</div>
+                <div class="stat-footer">
+                    <small class="text-success">
+                        <i class="bi bi-lock-fill"></i> {{ encrypted_messages }} encrypted
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(107,53,255,0.1); color: var(--dawn-purple);">
+                    <i class="bi bi-chat-left-text-fill"></i>
+                </div>
+                <div class="stat-value" style="color: var(--dawn-purple);">{{ conversations.count }}</div>
+                <div class="stat-label">Conversations</div>
+                <div class="stat-footer">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-lock"></i> Private
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(76,175,80,0.1); color: #4CAF50;">
+                    <i class="bi bi-diagram-3-fill"></i>
+                </div>
+                <div class="stat-value" style="color: #4CAF50;">P2P</div>
+                <div class="stat-label">Network Active</div>
+                <div class="stat-footer">
+                    <a href="{% url 'p2p_network' %}"
+                        style="color: #4CAF50; text-decoration: none; font-size: 0.85rem;">
+                        <i class="bi bi-arrow-right-circle"></i> View Network
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(74,144,226,0.1); color: var(--dawn-blue);">
+                    <i class="bi bi-cpu-fill"></i>
+                </div>
+                <div class="stat-value" style="color: var(--dawn-blue);">
+                    {% if llm_status == 'Online' %}🟢{% else %}🟡{% endif %}
+                </div>
+                <div class="stat-label">AI Status</div>
+                <div class="stat-footer">
+                    <small class="{% if llm_status == 'Online' %}text-success{% else %}text-warning{% endif %}">
+                        {{ llm_status }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            <!-- Quick Actions Bar -->
+            <div class="dawn-card mb-4 p-3">
+                <div class="row g-2">
+                    <div class="col-6 col-md-3">
+                        <a href="{% url 'chat' %}" class="quick-action-btn">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Chat</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="{% url 'p2p_network' %}" class="quick-action-btn">
+                            <i class="bi bi-diagram-3"></i>
+                            <span>P2P Network</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="{% url 'analytics' %}" class="quick-action-btn">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="{% url 'blackbox_dashboard' %}" class="quick-action-btn">
+                            <i class="bi bi-hdd-rack"></i>
+                            <span>Black Box</span>
                         </a>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Stats Overview - DAWN Cards -->
-    <div class="row mb-5 g-4">
-        <div class="col-md-3">
-            <div class="dawn-card text-center h-100">
-                <div class="h2 mb-2 glow-text fw-bold">{{ total_messages }}</div>
-                <div class="mb-3" style="color: #666; font-weight: 500;">Total Messages</div>
-                <div class="mt-auto">
-                    <small class="privacy-badge">
-                        <i class="bi bi-shield-check"></i> {{ encrypted_messages }} Encrypted
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dawn-card text-center h-100">
-                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-purple);">{{ conversations.count }}</div>
-                <div class="mb-3" style="color: #666; font-weight: 500;">Active Chats</div>
-                <div class="mt-auto">
-                    <small class="privacy-badge">
-                        <i class="bi bi-lock-fill"></i> Private
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dawn-card text-center h-100">
-                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-blue);">{{ documents.count }}</div>
-                <div class="mb-3" style="color: #666; font-weight: 500;">Documents</div>
-                <div class="mt-auto">
-                    <small
-                        style="background: rgba(74,144,226,0.1); border: 1.5px solid var(--dawn-blue); color: var(--dawn-blue); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">
-                        <i class="bi bi-file-earmark-text"></i> Encrypted
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="dawn-card text-center h-100">
-                <div class="mb-2">
-                    {% if llm_status == 'Online' %}
-                    <span class="badge bg-success"
-                        style="font-size: 1.2rem; padding: 10px 20px; border-radius: 24px;">🟢 Online</span>
-                    {% else %}
-                    <span class="badge bg-warning"
-                        style="font-size: 1.2rem; padding: 10px 20px; border-radius: 24px;">🟡 Mock</span>
-                    {% endif %}
-                </div>
-                <div class="mb-3" style="color: #666; font-weight: 500;">AI Status</div>
-                <div class="mt-auto">
-                    <small style="color: #999;">{{ llm_status }}</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="row g-4">
-        <!-- Recent Conversations -->
-        <div class="col-lg-8">
+            <!-- Recent Conversations -->
             <div class="dawn-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0 fw-bold" style="color: var(--dawn-dark);">
-                        <i class="bi bi-chat-left-text"></i> Recent Conversations
+                        <i class="bi bi-clock-history me-2"></i>Recent Conversations
                     </h4>
-                    <a href="{% url 'chat' %}" class="btn btn-sm btn-outline-dawn">View All</a>
+                    <a href="{% url 'chat' %}" class="btn btn-sm btn-outline-dawn">
+                        View All <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
                 </div>
 
                 {% if conversations %}
-                <div class="list-group list-group-flush">
+                <div class="conversation-list">
                     {% for conv in conversations %}
-                    <a href="{% url 'chat_with_id' conv.id %}"
-                        class="list-group-item bg-transparent border-0 py-3 hover-highlight"
-                        style="border-left: 3px solid transparent !important; padding-left: 16px; border-radius: 12px; margin-bottom: 4px; color: var(--dawn-dark);">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div style="flex: 1;">
-                                <h6 class="mb-1 fw-bold">{{ conv.title }}</h6>
-                                <small style="color: #999;">
-                                    <i class="bi bi-chat"></i> {{ conv.get_message_count }} messages •
-                                    <i class="bi bi-clock"></i> {{ conv.updated_at|timesince }} ago
-                                </small>
+                    <a href="{% url 'chat_with_id' conv.id %}" class="conversation-item">
+                        <div class="conversation-icon">
+                            <i class="bi bi-chat-left-text"></i>
+                        </div>
+                        <div class="conversation-content">
+                            <div class="conversation-title">{{ conv.title|truncatechars:50 }}</div>
+                            <div class="conversation-meta">
+                                <span><i class="bi bi-chat"></i> {{ conv.get_message_count }} messages</span>
+                                <span><i class="bi bi-clock"></i> {{ conv.updated_at|timesince }} ago</span>
                             </div>
-                            <div>
-                                <span class="privacy-badge">🔒</span>
-                            </div>
+                        </div>
+                        <div class="conversation-badge">
+                            <span class="badge"
+                                style="background: rgba(76,175,80,0.1); color: #4CAF50; border: 1px solid #4CAF50;">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-chat-dots" style="font-size: 48px; opacity: 0.2; color: #999;"></i>
-                    <p style="color: #999;" class="mt-3 mb-0">No conversations yet</p>
-                    <a href="{% url 'chat' %}" class="btn btn-dawn mt-3">Start Your First Chat</a>
+                <div class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <h5 class="fw-bold mb-2" style="color: var(--dawn-dark);">No conversations yet</h5>
+                    <p class="text-muted mb-4">Start your first private AI conversation</p>
+                    <a href="{% url 'chat' %}" class="btn btn-dawn">
+                        <i class="bi bi-plus-circle me-2"></i>Start First Chat
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -130,196 +210,163 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- ZKP Setup Prompt (only show if not enabled) -->
-            {% if not profile.zkp_enabled %}
+            <!-- Security Status Card -->
             <div class="dawn-card mb-4"
-                style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(107,53,255,0.1)); border: 2px solid var(--dawn-orange);">
-                <div class="text-center">
-                    <div class="mb-3" style="font-size: 48px;">🔐</div>
-                    <h5 class="fw-bold mb-2" style="color: var(--dawn-dark);">
-                        Enable Advanced Security
-                    </h5>
-                    <p class="small mb-3" style="color: #666;">
-                        Setup Zero-Knowledge Proof authentication for password-less login
-                    </p>
-                    <a href="{% url 'setup_zkp_view' %}" class="btn btn-dawn w-100">
-                        <i class="bi bi-shield-plus"></i> Setup ZKP Now
+                style="background: linear-gradient(135deg, rgba(76,175,80,0.05), rgba(76,175,80,0.02));">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="security-badge-icon me-3">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">Security Status</h5>
+                        <small class="text-success fw-bold">All Systems Secure</small>
+                    </div>
+                </div>
+
+                <div class="security-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-lock-fill text-success me-2"></i>Encryption</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+
+                <div class="security-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-house-fill text-success me-2"></i>Local Mode</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+
+                <!-- In dashboard.html, update the security status card -->
+                {% if not profile.solana_wallet %}
+                <div class="security-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i
+                                class="bi bi-shield-lock text-{% if profile.zkp_enabled %}success{% else %}warning{% endif %} me-2"></i>Zero-Knowledge</span>
+                        <span class="badge {% if profile.zkp_enabled %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if profile.zkp_enabled %}Enabled{% else %}Setup{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                {% if not profile.zkp_enabled %}
+                <div class="mt-3">
+                    <a href="{% url 'setup_zkp_view' %}" class="btn btn-success w-100 btn-sm">
+                        <i class="bi bi-shield-plus me-2"></i>Enable ZKP Auth
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <!-- Wallet users see this instead -->
+                <div class="security-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-wallet2 text-success me-2"></i>Wallet Auth</span>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Wallet Card (if connected) -->
+            {% if profile.solana_wallet %}
+            <div class="dawn-card mb-4" style="border: 2px solid var(--dawn-purple);">
+                <div class="d-flex align-items-center mb-3">
+                    <div
+                        style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--dawn-purple), var(--dawn-orange)); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                        <i class="bi bi-wallet2" style="font-size: 24px; color: white;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold" style="color: var(--dawn-dark);">Solana Wallet</h6>
+                        <small class="text-success"><i class="bi bi-check-circle-fill"></i> Connected</small>
+                    </div>
+                </div>
+                <div class="p-3"
+                    style="background: rgba(107,53,255,0.05); border-radius: 12px; border: 1px solid rgba(107,53,255,0.2);">
+                    <small class="text-muted d-block mb-1">Your Address:</small>
+                    <code style="font-size: 0.85rem; word-break: break-all; color: var(--dawn-purple);">
+                        {{ profile.solana_wallet }}
+                    </code>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-dawn flex-fill" onclick="copyWalletAddress()">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                    <a href="https://explorer.solana.com/address/{{ profile.solana_wallet }}?cluster=devnet"
+                        target="_blank" class="btn btn-sm btn-outline-dawn flex-fill">
+                        <i class="bi bi-box-arrow-up-right"></i> Explorer
                     </a>
                 </div>
             </div>
             {% else %}
-            <div class="dawn-card mb-4" style="border: 2px solid #4CAF50;">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-shield-check-fill text-success me-2" style="font-size: 24px;"></i>
-                    <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">ZKP Enabled</h5>
+            <!-- Connect Wallet CTA -->
+            <div class="dawn-card mb-4"
+                style="background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(255,107,53,0.05)); border: 2px dashed var(--dawn-purple);">
+                <div class="text-center">
+                    <div class="mb-3" style="font-size: 48px;">👛</div>
+                    <h5 class="fw-bold mb-2" style="color: var(--dawn-dark);">Link Your Wallet</h5>
+                    <p class="small mb-3" style="color: #666;">
+                        Connect your Solana wallet for true Web3 dApp experience
+                    </p>
+                    <a href="{% url 'wallet_login' %}" class="btn btn-dawn w-100">
+                        <i class="bi bi-wallet2 me-2"></i>Connect Wallet
+                    </a>
                 </div>
-                <p class="small mb-0" style="color: #666;">
-                    You can now login using Zero-Knowledge Proof authentication from the login page.
-                </p>
             </div>
             {% endif %}
-            <!-- Quick Actions -->
-            <div class="dawn-card mb-4">
-                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-lightning-fill"></i> Quick Actions
-                </h5>
-                <!-- In dashboard.html, add to Quick Actions -->
-                <div class="d-grid gap-2">
-                    <a href="{% url 'chat' %}" class="btn btn-dawn">
-                        <i class="bi bi-chat-dots"></i> New Conversation
-                    </a>
-                    <a href="{% url 'blackbox_dashboard' %}" class="btn btn-outline-dawn">
-                        <i class="bi bi-hdd-rack"></i> Black Box Status
-                    </a>
-                    <a href="{% url 'analytics' %}" class="btn btn-outline-dawn">
-                        <i class="bi bi-graph-up"></i> Analytics
-                    </a>
-                    <a href="{% url 'p2p_network' %}" class="btn btn-outline-dawn">
-                        <i class="bi bi-diagram-3"></i> P2P Network
-                    </a>
-                    <a href="{% url 'zkp_auth' %}" class="btn btn-outline-dawn">
-                        <i class="bi bi-shield-lock"></i> Zero-Knowledge Proof
-                    </a>
-                    <a href="{% url 'settings' %}" class="btn btn-outline-dawn">
-                        <i class="bi bi-gear"></i> Settings
-                    </a>
-                </div>
-            </div>
-            <!-- ZKP Status Card -->
-            <div class="dawn-card mb-4">
-                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-shield-lock"></i> Zero-Knowledge Proof
-                </h5>
-                {% if profile.zkp_enabled %}
-                <div class="alert alert-success mb-3" style="border-radius: 12px;">
-                    <i class="bi bi-check-circle-fill"></i> Enabled
-                </div>
-                <p class="small" style="color: #666;">
-                    You can use ZKP authentication for enhanced security.
-                </p>
-                {% else %}
-                <div class="alert alert-warning mb-3" style="border-radius: 12px;">
-                    <i class="bi bi-exclamation-triangle-fill"></i> Not Setup
-                </div>
-                <p class="small mb-3" style="color: #666;">
-                    Enable ZKP for password-less authentication.
-                </p>
-                <a href="{% url 'setup_zkp_view' %}" class="btn btn-dawn w-100">
-                    <i class="bi bi-shield-plus"></i> Setup ZKP
-                </a>
-                {% endif %}
-            </div>
-            <!-- Privacy Status -->
-            <div class="dawn-card mb-4">
-                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-shield-lock"></i> Privacy Status
-                </h5>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="color: #666;">Encryption</span>
-                        <span class="badge bg-success" style="border-radius: 12px;">
-                            {% if profile.enable_encryption %}Enabled{% else %}Disabled{% endif %}
-                        </span>
-                    </div>
-                    <div class="progress" style="height: 6px; border-radius: 12px; background: rgba(76,175,80,0.1);">
-                        <div class="progress-bar bg-success" style="width: 100%; border-radius: 12px;"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="color: #666;">Local Mode</span>
-                        <span class="badge bg-success" style="border-radius: 12px;">
-                            {% if profile.local_only_mode %}Active{% else %}Off{% endif %}
-                        </span>
-                    </div>
-                    <div class="progress" style="height: 6px; border-radius: 12px; background: rgba(76,175,80,0.1);">
-                        <div class="progress-bar bg-success" style="width: 100%; border-radius: 12px;"></div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span style="color: #666;">Data Collection</span>
-                        <span class="badge bg-success" style="border-radius: 12px;">Zero</span>
-                    </div>
-                    <div class="progress" style="height: 6px; border-radius: 12px; background: rgba(76,175,80,0.1);">
-                        <div class="progress-bar bg-success" style="width: 100%; border-radius: 12px;"></div>
-                    </div>
-                </div>
-
-                <div class="text-center mt-3">
-                    <small class="text-success fw-bold">
-                        <i class="bi bi-check-circle-fill"></i> All systems secure
-                    </small>
-                </div>
-            </div>
 
             <!-- System Info -->
             <div class="dawn-card">
                 <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
-                    <i class="bi bi-cpu"></i> System Info
+                    <i class="bi bi-gear-fill me-2"></i>Configuration
                 </h5>
-                <div class="mb-3">
-                    <small style="color: #999;">AI Model:</small>
-                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.ai_model }}</div>
+                <div class="config-item">
+                    <div class="config-label">AI Model</div>
+                    <div class="config-value">{{ profile.ai_model }}</div>
                 </div>
-                <div class="mb-3">
-                    <small style="color: #999;">Temperature:</small>
-                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.temperature }}</div>
+                <div class="config-item">
+                    <div class="config-label">Temperature</div>
+                    <div class="config-value">{{ profile.temperature }}</div>
                 </div>
-                <div class="mb-3">
-                    <small style="color: #999;">Max Tokens:</small>
-                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.max_tokens }}</div>
+                <div class="config-item">
+                    <div class="config-label">Max Tokens</div>
+                    <div class="config-value">{{ profile.max_tokens }}</div>
                 </div>
-                <div class="mb-3">
-                    <small style="color: #999;">Auto-Delete:</small>
-                    <div class="fw-bold" style="color: var(--dawn-dark);">{{ profile.auto_delete_days }} days</div>
+                <div class="config-item">
+                    <div class="config-label">Auto-Delete</div>
+                    <div class="config-value">{{ profile.auto_delete_days }} days</div>
                 </div>
-
                 <a href="{% url 'settings' %}" class="btn btn-outline-dawn w-100 mt-3">
-                    Configure
+                    <i class="bi bi-sliders me-2"></i>Manage Settings
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Privacy Features Highlight -->
-    <div class="row mt-5">
+    <!-- Features Highlight -->
+    <div class="row mt-4">
         <div class="col-12">
             <div class="dawn-card"
-                style="background: linear-gradient(135deg, rgba(255,107,53,0.03), rgba(107,53,255,0.03));">
-                <h5 class="mb-4 fw-bold text-center" style="color: var(--dawn-dark);">
-                    <i class="bi bi-info-circle"></i> What Makes CypherVault Secure?
-                </h5>
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <i class="bi bi-lock-fill" style="font-size: 2.5rem; color: var(--dawn-orange);"></i>
-                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">End-to-End Encryption</div>
-                            <small style="color: #666;">Messages encrypted before storage</small>
-                        </div>
+                style="background: linear-gradient(135deg, rgba(255,107,53,0.02), rgba(107,53,255,0.02)); border: none;">
+                <div class="row g-4 text-center">
+                    <div class="col-6 col-md-3">
+                        <div class="feature-icon">🔒</div>
+                        <h6 class="fw-bold mt-2 mb-1" style="color: var(--dawn-dark);">End-to-End Encrypted</h6>
+                        <small class="text-muted">All data encrypted at rest</small>
                     </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <i class="bi bi-hdd-network" style="font-size: 2.5rem; color: var(--dawn-purple);"></i>
-                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">Local Processing</div>
-                            <small style="color: #666;">AI runs on your Black Box</small>
-                        </div>
+                    <div class="col-6 col-md-3">
+                        <div class="feature-icon">💻</div>
+                        <h6 class="fw-bold mt-2 mb-1" style="color: var(--dawn-dark);">Local AI Processing</h6>
+                        <small class="text-muted">Runs on your Black Box</small>
                     </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <i class="bi bi-eye-slash" style="font-size: 2.5rem; color: #4CAF50;"></i>
-                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">Zero Tracking</div>
-                            <small style="color: #666;">No analytics or telemetry</small>
-                        </div>
+                    <div class="col-6 col-md-3">
+                        <div class="feature-icon">🌐</div>
+                        <h6 class="fw-bold mt-2 mb-1" style="color: var(--dawn-dark);">P2P Network</h6>
+                        <small class="text-muted">Decentralized mesh</small>
                     </div>
-                    <div class="col-md-3">
-                        <div class="text-center">
-                            <i class="bi bi-code-square" style="font-size: 2.5rem; color: var(--dawn-blue);"></i>
-                            <div class="mt-3 fw-bold" style="color: var(--dawn-dark);">Open Source</div>
-                            <small style="color: #666;">Fully auditable code</small>
-                        </div>
+                    <div class="col-6 col-md-3">
+                        <div class="feature-icon">🛡️</div>
+                        <h6 class="fw-bold mt-2 mb-1" style="color: var(--dawn-dark);">Zero Tracking</h6>
+                        <small class="text-muted">Complete privacy</small>
                     </div>
                 </div>
             </div>
@@ -328,20 +375,248 @@
 </div>
 
 <style>
-    .hover-highlight {
+    /* Stat Cards */
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
+        height: 100%;
     }
 
-    .hover-highlight:hover {
-        background: rgba(255, 107, 53, 0.05) !important;
-        border-left: 3px solid var(--dawn-orange) !important;
-        transform: translateX(5px);
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(255, 107, 53, 0.12);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .stat-footer {
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        margin-top: 8px;
+    }
+
+    /* Quick Actions */
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(255, 107, 53, 0.05);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--dawn-dark);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--dawn-orange);
+        color: white;
+        transform: translateY(-2px);
+        border-color: var(--dawn-orange);
+    }
+
+    .quick-action-btn i {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .quick-action-btn span {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    /* Conversations List */
+    .conversation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .conversation-item {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.01);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--dawn-dark);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .conversation-item:hover {
+        background: rgba(255, 107, 53, 0.05);
+        border-color: var(--dawn-orange);
+        transform: translateX(4px);
+    }
+
+    .conversation-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+
+    .conversation-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .conversation-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .conversation-meta {
+        font-size: 0.85rem;
+        color: #999;
+        display: flex;
+        gap: 12px;
+    }
+
+    .conversation-badge {
+        margin-left: 12px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    /* Security Items */
+    .security-badge-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+    }
+
+    .security-item {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .security-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Config Items */
+    .config-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .config-item:last-child {
+        border-bottom: none;
+    }
+
+    .config-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .config-value {
+        font-weight: 600;
+        color: var(--dawn-dark);
+    }
+
+    /* Feature Icons */
+    .feature-icon {
+        font-size: 48px;
+        opacity: 0.8;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+        }
     }
 </style>
 
 <script>
-    function showPrivacyInfo() {
-        alert(`🔒 CypherVault Privacy Guarantee:\n\n✓ All messages encrypted end-to-end\n✓ AI processing happens locally on your device\n✓ Zero data collection or tracking\n✓ No cloud services or external APIs\n✓ Your data never leaves your Black Box\n\nYour privacy is absolute.`);
+    function copyWalletAddress() {
+        const address = '{{ profile.solana_wallet }}';
+        navigator.clipboard.writeText(address).then(() => {
+            showNotification('📋 Wallet address copied!', 'success');
+        }).catch(err => {
+            showNotification('❌ Failed to copy', 'error');
+        });
+    }
+
+    function showNotification(message, type = 'success') {
+        const colors = {
+            success: '#4CAF50',
+            error: '#f44336',
+            warning: '#ff9800'
+        };
+
+        const notification = document.createElement('div');
+        notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+        notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideIn 0.3s;`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
     }
 </script>
 {% endblock %}

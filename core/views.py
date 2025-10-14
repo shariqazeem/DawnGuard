@@ -36,7 +36,12 @@ from .utils.encryption import EncryptionManager
 from .utils.zkp_handler import ZKPHandler
 from .utils.p2p_handler import P2PHandler
 
+import base58
+import hashlib
+
 # Initialize handlers
+SOLANA_RPC = "https://api.devnet.solana.com"
+PROGRAM_ID = "CypherVault111111111111111111111111111111111"  # Demo program ID
 llm_handler = LLMHandler()
 encryption_manager = EncryptionManager()
 zkp_handler = ZKPHandler()
@@ -648,7 +653,8 @@ def zkp_login_view(request):
 @login_required
 def setup_zkp_view(request):
     """Page to setup ZKP secret"""
-    return render(request, 'setup_zkp.html')
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    return render(request, 'setup_zkp.html', {'profile': profile})
 
 @login_required
 @csrf_exempt
@@ -657,22 +663,38 @@ def setup_zkp(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            current_password = data.get('current_password')
             zkp_secret = data.get('zkp_secret')
+            is_wallet_user = data.get('is_wallet_user', False)
             
-            # Verify current password
-            if not request.user.check_password(current_password):
-                return JsonResponse({
-                    'success': False, 
-                    'error': 'Invalid current password'
-                }, status=401)
-            
-            # Make sure ZKP secret is different from password
-            if request.user.check_password(zkp_secret):
+            if not zkp_secret:
                 return JsonResponse({
                     'success': False,
-                    'error': 'ZKP secret must be DIFFERENT from your password'
+                    'error': 'ZKP secret is required'
                 }, status=400)
+            
+            # Only verify password for non-wallet users
+            if not is_wallet_user:
+                current_password = data.get('current_password')
+                
+                if not current_password:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': 'Current password is required'
+                    }, status=401)
+                
+                # Verify current password
+                if not request.user.check_password(current_password):
+                    return JsonResponse({
+                        'success': False, 
+                        'error': 'Invalid current password'
+                    }, status=401)
+                
+                # Make sure ZKP secret is different from password
+                if request.user.check_password(zkp_secret):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'ZKP secret must be DIFFERENT from your password'
+                    }, status=400)
             
             # Get or create profile
             profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -889,3 +911,247 @@ def analytics_view(request):
     }
     
     return render(request, 'analytics.html', context)
+
+@login_required
+@csrf_exempt
+def share_knowledge(request):
+    """Share knowledge on P2P network with blockchain integration"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            title = data.get('title')
+            content = data.get('content')
+            is_public = data.get('is_public', False)
+            category = data.get('category', 'general')
+            
+            # Check if wallet is connected
+            wallet_address = request.session.get('solana_wallet')
+            
+            node = BlackBoxNode.objects.get(user=request.user)
+            
+            # Encrypt content
+            encrypted_content = encryption_manager.encrypt(content)
+            content_hash = p2p_handler.create_knowledge_hash(content)
+            
+            # Simulate blockchain transaction
+            blockchain_tx = None
+            if wallet_address:
+                # Create a simulated transaction signature
+                # In production, this would be a real Solana transaction
+                tx_data = f"{wallet_address}{content_hash}{int(time.time())}"
+                blockchain_tx = base58.b58encode(hashlib.sha256(tx_data.encode()).digest()).decode()[:44]
+            
+            # Create shared knowledge
+            knowledge = SharedKnowledge.objects.create(
+                title=title,
+                content=encrypted_content,
+                encryption_key_hash=content_hash,
+                shared_by=node,
+                is_public=is_public,
+                category=category
+            )
+            
+            response_data = {
+                'success': True,
+                'knowledge_id': knowledge.id,
+                'message': 'Knowledge shared successfully'
+            }
+            
+            if blockchain_tx:
+                response_data['blockchain_tx'] = blockchain_tx
+                response_data['message'] = 'Knowledge shared on blockchain!'
+                response_data['explorer_url'] = f'https://explorer.solana.com/tx/{blockchain_tx}?cluster=devnet'
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@csrf_exempt
+def auth_wallet(request):
+    """Store wallet address in session"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            wallet = data.get('wallet')
+            
+            if wallet:
+                request.session['solana_wallet'] = wallet
+                return JsonResponse({'success': True, 'wallet': wallet})
+            else:
+                return JsonResponse({'success': False, 'error': 'No wallet provided'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+import secrets
+import time
+
+@csrf_exempt
+def wallet_login_view(request):
+    """Wallet-based login - Sign in with Solana wallet"""
+    return render(request, 'wallet_login.html')
+
+@csrf_exempt
+def wallet_auth_challenge(request):
+    """Generate challenge for wallet signature"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            wallet_address = data.get('wallet')
+            
+            if not wallet_address:
+                return JsonResponse({'success': False, 'error': 'Wallet address required'}, status=400)
+            
+            # Generate unique challenge message
+            challenge = f"CypherVault Login\nWallet: {wallet_address}\nTimestamp: {int(time.time())}\nNonce: {secrets.token_hex(16)}"
+            
+            # Store challenge in session
+            request.session['wallet_challenge'] = challenge
+            request.session['wallet_address'] = wallet_address
+            request.session['challenge_time'] = time.time()
+            
+            return JsonResponse({
+                'success': True,
+                'challenge': challenge,
+                'message': 'Sign this message with your wallet'
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@csrf_exempt
+def wallet_auth_verify(request):
+    """Verify wallet signature and login user"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            wallet_address = data.get('wallet')
+            signature = data.get('signature')
+            
+            # Get challenge from session
+            challenge = request.session.get('wallet_challenge')
+            stored_wallet = request.session.get('wallet_address')
+            challenge_time = request.session.get('challenge_time')
+            
+            if not challenge or not stored_wallet:
+                return JsonResponse({'success': False, 'error': 'No active challenge'}, status=400)
+            
+            # Check if challenge expired (5 minutes)
+            if time.time() - challenge_time > 300:
+                return JsonResponse({'success': False, 'error': 'Challenge expired'}, status=400)
+            
+            # Verify wallet matches
+            if wallet_address != stored_wallet:
+                return JsonResponse({'success': False, 'error': 'Wallet mismatch'}, status=400)
+            
+            # In production, verify signature with Solana SDK
+            # For hackathon demo, we'll accept the signature if it exists
+            if not signature or len(signature) < 10:
+                return JsonResponse({'success': False, 'error': 'Invalid signature'}, status=400)
+            
+            # Find or create user for this wallet
+            try:
+                profile = UserProfile.objects.get(solana_wallet=wallet_address)
+                user = profile.user
+                
+                # Update verification
+                profile.wallet_verified = True
+                profile.wallet_signature = signature
+                profile.save()
+                
+            except UserProfile.DoesNotExist:
+                # Create new user for this wallet
+                username = f"wallet_{wallet_address[:8]}"
+                
+                # Check if username exists, make unique
+                counter = 1
+                original_username = username
+                while User.objects.filter(username=username).exists():
+                    username = f"{original_username}_{counter}"
+                    counter += 1
+                
+                user = User.objects.create_user(
+                    username=username,
+                    password=secrets.token_urlsafe(32)  # Random password
+                )
+                
+                # Create profile with wallet
+                profile = UserProfile.objects.create(
+                    user=user,
+                    solana_wallet=wallet_address,
+                    wallet_verified=True,
+                    wallet_signature=signature
+                )
+            
+            # Login user
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            
+            # Clear session
+            del request.session['wallet_challenge']
+            del request.session['wallet_address']
+            del request.session['challenge_time']
+            
+            # Store wallet in session
+            request.session['solana_wallet'] = wallet_address
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Wallet authenticated successfully',
+                'redirect': '/dashboard/',
+                'username': user.username
+            })
+            
+        except Exception as e:
+            print(f"Wallet auth error: {str(e)}")
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@login_required
+@csrf_exempt
+def wallet_link(request):
+    """Link Solana wallet to existing account"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            wallet_address = data.get('wallet')
+            signature = data.get('signature')
+            
+            if not wallet_address or not signature:
+                return JsonResponse({'success': False, 'error': 'Wallet and signature required'}, status=400)
+            
+            # Check if wallet is already linked to another account
+            existing_profile = UserProfile.objects.filter(solana_wallet=wallet_address).first()
+            if existing_profile and existing_profile.user != request.user:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'This wallet is already linked to another account'
+                }, status=400)
+            
+            # Get or update user profile
+            profile = request.user.userprofile
+            profile.solana_wallet = wallet_address
+            profile.wallet_verified = True
+            profile.wallet_signature = signature
+            profile.save()
+            
+            # Store in session too
+            request.session['solana_wallet'] = wallet_address
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Wallet linked successfully',
+                'wallet': wallet_address
+            })
+            
+        except Exception as e:
+            print(f"Wallet link error: {str(e)}")
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)

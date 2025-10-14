@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="dawn-card p-5">
+                <div class="text-center mb-4">
+                    <div class="dawn-logo mx-auto mb-3" style="width: 80px; height: 80px; font-size: 40px;">☀️</div>
+                    <h2 class="fw-bold mb-2" style="color: var(--dawn-dark);">Welcome to CypherVault</h2>
+                    <p style="color: #666;">Connect your Solana wallet to continue</p>
+                </div>
+
+                <!-- Wallet Connection Card -->
+                <div id="wallet-connect-section">
+                    <div class="alert alert-info mb-4" style="border-radius: 12px; border-left: 4px solid var(--dawn-blue);">
+                        <small>
+                            <strong><i class="bi bi-info-circle"></i> True Web3 Authentication</strong><br>
+                            No passwords. No emails. Just your wallet signature.
+                        </small>
+                    </div>
+
+                    <button class="btn btn-dawn w-100 py-3 mb-3" onclick="connectAndLogin()" id="connect-btn">
+                        <i class="bi bi-wallet2 me-2"></i> Connect Phantom Wallet
+                    </button>
+
+                    <div class="text-center">
+                        <small style="color: #999;">
+                            Don't have Phantom? 
+                            <a href="https://phantom.app/" target="_blank" style="color: var(--dawn-orange);">Get it here</a>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Signing Step -->
+                <div id="wallet-signing-section" style="display: none;">
+                    <div class="text-center mb-4">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="fw-bold mb-2">Sign the Message</h5>
+                        <p style="color: #666;">Check your wallet for the signing request</p>
+                    </div>
+
+                    <div class="p-3 mb-3" style="background: rgba(0,0,0,0.02); border-radius: 12px;">
+                        <small style="color: #666; font-family: monospace; word-break: break-all;" id="sign-message"></small>
+                    </div>
+                </div>
+
+                <!-- Traditional Login Link -->
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <small style="color: #999;">
+                        Or use 
+                        <a href="{% url 'login' %}" style="color: var(--dawn-orange); text-decoration: none;">
+                            traditional login
+                        </a>
+                    </small>
+                </div>
+
+                <div class="mt-4 p-3" style="background: rgba(76,175,80,0.05); border-radius: 12px; border: 1px solid rgba(76,175,80,0.2);">
+                    <small class="text-success d-block mb-1">
+                        <i class="bi bi-shield-check"></i> Decentralized authentication
+                    </small>
+                    <small class="text-success d-block mb-1">
+                        <i class="bi bi-key"></i> No passwords to remember
+                    </small>
+                    <small class="text-success d-block">
+                        <i class="bi bi-incognito"></i> True Web3 dApp
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let walletAddress = null;
+
+async function connectAndLogin() {
+    try {
+        const { solana } = window;
+        
+        if (!solana || !solana.isPhantom) {
+            showNotification('❌ Please install Phantom wallet first!', 'error');
+            window.open('https://phantom.app/', '_blank');
+            return;
+        }
+
+        // Step 1: Connect wallet
+        showNotification('🔗 Connecting to Phantom...', 'success');
+        const response = await solana.connect();
+        walletAddress = response.publicKey.toString();
+        
+        showNotification(`✅ Connected: ${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}`, 'success');
+        
+        // Step 2: Get challenge from server
+        const challengeResponse = await fetch('/wallet/auth/challenge/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ wallet: walletAddress })
+        });
+        
+        const challengeData = await challengeResponse.json();
+        
+        if (!challengeData.success) {
+            throw new Error(challengeData.error);
+        }
+        
+        // Show signing section
+        document.getElementById('wallet-connect-section').style.display = 'none';
+        document.getElementById('wallet-signing-section').style.display = 'block';
+        document.getElementById('sign-message').textContent = challengeData.challenge;
+        
+        // Step 3: Sign message
+        showNotification('✍️ Please sign the message in your wallet', 'success');
+        
+        const encodedMessage = new TextEncoder().encode(challengeData.challenge);
+        const signedMessage = await solana.signMessage(encodedMessage, 'utf8');
+        
+        const signature = btoa(String.fromCharCode(...signedMessage.signature));
+        
+        // Step 4: Verify signature and login
+        showNotification('🔐 Verifying signature...', 'success');
+        
+        const verifyResponse = await fetch('/wallet/auth/verify/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                wallet: walletAddress,
+                signature: signature
+            })
+        });
+        
+        const verifyData = await verifyResponse.json();
+        
+        if (verifyData.success) {
+            showNotification('✅ Authentication successful!', 'success');
+            setTimeout(() => {
+                window.location.href = verifyData.redirect;
+            }, 1000);
+        } else {
+            throw new Error(verifyData.error);
+        }
+        
+    } catch (error) {
+        console.error('Wallet login error:', error);
+        showNotification('❌ Error: ' + error.message, 'error');
+        
+        // Reset UI
+        document.getElementById('wallet-connect-section').style.display = 'block';
+        document.getElementById('wallet-signing-section').style.display = 'none';
+    }
+}
+
+function showNotification(message, type = 'success') {
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+    };
+
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideIn 0.3s;`;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 4000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Auto-connect if wallet is already connected
+window.addEventListener('load', async () => {
+    const { solana } = window;
+    if (solana && solana.isPhantom && solana.isConnected) {
+        const publicKey = solana.publicKey;
+        if (publicKey) {
+            document.getElementById('connect-btn').innerHTML = 
+                `<i class="bi bi-wallet2 me-2"></i> Continue as ${publicKey.toString().slice(0,4)}...${publicKey.toString().slice(-4)}`;
+        }
+    }
+});
+</script>
+
+<style>
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}

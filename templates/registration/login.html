@@ -68,9 +68,11 @@
                             style="border-radius: 12px; border-left: 4px solid var(--dawn-blue);">
                             <small>
                                 <strong>🔐 Zero-Knowledge Proof Login</strong><br>
-                                Use your ZKP secret phrase (NOT your password). If you haven't setup ZKP yet,
-                                <a href="{% url 'setup_zkp_view' %}" target="_blank"
-                                    style="color: var(--dawn-orange);">set it up here</a>.
+                                Use your ZKP secret phrase (NOT your password). Only available for password-based
+                                accounts.
+                                <br><br>
+                                <strong>Using a wallet?</strong> Use the <a href="{% url 'wallet_login' %}"
+                                    style="color: var(--dawn-orange);">Wallet Login</a> instead.
                             </small>
                         </div>
 

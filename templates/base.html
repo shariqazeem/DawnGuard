@@ -2,328 +2,495 @@
 <!-- templates/base.html - DAWN Branded -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CypherVault - Your Private AI on Black Box</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    :root {
-        /* DAWN Brand Colors - Exact Match */
-        --dawn-orange: #FF6B35;
-        --dawn-purple: #6B35FF;
-        --dawn-peach: #FFE5DC;
-        --dawn-cream: #FFF8F5;
-        --dawn-dark: #0a0a0a;
-        --dawn-gray: #1a1a1a;
-        --dawn-light: #ffffff;
-        --dawn-blue-light: #E8F4FF;
-        --dawn-blue: #4A90E2;
-    }
-    
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    body {
-        background: var(--dawn-cream);
-        color: var(--dawn-dark);
-        min-height: 100vh;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        font-weight: 400;
-        line-height: 1.6;
-    }
-    
-    /* Flowing Wave Background - DAWN Style */
-    body::before {
-        content: '';
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 300px;
-        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFE5DC' fill-opacity='0.4' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom center;
-        background-size: cover;
-        pointer-events: none;
-        z-index: -1;
-    }
-    
-    /* DAWN Card Style - Clean & Minimal */
-    .dawn-card {
-        background: var(--dawn-light);
-        border-radius: 24px;
-        padding: 32px;
-        box-shadow: 0 4px 24px rgba(255, 107, 53, 0.08);
-        border: 1px solid rgba(255, 107, 53, 0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .dawn-card:hover {
-        box-shadow: 0 8px 32px rgba(255, 107, 53, 0.12);
-        transform: translateY(-2px);
-    }
-    
-    /* Cyber card for dark sections */
-    .cyber-card {
-        background: var(--dawn-light);
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    
-    /* DAWN Orange Accent Text */
-    .glow-text {
-        color: var(--dawn-orange);
-        font-weight: 700;
-    }
-    
-    /* Primary Button - DAWN Orange */
-    .btn-dawn {
-        background: var(--dawn-orange);
-        border: none;
-        color: white;
-        font-weight: 600;
-        padding: 14px 32px;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 16px rgba(255, 107, 53, 0.2);
-    }
-    
-    .btn-dawn:hover {
-        background: #ff5722;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 24px rgba(255, 107, 53, 0.3);
-        color: white;
-    }
-    
-    /* Outline Button */
-    .btn-outline-dawn {
-        border: 2px solid var(--dawn-orange);
-        color: var(--dawn-orange);
-        background: transparent;
-        font-weight: 600;
-        padding: 12px 28px;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-outline-dawn:hover {
-        background: var(--dawn-orange);
-        color: white;
-        border-color: var(--dawn-orange);
-    }
-    
-    /* Black Box Badge */
-    .blackbox-badge {
-        background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(107, 53, 255, 0.1));
-        border: 1.5px solid var(--dawn-orange);
-        color: var(--dawn-orange);
-        padding: 8px 16px;
-        border-radius: 24px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    /* Privacy Badge */
-    .privacy-badge {
-        background: rgba(76, 175, 80, 0.1);
-        border: 1.5px solid #4CAF50;
-        color: #2E7D32;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    /* Navbar - Clean DAWN Style */
-    .navbar {
-        background: rgba(255, 255, 255, 0.98) !important;
-        backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 107, 53, 0.1);
-        padding: 16px 0;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
-    }
-    
-    .navbar-brand {
-        font-size: 1.5rem;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: var(--dawn-dark) !important;
-    }
-    
-    .nav-link {
-        color: var(--dawn-dark) !important;
-        font-weight: 500;
-        padding: 8px 16px !important;
-        transition: color 0.3s ease;
-    }
-    
-    .nav-link:hover {
-        color: var(--dawn-orange) !important;
-    }
-    
-    /* DAWN Logo */
-    .dawn-logo {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple));
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        box-shadow: 0 4px 16px rgba(255, 107, 53, 0.25);
-    }
-    
-    /* Alert Messages */
-    .alert {
-        border-radius: 16px;
-        border: none;
-        padding: 16px 24px;
-        font-weight: 500;
-    }
-    
-    /* Footer */
-    footer {
-        background: var(--dawn-light);
-        border-top: 1px solid rgba(255, 107, 53, 0.1);
-        margin-top: 80px;
-    }
-    
-    /* Smooth Animations */
-    * {
-        transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-</style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            /* DAWN Brand Colors - Exact Match */
+            --dawn-orange: #FF6B35;
+            --dawn-purple: #6B35FF;
+            --dawn-peach: #FFE5DC;
+            --dawn-cream: #FFF8F5;
+            --dawn-dark: #0a0a0a;
+            --dawn-gray: #1a1a1a;
+            --dawn-light: #ffffff;
+            --dawn-blue-light: #E8F4FF;
+            --dawn-blue: #4A90E2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--dawn-cream);
+            color: var(--dawn-dark);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        /* Flowing Wave Background - DAWN Style */
+        body::before {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23FFE5DC' fill-opacity='0.4' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom center;
+            background-size: cover;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* DAWN Card Style - Clean & Minimal */
+        .dawn-card {
+            background: var(--dawn-light);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(255, 107, 53, 0.08);
+            border: 1px solid rgba(255, 107, 53, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dawn-card:hover {
+            box-shadow: 0 8px 32px rgba(255, 107, 53, 0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Cyber card for dark sections */
+        .cyber-card {
+            background: var(--dawn-light);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* DAWN Orange Accent Text */
+        .glow-text {
+            color: var(--dawn-orange);
+            font-weight: 700;
+        }
+
+        /* Primary Button - DAWN Orange */
+        .btn-dawn {
+            background: var(--dawn-orange);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 14px 32px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.2);
+        }
+
+        .btn-dawn:hover {
+            background: #ff5722;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 107, 53, 0.3);
+            color: white;
+        }
+
+        /* Outline Button */
+        .btn-outline-dawn {
+            border: 2px solid var(--dawn-orange);
+            color: var(--dawn-orange);
+            background: transparent;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-dawn:hover {
+            background: var(--dawn-orange);
+            color: white;
+            border-color: var(--dawn-orange);
+        }
+
+        /* Black Box Badge */
+        .blackbox-badge {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(107, 53, 255, 0.1));
+            border: 1.5px solid var(--dawn-orange);
+            color: var(--dawn-orange);
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Privacy Badge */
+        .privacy-badge {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1.5px solid #4CAF50;
+            color: #2E7D32;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Navbar - Clean DAWN Style */
+        .navbar {
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 107, 53, 0.1);
+            padding: 16px 0;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dawn-dark) !important;
+        }
+
+        .nav-link {
+            color: var(--dawn-dark) !important;
+            font-weight: 500;
+            padding: 8px 16px !important;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--dawn-orange) !important;
+        }
+
+        /* DAWN Logo */
+        .dawn-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.25);
+        }
+
+        /* Alert Messages */
+        .alert {
+            border-radius: 16px;
+            border: none;
+            padding: 16px 24px;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dawn-light);
+            border-top: 1px solid rgba(255, 107, 53, 0.1);
+            margin-top: 80px;
+        }
+
+        /* Smooth Animations */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+    </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark py-3">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <div class="dawn-logo">☀️</div>
-                <span class="glow-text">CypherVault</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'chat' %}">Chat</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'settings' %}">Settings</a>
-                        </li>
-                        <li class="nav-item ms-3">
-                            <a class="btn btn-outline-dawn btn-sm" href="{% url 'logout' %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Sign In</a>
-                        </li>
-                        <li class="nav-item ms-2">
-                            <a class="btn btn-dawn btn-sm" href="{% url 'register' %}">Get Started</a>
-                        </li>
-                    {% endif %}
-                    <li class="nav-item ms-3">
-                        <span class="blackbox-badge">
-                            <i class="bi bi-box"></i> Black Box Ready
-                        </span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    
-    {% if messages %}
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    
-    {% block content %}{% endblock %}
-    
-   <footer class="mt-5 py-5">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-4 mb-4">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="dawn-logo">☀️</div>
-                    <div>
-                        <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">CypherVault</h5>
-                        <small style="color: #999;">by DAWN</small>
-                    </div>
-                </div>
-                <p style="color: #666; line-height: 1.8;">
-                    Your personal AI assistant running on decentralized infrastructure.
-                    100% private. 100% yours. 100% on your Black Box.
-                </p>
-            </div>
-            
-            <div class="col-lg-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color: var(--dawn-dark);">Security Features</h6>
-                <div class="d-flex flex-column gap-2">
-                    <span class="privacy-badge d-inline-flex align-items-center">
-                        <i class="bi bi-shield-check me-2"></i> Encrypted
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <div class="dawn-logo">☀️</div>
+            <span class="glow-text">CypherVault</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'chat' %}">Chat</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'settings' %}">Settings</a>
+                </li>
+
+                <!-- Wallet Display or Connect Button -->
+                <li class="nav-item ms-3">
+                    {% with profile=user.userprofile %}
+                        {% if profile.solana_wallet %}
+                        <span class="badge"
+                            style="background: var(--dawn-purple); color: white; padding: 8px 16px; border-radius: 20px; font-family: monospace;">
+                            <i class="bi bi-wallet2 me-1"></i>
+                            {{ profile.solana_wallet|slice:":6" }}...{{ profile.solana_wallet|slice:"-6:" }}
+                        </span>
+                        {% else %}
+                        <button id="connect-wallet" class="btn btn-dawn btn-sm" onclick="connectWalletNav()">
+                            <i class="bi bi-wallet2"></i> Link Wallet
+                        </button>
+                        {% endif %}
+                    {% endwith %}
+                </li>
+
+                <li class="nav-item ms-2">
+                    <a class="btn btn-outline-dawn btn-sm" href="{% url 'logout' %}">Logout</a>
+                </li>
+                {% else %}
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Sign In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-dawn btn-sm me-2" href="{% url 'wallet_login' %}">
+                        <i class="bi bi-wallet2"></i> Wallet Login
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
+                    <a class="btn btn-dawn btn-sm" href="{% url 'register' %}">Get Started</a>
+                </li>
+                {% endif %}
+                <li class="nav-item ms-3">
+                    <span class="blackbox-badge">
+                        <i class="bi bi-box"></i> Black Box Ready
                     </span>
-                    <span class="privacy-badge d-inline-flex align-items-center">
-                        <i class="bi bi-house me-2"></i> Local Only
-                    </span>
-                    <span class="privacy-badge d-inline-flex align-items-center">
-                        <i class="bi bi-incognito me-2"></i> Zero Tracking
-                    </span>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 mb-4">
-                <h6 class="fw-bold mb-3" style="color: var(--dawn-dark);">Built for DAWN</h6>
-                <p style="color: #666; line-height: 1.8; font-size: 0.95rem;">
-                    Decentralized. Private. Sovereign. Learn more about the DAWN Network and how you can participate in building the user-owned Internet.
-                </p>
-                <a href="https://dawninternet.com" class="btn btn-outline-dawn btn-sm" target="_blank">
-                    <i class="bi bi-box-arrow-up-right me-2"></i>Visit DAWN
-                </a>
-            </div>
-        </div>
-        
-        <hr style="border-color: rgba(0,0,0,0.05); margin: 40px 0 20px;">
-        
-        <div class="text-center">
-            <p style="color: #999; font-size: 0.9rem; margin-bottom: 0;">
-                © 2025 CypherVault • Built for the DAWN Cypherpunk Hackathon • 
-                <a href="#" style="color: var(--dawn-orange); text-decoration: none;">Privacy Policy</a> • 
-                <a href="#" style="color: var(--dawn-orange); text-decoration: none;">Terms</a>
-            </p>
+                </li>
+            </ul>
         </div>
     </div>
-</footer>
-    
+</nav>
+
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <footer class="mt-5 py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="dawn-logo">☀️</div>
+                        <div>
+                            <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">CypherVault</h5>
+                            <small style="color: #999;">by DAWN</small>
+                        </div>
+                    </div>
+                    <p style="color: #666; line-height: 1.8;">
+                        Your personal AI assistant running on decentralized infrastructure.
+                        100% private. 100% yours. 100% on your Black Box.
+                    </p>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <h6 class="fw-bold mb-3" style="color: var(--dawn-dark);">Security Features</h6>
+                    <div class="d-flex flex-column gap-2">
+                        <span class="privacy-badge d-inline-flex align-items-center">
+                            <i class="bi bi-shield-check me-2"></i> Encrypted
+                        </span>
+                        <span class="privacy-badge d-inline-flex align-items-center">
+                            <i class="bi bi-house me-2"></i> Local Only
+                        </span>
+                        <span class="privacy-badge d-inline-flex align-items-center">
+                            <i class="bi bi-incognito me-2"></i> Zero Tracking
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4">
+                    <h6 class="fw-bold mb-3" style="color: var(--dawn-dark);">Built for DAWN</h6>
+                    <p style="color: #666; line-height: 1.8; font-size: 0.95rem;">
+                        Decentralized. Private. Sovereign. Learn more about the DAWN Network and how you can participate
+                        in building the user-owned Internet.
+                    </p>
+                    <a href="https://dawninternet.com" class="btn btn-outline-dawn btn-sm" target="_blank">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>Visit DAWN
+                    </a>
+                </div>
+            </div>
+
+            <hr style="border-color: rgba(0,0,0,0.05); margin: 40px 0 20px;">
+
+            <div class="text-center">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0;">
+                    © 2025 CypherVault • Built for the DAWN Cypherpunk Hackathon •
+                    <a href="#" style="color: var(--dawn-orange); text-decoration: none;">Privacy Policy</a> •
+                    <a href="#" style="color: var(--dawn-orange); text-decoration: none;">Terms</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+let walletAddress = null;
+
+async function connectWalletNav() {
+    try {
+        const { solana } = window;
+
+        if (!solana || !solana.isPhantom) {
+            if (confirm('Phantom wallet not detected. Would you like to install it?')) {
+                window.open('https://phantom.app/', '_blank');
+            }
+            return;
+        }
+
+        showNotification('🔗 Connecting to Phantom...', 'success');
+        
+        const response = await solana.connect();
+        walletAddress = response.publicKey.toString();
+
+        // Generate challenge and sign message for verification
+        const challengeResponse = await fetch('/wallet/auth/challenge/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ wallet: walletAddress })
+        });
+
+        const challengeData = await challengeResponse.json();
+        
+        if (!challengeData.success) {
+            throw new Error(challengeData.error || 'Failed to get challenge');
+        }
+
+        showNotification('✍️ Please sign the message in Phantom...', 'success');
+
+        // Sign the challenge
+        const encodedMessage = new TextEncoder().encode(challengeData.challenge);
+        const signedMessage = await solana.signMessage(encodedMessage, 'utf8');
+        const signature = btoa(String.fromCharCode(...signedMessage.signature));
+
+        // Link wallet to current account
+        const linkResponse = await fetch('/wallet/link/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                wallet: walletAddress,
+                signature: signature
+            })
+        });
+
+        const linkData = await linkResponse.json();
+
+        if (linkData.success) {
+            // Update button to show wallet
+            const connectBtn = document.getElementById('connect-wallet');
+            if (connectBtn) {
+                connectBtn.outerHTML = `
+                    <span class="badge" style="background: var(--dawn-purple); color: white; padding: 8px 16px; border-radius: 20px; font-family: monospace;">
+                        <i class="bi bi-wallet2 me-1"></i>${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}
+                    </span>
+                `;
+            }
+
+            showNotification('✅ Wallet linked successfully!', 'success');
+            
+            // Optional: reload to update UI everywhere
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            throw new Error(linkData.error || 'Failed to link wallet');
+        }
+
+    } catch (err) {
+        console.error('Wallet connection error:', err);
+        showNotification('❌ Error: ' + (err.message || 'Failed to connect wallet'), 'error');
+    }
+}
+
+// Legacy function name for compatibility
+async function connectWallet() {
+    await connectWalletNav();
+}
+
+// Auto-connect if previously connected (but don't show UI change until verified)
+window.addEventListener('load', async () => {
+    const { solana } = window;
+    if (solana && solana.isPhantom && solana.isConnected) {
+        walletAddress = solana.publicKey.toString();
+    }
+});
+
+function showNotification(message, type = 'success') {
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+    };
+
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
+    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideIn 0.3s;`;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
 </body>
+
 </html>

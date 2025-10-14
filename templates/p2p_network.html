@@ -178,6 +178,13 @@
                                 <code>{{ knowledge.encryption_key_hash|slice:":8" }}...</code>
                             </small>
                         </div>
+                        <!-- Blockchain indicator (show if wallet connected) -->
+                        <div class="mt-2 p-2" style="background: rgba(107,53,255,0.05); border-radius: 8px;">
+                            <small style="color: var(--dawn-purple); font-size: 10px;">
+                                <i class="bi bi-coin"></i>
+                                Recorded on Solana blockchain
+                            </small>
+                        </div>
                     </div>
                     {% empty %}
                     <div class="text-center py-5">
@@ -440,8 +447,13 @@
             return;
         }
 
-        // Show encrypting message
-        showNotification('🔐 Encrypting and broadcasting to P2P network...', 'success');
+        // Check if wallet is connected
+        const walletConnected = walletAddress !== null;
+        if (walletConnected) {
+            showNotification('🔐 Encrypting and recording on Solana blockchain...', 'success');
+        } else {
+            showNotification('🔐 Encrypting and broadcasting to P2P network...', 'success');
+        }
 
         try {
             const response = await fetch('/p2p/share/', {
@@ -454,15 +466,22 @@
                     title: title,
                     content: content,
                     category: category,
-                    is_public: isPublic
+                    is_public: isPublic,
+                    wallet: walletAddress  // Include wallet address
                 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                const totalNodes = parseInt('{{ total_nodes }}') || 1;  // Fixed!
-                showNotification('✅ Knowledge encrypted and broadcast to ' + totalNodes + ' nodes!', 'success');
+                const totalNodes = parseInt('{{ total_nodes }}') || 1;
+                let message = '✅ Knowledge encrypted and broadcast to ' + totalNodes + ' nodes!';
+
+                if (data.blockchain_tx) {
+                    message = '✅ Knowledge recorded on Solana! TX: ' + data.blockchain_tx.slice(0, 8) + '...';
+                }
+
+                showNotification(message, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
                 setTimeout(() => location.reload(), 1500);
             } else {

@@ -36,4 +36,11 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', views.logout_view, name='logout'),
+
+        # Wallet Authentication
+    path('wallet/login/', views.wallet_login_view, name='wallet_login'),
+    path('wallet/auth/challenge/', views.wallet_auth_challenge, name='wallet_auth_challenge'),
+    path('wallet/auth/verify/', views.wallet_auth_verify, name='wallet_auth_verify'),
+    path('auth/wallet/', views.auth_wallet, name='auth_wallet'),
+    path('wallet/link/', views.wallet_link, name='wallet_link'),
 ]

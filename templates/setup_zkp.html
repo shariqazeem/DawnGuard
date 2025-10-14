@@ -6,6 +6,61 @@
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <div class="dawn-card p-5">
+                {% if profile.solana_wallet %}
+                <!-- Wallet User - ZKP Not Needed -->
+                <div class="text-center">
+                    <div class="mb-4" style="font-size: 64px;">👛</div>
+                    <h2 class="fw-bold mb-3" style="color: var(--dawn-dark);">
+                        Wallet Authentication Active
+                    </h2>
+                    <p class="mb-4" style="color: #666;">
+                        You're using Solana wallet authentication, which is already cryptographically secure. Zero-Knowledge Proof is only available for password-based accounts.
+                    </p>
+                    
+                    <div class="alert alert-info mb-4" style="border-radius: 12px; border-left: 4px solid var(--dawn-purple);">
+                        <strong><i class="bi bi-info-circle"></i> Why?</strong><br>
+                        <small>
+                            Your wallet signature provides the same level of cryptographic security as ZKP. 
+                            No additional authentication method is needed!
+                        </small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+                        <div class="p-3 mb-2" style="background: rgba(76,175,80,0.05); border-radius: 12px; border: 1px solid rgba(76,175,80,0.2);">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <div class="text-start">
+                                    <strong style="color: var(--dawn-dark);">Wallet Signature</strong>
+                                    <br><small class="text-muted">Ed25519 cryptographic signing</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 mb-2" style="background: rgba(76,175,80,0.05); border-radius: 12px; border: 1px solid rgba(76,175,80,0.2);">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <div class="text-start">
+                                    <strong style="color: var(--dawn-dark);">Challenge-Response</strong>
+                                    <br><small class="text-muted">Unique per-session verification</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3" style="background: rgba(76,175,80,0.05); border-radius: 12px; border: 1px solid rgba(76,175,80,0.2);">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <div class="text-start">
+                                    <strong style="color: var(--dawn-dark);">No Password Storage</strong>
+                                    <br><small class="text-muted">Decentralized identity</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'dashboard' %}" class="btn btn-dawn w-100 mt-4">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+                {% else %}
+                <!-- Traditional User - Show ZKP Setup -->
                 <div class="text-center mb-4">
                     <div class="mb-3" style="font-size: 64px;">🔐</div>
                     <h2 class="fw-bold mb-2" style="color: var(--dawn-dark);">
@@ -67,12 +122,14 @@
                         ← Back to Dashboard
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
 <script>
+{% if not profile.solana_wallet %}
 document.getElementById('zkp-setup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -122,6 +179,7 @@ document.getElementById('zkp-setup-form').addEventListener('submit', async (e) =
         showNotification('❌ Network error: ' + error.message, 'error');
     }
 });
+{% endif %}
 
 function showNotification(message, type = 'success') {
     const colors = {

@@ -90,6 +90,9 @@ class UserProfile(models.Model):
     max_tokens = models.IntegerField(default=2048)
     temperature = models.FloatField(default=0.7)
     created_at = models.DateTimeField(auto_now_add=True)
+    solana_wallet = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    wallet_verified = models.BooleanField(default=False)
+    wallet_signature = models.TextField(blank=True, null=True)
         # Zero-Knowledge Proof
     zkp_secret_hash = models.CharField(max_length=64, blank=True, null=True)
     zkp_enabled = models.BooleanField(default=False)
