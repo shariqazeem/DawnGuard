@@ -183,13 +183,11 @@
         .dawn-logo {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple));
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.25);
         }
 
         /* Alert Messages */
@@ -217,9 +215,11 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark py-3">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">
-            <div class="dawn-logo">☀️</div>
-            <span class="glow-text">CypherVault</span>
+        <a class="navbar-brand" href="{% url 'home' %}" style="display: flex; align-items: center;">
+            <div class="dawn-logo">
+                <img src="/static/img/logo.png" alt="SunVault Logo" style="height: 100px; width: auto; margin-right: 8px;">
+            </div>
+            <span class="glow-text">SunVault</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
