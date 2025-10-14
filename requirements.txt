@@ -22,3 +22,4 @@ psutil
 solders==0.18.1
 base58==2.1.1
 dj-database-url==2.1.0
+psycopg2-binary==2.9.9
