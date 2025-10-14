@@ -21,3 +21,4 @@ psutil
 # Solana (use compatible version without httpx conflict)
 solders==0.18.1
 base58==2.1.1
+dj-database-url==2.1.0
