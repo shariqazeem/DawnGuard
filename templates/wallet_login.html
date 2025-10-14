@@ -77,131 +77,219 @@
 </div>
 
 <script>
-let walletAddress = null;
+// Wallet authentication script - SINGLE INSTANCE ONLY
+(function() {
+    'use strict';
+    
+    let walletAddress = null;
+    let isConnecting = false;
 
-async function connectAndLogin() {
-    try {
-        const { solana } = window;
-        
-        if (!solana || !solana.isPhantom) {
-            showNotification('❌ Please install Phantom wallet first!', 'error');
-            window.open('https://phantom.app/', '_blank');
+    window.connectAndLogin = async function() {
+        if (isConnecting) {
+            console.log('Already connecting, please wait...');
             return;
         }
 
-        // Step 1: Connect wallet
-        showNotification('🔗 Connecting to Phantom...', 'success');
-        const response = await solana.connect();
-        walletAddress = response.publicKey.toString();
-        
-        showNotification(`✅ Connected: ${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}`, 'success');
-        
-        // Step 2: Get challenge from server
-        const challengeResponse = await fetch('/wallet/auth/challenge/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ wallet: walletAddress })
-        });
-        
-        const challengeData = await challengeResponse.json();
-        
-        if (!challengeData.success) {
-            throw new Error(challengeData.error);
-        }
-        
-        // Show signing section
-        document.getElementById('wallet-connect-section').style.display = 'none';
-        document.getElementById('wallet-signing-section').style.display = 'block';
-        document.getElementById('sign-message').textContent = challengeData.challenge;
-        
-        // Step 3: Sign message
-        showNotification('✍️ Please sign the message in your wallet', 'success');
-        
-        const encodedMessage = new TextEncoder().encode(challengeData.challenge);
-        const signedMessage = await solana.signMessage(encodedMessage, 'utf8');
-        
-        const signature = btoa(String.fromCharCode(...signedMessage.signature));
-        
-        // Step 4: Verify signature and login
-        showNotification('🔐 Verifying signature...', 'success');
-        
-        const verifyResponse = await fetch('/wallet/auth/verify/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                wallet: walletAddress,
-                signature: signature
-            })
-        });
-        
-        const verifyData = await verifyResponse.json();
-        
-        if (verifyData.success) {
-            showNotification('✅ Authentication successful!', 'success');
-            setTimeout(() => {
-                window.location.href = verifyData.redirect;
-            }, 1000);
-        } else {
-            throw new Error(verifyData.error);
-        }
-        
-    } catch (error) {
-        console.error('Wallet login error:', error);
-        showNotification('❌ Error: ' + error.message, 'error');
-        
-        // Reset UI
-        document.getElementById('wallet-connect-section').style.display = 'block';
-        document.getElementById('wallet-signing-section').style.display = 'none';
-    }
-}
+        try {
+            isConnecting = true;
+            
+            // Check if Phantom is installed
+            const { solana } = window;
+            
+            if (!solana) {
+                showNotification('❌ Phantom wallet not detected!', 'error');
+                setTimeout(() => {
+                    window.open('https://phantom.app/', '_blank');
+                }, 2000);
+                isConnecting = false;
+                return;
+            }
 
-function showNotification(message, type = 'success') {
-    const colors = {
-        success: '#4CAF50',
-        error: '#f44336',
-        warning: '#ff9800'
+            if (!solana.isPhantom) {
+                showNotification('❌ Please install Phantom wallet extension!', 'error');
+                setTimeout(() => {
+                    window.open('https://phantom.app/', '_blank');
+                }, 2000);
+                isConnecting = false;
+                return;
+            }
+
+            // Step 1: Connect wallet
+            console.log('Step 1: Connecting to Phantom...');
+            showNotification('🔗 Connecting to Phantom...', 'success');
+            
+            const response = await solana.connect({ onlyIfTrusted: false });
+            walletAddress = response.publicKey.toString();
+            
+            console.log('Connected wallet:', walletAddress);
+            showNotification(`✅ Connected: ${walletAddress.slice(0,4)}...${walletAddress.slice(-4)}`, 'success');
+            
+            // Step 2: Get challenge from server
+            console.log('Step 2: Requesting challenge from server...');
+            const challengeResponse = await fetch('/wallet/auth/challenge/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ wallet: walletAddress }),
+                credentials: 'include'  // Important for sessions
+            });
+            
+            if (!challengeResponse.ok) {
+                throw new Error(`Server error: ${challengeResponse.status}`);
+            }
+            
+            const challengeData = await challengeResponse.json();
+            console.log('Challenge received:', challengeData.success);
+            
+            if (!challengeData.success) {
+                throw new Error(challengeData.error || 'Failed to get challenge');
+            }
+            
+            // Show signing section
+            document.getElementById('wallet-connect-section').style.display = 'none';
+            document.getElementById('wallet-signing-section').style.display = 'block';
+            document.getElementById('sign-message').textContent = challengeData.challenge;
+            
+            // Step 3: Sign message
+            console.log('Step 3: Requesting signature from wallet...');
+            showNotification('✍️ Please sign the message in your wallet', 'success');
+            
+            const encodedMessage = new TextEncoder().encode(challengeData.challenge);
+            const signedMessage = await solana.signMessage(encodedMessage, 'utf8');
+            
+            // Convert signature to base64
+            const signature = btoa(String.fromCharCode.apply(null, signedMessage.signature));
+            console.log('Signature obtained, length:', signature.length);
+            
+            // Step 4: Verify signature and login
+            console.log('Step 4: Verifying signature with server...');
+            showNotification('🔐 Verifying signature...', 'success');
+            
+            const verifyResponse = await fetch('/wallet/auth/verify/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    wallet: walletAddress,
+                    signature: signature
+                }),
+                credentials: 'include'  // Important for sessions
+            });
+            
+            if (!verifyResponse.ok) {
+                const errorText = await verifyResponse.text();
+                console.error('Verification failed:', errorText);
+                throw new Error(`Verification failed: ${verifyResponse.status}`);
+            }
+            
+            const verifyData = await verifyResponse.json();
+            console.log('Verification response:', verifyData);
+            
+            if (verifyData.success) {
+                showNotification('✅ Authentication successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = verifyData.redirect || '/dashboard/';
+                }, 1500);
+            } else {
+                throw new Error(verifyData.error || 'Authentication failed');
+            }
+            
+        } catch (error) {
+            console.error('Wallet login error:', error);
+            
+            let errorMessage = 'Connection failed';
+            if (error.message) {
+                errorMessage = error.message;
+            } else if (error.code === 4001) {
+                errorMessage = 'You rejected the connection';
+            } else if (error.code === -32603) {
+                errorMessage = 'Internal wallet error';
+            }
+            
+            showNotification(`❌ ${errorMessage}`, 'error');
+            
+            // Reset UI
+            document.getElementById('wallet-connect-section').style.display = 'block';
+            document.getElementById('wallet-signing-section').style.display = 'none';
+        } finally {
+            isConnecting = false;
+        }
     };
 
-    const notification = document.createElement('div');
-    notification.className = 'position-fixed bottom-0 end-0 m-4 p-3 rounded-3';
-    notification.style.cssText = `background: ${colors[type]}; color: white; border-radius: 16px; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: slideIn 0.3s;`;
-    notification.innerHTML = message;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 4000);
-}
+    function showNotification(message, type = 'success') {
+        const colors = {
+            success: '#4CAF50',
+            error: '#f44336',
+            warning: '#ff9800'
+        };
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+        // Remove any existing notifications
+        const existing = document.querySelectorAll('.wallet-notification');
+        existing.forEach(el => el.remove());
+
+        const notification = document.createElement('div');
+        notification.className = 'wallet-notification position-fixed top-0 end-0 m-4 p-3 rounded-3';
+        notification.style.cssText = `
+            background: ${colors[type]}; 
+            color: white; 
+            border-radius: 12px; 
+            z-index: 9999; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+            max-width: 350px;
+        `;
+        notification.innerHTML = `<strong>${message}</strong>`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-// Auto-connect if wallet is already connected
-window.addEventListener('load', async () => {
-    const { solana } = window;
-    if (solana && solana.isPhantom && solana.isConnected) {
-        const publicKey = solana.publicKey;
-        if (publicKey) {
-            document.getElementById('connect-btn').innerHTML = 
-                `<i class="bi bi-wallet2 me-2"></i> Continue as ${publicKey.toString().slice(0,4)}...${publicKey.toString().slice(-4)}`;
+    // Auto-detect connected wallet on page load
+    window.addEventListener('load', async () => {
+        try {
+            const { solana } = window;
+            if (solana && solana.isPhantom) {
+                console.log('✅ Phantom wallet detected');
+                
+                // Check if already connected
+                if (solana.isConnected) {
+                    const publicKey = solana.publicKey;
+                    if (publicKey) {
+                        const address = publicKey.toString();
+                        document.getElementById('connect-btn').innerHTML = 
+                            `<i class="bi bi-wallet2 me-2"></i> Continue as ${address.slice(0,4)}...${address.slice(-4)}`;
+                    }
+                }
+            } else {
+                console.log('⚠️ Phantom wallet not detected');
+            }
+        } catch (error) {
+            console.error('Error detecting wallet:', error);
         }
-    }
-});
+    });
+})();
 </script>
 
 <style>
@@ -213,6 +301,17 @@ window.addEventListener('load', async () => {
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
     }
 }
 </style>
