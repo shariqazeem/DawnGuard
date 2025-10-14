@@ -1,36 +1,26 @@
-# Dockerfile for CypherVault
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    curl \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
 WORKDIR /app
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project
-COPY . .
+COPY . /app/
 
-# Create necessary directories
-RUN mkdir -p /app/staticfiles /app/media /app/logs
+RUN mkdir -p /app/logs
+RUN mkdir -p /app/staticfiles
+RUN mkdir -p /app/mediafiles
 
-# Collect static files
 RUN python manage.py collectstatic --noinput || true
 
-# Expose port
 EXPOSE 8000
 
-# Run migrations and start server
-CMD python manage.py migrate --noinput && \
-    python manage.py runserver 0.0.0.0:8000
+CMD ["gunicorn", "cyphervault.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120"]

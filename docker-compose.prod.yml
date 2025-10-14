@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: cyphervault_prod
+      POSTGRES_USER: cyphervault
+      POSTGRES_PASSWORD: cyphervaultpass123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - cyphervault_network
+
+  web:
+    build: .
+    command: gunicorn cyphervault.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    depends_on:
+      - db
+      - ollama
+    restart: always
+    networks:
+      - cyphervault_network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: always
+    networks:
+      - cyphervault_network
+
+volumes:
+  postgres_data:
+  ollama_data:
+  static_volume:
+  media_volume:
+
+networks:
+  cyphervault_network:
+    driver: bridge
