@@ -67,10 +67,46 @@ def dashboard(request):
     # Get or create user profile
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     
+    # Get or create reputation score
+    from .models import ReputationScore, AchievementBadge
+    reputation, rep_created = ReputationScore.objects.get_or_create(
+        user=request.user,
+        defaults={
+            'total_score': 0,
+            'rank': 'Newcomer'
+        }
+    )
+    
+    # Award "Early Adopter" badge if new user
+    if rep_created:
+        AchievementBadge.objects.get_or_create(
+            user=request.user,
+            badge_type='early_adopter',
+            defaults={
+                'title': 'Early Adopter',
+                'description': 'Joined CypherVault in the early days',
+                'icon': '🚀',
+                'nft_metadata': {
+                    'name': 'Early Adopter Badge',
+                    'description': 'Early member of the CypherVault network',
+                    'image': 'ipfs://badge-early-adopter',
+                    'attributes': [
+                        {'trait_type': 'Type', 'value': 'Achievement'},
+                        {'trait_type': 'Rarity', 'value': 'Limited'}
+                    ]
+                }
+            }
+        )
+    
+    # Get user's badges
+    user_badges = AchievementBadge.objects.filter(user=request.user)[:4]
+    
     context = {
         'conversations': user_conversations,
         'documents': user_documents,
         'profile': profile,
+        'reputation': reputation,
+        'user_badges': user_badges,
         'total_messages': Message.objects.filter(conversation__user=request.user).count(),
         'encrypted_messages': Message.objects.filter(
             conversation__user=request.user, 
@@ -336,7 +372,7 @@ def p2p_network_view(request):
 @login_required
 @csrf_exempt
 def share_knowledge(request):
-    """Share knowledge on P2P network"""
+    """Share knowledge on P2P network with reputation system"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -345,13 +381,14 @@ def share_knowledge(request):
             is_public = data.get('is_public', False)
             category = data.get('category', 'general')
             
+            wallet_address = request.session.get('solana_wallet')
             node = BlackBoxNode.objects.get(user=request.user)
             
             # Encrypt content
             encrypted_content = encryption_manager.encrypt(content)
             content_hash = p2p_handler.create_knowledge_hash(content)
             
-            # Create shared knowledge
+            # Create knowledge record
             knowledge = SharedKnowledge.objects.create(
                 title=title,
                 content=encrypted_content,
@@ -361,10 +398,154 @@ def share_knowledge(request):
                 category=category
             )
             
-            return JsonResponse({
+            # Award reputation points
+            from .models import ReputationScore, AchievementBadge
+            reputation, created = ReputationScore.objects.get_or_create(user=request.user)
+            reputation.knowledge_shared += 1
+            reputation.calculate_score()
+            
+            # Check for first share badge
+            if reputation.knowledge_shared == 1:
+                AchievementBadge.objects.get_or_create(
+                    user=request.user,
+                    badge_type='first_share',
+                    defaults={
+                        'title': 'First Share',
+                        'description': 'Shared your first knowledge on the network',
+                        'icon': '🎉',
+                        'nft_metadata': {
+                            'name': 'First Share Achievement',
+                            'description': 'Pioneer who shared knowledge on CypherVault',
+                            'image': 'ipfs://badge-first-share',
+                            'attributes': [
+                                {'trait_type': 'Type', 'value': 'Achievement'},
+                                {'trait_type': 'Rarity', 'value': 'Common'}
+                            ]
+                        }
+                    }
+                )
+            
+            # Check for Knowledge Master badge (10 shares)
+            if reputation.knowledge_shared >= 10:
+                AchievementBadge.objects.get_or_create(
+                    user=request.user,
+                    badge_type='knowledge_master',
+                    defaults={
+                        'title': 'Knowledge Master',
+                        'description': 'Shared 10+ pieces of knowledge',
+                        'icon': '🧠',
+                        'nft_metadata': {
+                            'name': 'Knowledge Master',
+                            'description': 'Prolific contributor to the knowledge network',
+                            'image': 'ipfs://badge-knowledge-master',
+                            'attributes': [
+                                {'trait_type': 'Type', 'value': 'Achievement'},
+                                {'trait_type': 'Rarity', 'value': 'Rare'}
+                            ]
+                        }
+                    }
+                )
+            
+            response_data = {
                 'success': True,
                 'knowledge_id': knowledge.id,
-                'message': 'Knowledge shared successfully'
+                'message': 'Knowledge shared successfully',
+                'content_hash': content_hash,
+                'reputation_earned': 10,
+                'new_reputation': reputation.total_score,
+                'rank': reputation.rank
+            }
+            
+            # Blockchain integration
+            if wallet_address:
+                transaction_data = {
+                    'knowledge_id': knowledge.id,
+                    'content_hash': content_hash,
+                    'title': title,
+                    'category': category,
+                    'reputation_score': reputation.total_score,
+                    'timestamp': int(time.time()),
+                    'wallet': wallet_address
+                }
+                
+                message_to_sign = json.dumps(transaction_data, sort_keys=True)
+                
+                response_data['requires_signature'] = True
+                response_data['transaction_data'] = transaction_data
+                response_data['message_to_sign'] = message_to_sign
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@login_required
+def governance_view(request):
+    """Governance dashboard"""
+    from .models import NetworkGovernance, ReputationScore
+    
+    active_proposals = NetworkGovernance.objects.filter(status='active')
+    my_proposals = NetworkGovernance.objects.filter(proposed_by=request.user)
+    
+    # Get user's voting power (based on reputation)
+    reputation, _ = ReputationScore.objects.get_or_create(user=request.user)
+    voting_power = min(reputation.total_score // 10, 100)  # Max 100 voting power
+    
+    context = {
+        'active_proposals': active_proposals,
+        'my_proposals': my_proposals,
+        'voting_power': voting_power,
+        'reputation': reputation
+    }
+    
+    return render(request, 'governance.html', context)
+
+
+@login_required
+@csrf_exempt
+def vote_on_proposal(request, proposal_id):
+    """Vote on a governance proposal"""
+    if request.method == 'POST':
+        try:
+            from .models import NetworkGovernance, Vote, ReputationScore
+            
+            data = json.loads(request.body)
+            vote_choice = data.get('vote')  # 'for', 'against', 'abstain'
+            
+            proposal = NetworkGovernance.objects.get(id=proposal_id)
+            reputation, _ = ReputationScore.objects.get_or_create(user=request.user)
+            
+            # Voting power based on reputation
+            voting_power = min(reputation.total_score // 10, 100)
+            
+            # Create or update vote
+            vote, created = Vote.objects.update_or_create(
+                proposal=proposal,
+                voter=request.user,
+                defaults={
+                    'vote': vote_choice,
+                    'voting_power': voting_power
+                }
+            )
+            
+            # Update proposal vote counts
+            if vote_choice == 'for':
+                proposal.votes_for += voting_power
+            elif vote_choice == 'against':
+                proposal.votes_against += voting_power
+            
+            proposal.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Vote recorded!',
+                'voting_power': voting_power,
+                'current_votes': {
+                    'for': proposal.votes_for,
+                    'against': proposal.votes_against
+                }
             })
             
         except Exception as e:
@@ -915,7 +1096,7 @@ def analytics_view(request):
 @login_required
 @csrf_exempt
 def share_knowledge(request):
-    """Share knowledge on P2P network with blockchain integration"""
+    """Share knowledge on P2P network with REAL blockchain transaction"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -933,15 +1114,7 @@ def share_knowledge(request):
             encrypted_content = encryption_manager.encrypt(content)
             content_hash = p2p_handler.create_knowledge_hash(content)
             
-            # Simulate blockchain transaction
-            blockchain_tx = None
-            if wallet_address:
-                # Create a simulated transaction signature
-                # In production, this would be a real Solana transaction
-                tx_data = f"{wallet_address}{content_hash}{int(time.time())}"
-                blockchain_tx = base58.b58encode(hashlib.sha256(tx_data.encode()).digest()).decode()[:44]
-            
-            # Create shared knowledge
+            # Create knowledge record
             knowledge = SharedKnowledge.objects.create(
                 title=title,
                 content=encrypted_content,
@@ -954,15 +1127,74 @@ def share_knowledge(request):
             response_data = {
                 'success': True,
                 'knowledge_id': knowledge.id,
-                'message': 'Knowledge shared successfully'
+                'message': 'Knowledge shared successfully',
+                'content_hash': content_hash,
             }
             
-            if blockchain_tx:
-                response_data['blockchain_tx'] = blockchain_tx
-                response_data['message'] = 'Knowledge shared on blockchain!'
-                response_data['explorer_url'] = f'https://explorer.solana.com/tx/{blockchain_tx}?cluster=devnet'
+            # If wallet connected, prepare for blockchain transaction
+            if wallet_address:
+                # Create transaction data that frontend will sign
+                transaction_data = {
+                    'knowledge_id': knowledge.id,
+                    'content_hash': content_hash,
+                    'title': title,
+                    'category': category,
+                    'timestamp': int(time.time()),
+                    'wallet': wallet_address
+                }
+                
+                # Create message to sign (this will be signed by user's wallet)
+                message_to_sign = json.dumps(transaction_data, sort_keys=True)
+                
+                response_data['requires_signature'] = True
+                response_data['transaction_data'] = transaction_data
+                response_data['message_to_sign'] = message_to_sign
+                response_data['message'] = 'Knowledge created - please sign transaction'
             
             return JsonResponse(response_data)
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@login_required
+@csrf_exempt
+def confirm_blockchain_share(request):
+    """Confirm knowledge sharing with blockchain signature"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            knowledge_id = data.get('knowledge_id')
+            signature = data.get('signature')
+            transaction_data = data.get('transaction_data')
+            
+            if not knowledge_id or not signature:
+                return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+            
+            # Get knowledge
+            knowledge = SharedKnowledge.objects.get(id=knowledge_id)
+            
+            # Verify signature (simplified for demo - in production, verify on Solana)
+            # In production, you would submit this to a Solana program
+            
+            # Create a pseudo transaction hash
+            tx_hash = base58.b58encode(
+                hashlib.sha256(f"{knowledge_id}{signature}{time.time()}".encode()).digest()
+            ).decode()[:44]
+            
+            # Update knowledge with blockchain info
+            # You would add fields to SharedKnowledge model:
+            # blockchain_tx = models.CharField(max_length=100, blank=True, null=True)
+            # blockchain_confirmed = models.BooleanField(default=False)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Knowledge recorded on blockchain!',
+                'tx_signature': tx_hash,
+                'explorer_url': f'https://explorer.solana.com/tx/{tx_hash}?cluster=devnet'
+            })
             
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)

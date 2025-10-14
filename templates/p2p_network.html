@@ -179,12 +179,19 @@
                             </small>
                         </div>
                         <!-- Blockchain indicator (show if wallet connected) -->
+                        <!-- Add after encryption indicator in knowledge card -->
+                        {% if knowledge.blockchain_tx %}
                         <div class="mt-2 p-2" style="background: rgba(107,53,255,0.05); border-radius: 8px;">
                             <small style="color: var(--dawn-purple); font-size: 10px;">
-                                <i class="bi bi-coin"></i>
-                                Recorded on Solana blockchain
+                                <i class="bi bi-link-45deg"></i>
+                                Recorded on Solana •
+                                <a href="https://explorer.solana.com/tx/{{ knowledge.blockchain_tx }}?cluster=devnet"
+                                    target="_blank" style="color: var(--dawn-purple);">
+                                    View TX
+                                </a>
                             </small>
                         </div>
+                        {% endif %}
                     </div>
                     {% empty %}
                     <div class="text-center py-5">
@@ -447,15 +454,10 @@
             return;
         }
 
-        // Check if wallet is connected
-        const walletConnected = walletAddress !== null;
-        if (walletConnected) {
-            showNotification('🔐 Encrypting and recording on Solana blockchain...', 'success');
-        } else {
-            showNotification('🔐 Encrypting and broadcasting to P2P network...', 'success');
-        }
+        showNotification('🔐 Encrypting content...', 'success');
 
         try {
+            // Step 1: Create knowledge entry
             const response = await fetch('/p2p/share/', {
                 method: 'POST',
                 headers: {
@@ -466,30 +468,103 @@
                     title: title,
                     content: content,
                     category: category,
-                    is_public: isPublic,
-                    wallet: walletAddress  // Include wallet address
+                    is_public: isPublic
                 })
             });
 
             const data = await response.json();
 
             if (data.success) {
-                const totalNodes = parseInt('{{ total_nodes }}') || 1;
-                let message = '✅ Knowledge encrypted and broadcast to ' + totalNodes + ' nodes!';
+                // Step 2: If requires blockchain signature
+                if (data.requires_signature && window.solana && window.solana.isConnected) {
+                    showNotification('✍️ Please sign the transaction in your wallet...', 'success');
 
-                if (data.blockchain_tx) {
-                    message = '✅ Knowledge recorded on Solana! TX: ' + data.blockchain_tx.slice(0, 8) + '...';
+                    try {
+                        // Sign message with wallet
+                        const message = new TextEncoder().encode(data.message_to_sign);
+                        const signedMessage = await window.solana.signMessage(message, 'utf8');
+                        const signature = btoa(String.fromCharCode(...signedMessage.signature));
+
+                        showNotification('📝 Signature received, recording on blockchain...', 'success');
+
+                        // Step 3: Confirm on blockchain
+                        const confirmResponse = await fetch('/p2p/confirm-blockchain/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify({
+                                knowledge_id: data.knowledge_id,
+                                signature: signature,
+                                transaction_data: data.transaction_data
+                            })
+                        });
+
+                        const confirmData = await confirmResponse.json();
+
+                        if (confirmData.success) {
+                            showNotification(`✅ Knowledge recorded on Solana! TX: ${confirmData.tx_signature.slice(0, 8)}...`, 'success');
+
+                            // Show blockchain confirmation modal
+                            showBlockchainConfirmation(confirmData);
+                        } else {
+                            showNotification('⚠️ Blockchain confirmation failed, but knowledge saved locally', 'warning');
+                        }
+                    } catch (signError) {
+                        console.error('Signing error:', signError);
+                        showNotification('⚠️ Transaction cancelled, but knowledge saved locally', 'warning');
+                    }
+                } else {
+                    showNotification('✅ Knowledge shared successfully!', 'success');
                 }
 
-                showNotification(message, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
-                setTimeout(() => location.reload(), 1500);
+                setTimeout(() => location.reload(), 2000);
             } else {
                 showNotification('❌ Error: ' + data.error, 'error');
             }
         } catch (error) {
             showNotification('❌ Network error: ' + error.message, 'error');
         }
+    }
+
+    function showBlockchainConfirmation(data) {
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+        <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.7);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 20px; border: 2px solid var(--dawn-purple);">
+                    <div class="modal-header" style="background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(255,107,53,0.05)); border-bottom: 2px solid var(--dawn-purple);">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-check-circle-fill text-success"></i> Blockchain Confirmed!
+                        </h5>
+                        <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                    </div>
+                    <div class="modal-body text-center p-4">
+                        <div class="mb-4" style="font-size: 64px;">⛓️</div>
+                        <h5 class="fw-bold mb-3" style="color: var(--dawn-dark);">Knowledge Recorded on Solana</h5>
+                        <p class="text-muted mb-4">Your knowledge has been permanently recorded on the Solana blockchain</p>
+                        
+                        <div class="p-3 mb-3" style="background: rgba(107,53,255,0.05); border-radius: 12px;">
+                            <small class="text-muted d-block mb-1">Transaction Signature:</small>
+                            <code style="font-size: 0.85rem; word-break: break-all; color: var(--dawn-purple);">
+                                ${data.tx_signature}
+                            </code>
+                        </div>
+                        
+                        <a href="${data.explorer_url}" target="_blank" class="btn btn-dawn w-100">
+                            <i class="bi bi-box-arrow-up-right me-2"></i>View on Solana Explorer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+        document.body.appendChild(modal);
+
+        // Auto-remove after 10 seconds
+        setTimeout(() => modal.remove(), 10000);
     }
 
     async function downloadKnowledge(knowledgeId) {

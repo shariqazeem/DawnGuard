@@ -43,4 +43,10 @@ urlpatterns = [
     path('wallet/auth/verify/', views.wallet_auth_verify, name='wallet_auth_verify'),
     path('auth/wallet/', views.auth_wallet, name='auth_wallet'),
     path('wallet/link/', views.wallet_link, name='wallet_link'),
+
+    path('p2p/confirm-blockchain/', views.confirm_blockchain_share, name='confirm_blockchain_share'),
+    path('governance/', views.governance_view, name='governance'),
+    path('governance/vote/<int:proposal_id>/', views.vote_on_proposal, name='vote_proposal'),
+    path('p2p/confirm-blockchain/', views.confirm_blockchain_share, name='confirm_blockchain_share'),
+
 ]

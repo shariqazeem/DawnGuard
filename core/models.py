@@ -99,6 +99,8 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"Profile: {self.user.username}"
 
+
+
 class SystemStats(models.Model):
     date = models.DateField(unique=True)
     total_messages = models.IntegerField(default=0)
@@ -199,3 +201,159 @@ class P2PConnection(models.Model):
     
     def __str__(self):
         return f"{self.from_node} -> {self.to_node}"
+
+class ReputationScore(models.Model):
+    """On-chain verifiable reputation"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='reputation')
+    
+    # Contribution metrics
+    knowledge_shared = models.IntegerField(default=0)
+    knowledge_downloaded = models.IntegerField(default=0)
+    upvotes_received = models.IntegerField(default=0)
+    helpful_votes = models.IntegerField(default=0)
+    
+    # Reputation score (0-1000)
+    total_score = models.IntegerField(default=0)
+    rank = models.CharField(max_length=50, default='Newcomer')
+    
+    # Blockchain verification
+    last_blockchain_sync = models.DateTimeField(null=True, blank=True)
+    blockchain_proof = models.TextField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-total_score']
+    
+    def calculate_score(self):
+        """Calculate reputation score from contributions"""
+        score = (
+            (self.knowledge_shared * 10) +
+            (self.knowledge_downloaded * 2) +
+            (self.upvotes_received * 5) +
+            (self.helpful_votes * 3)
+        )
+        self.total_score = score
+        
+        # Determine rank
+        if score >= 500:
+            self.rank = 'Legend'
+        elif score >= 300:
+            self.rank = 'Expert'
+        elif score >= 150:
+            self.rank = 'Contributor'
+        elif score >= 50:
+            self.rank = 'Active'
+        else:
+            self.rank = 'Newcomer'
+        
+        self.save()
+        return score
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.rank} ({self.total_score})"
+
+
+class AchievementBadge(models.Model):
+    """NFT-style achievement badges"""
+    BADGE_TYPES = [
+        ('first_share', 'First Share'),
+        ('knowledge_master', 'Knowledge Master'),
+        ('helpful_peer', 'Helpful Peer'),
+        ('early_adopter', 'Early Adopter'),
+        ('blockchain_verified', 'Blockchain Verified'),
+        ('privacy_advocate', 'Privacy Advocate'),
+        ('zkp_user', 'ZKP User'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='badges')
+    badge_type = models.CharField(max_length=50, choices=BADGE_TYPES)
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    icon = models.CharField(max_length=10, default='🏆')  # Emoji icon
+    
+    # NFT metadata (ready for on-chain minting)
+    nft_metadata = models.JSONField(default=dict)
+    blockchain_tx = models.CharField(max_length=100, blank=True, null=True)
+    minted_on_chain = models.BooleanField(default=False)
+    
+    earned_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'badge_type']
+        ordering = ['-earned_at']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+
+class NetworkGovernance(models.Model):
+    """Decentralized governance proposals"""
+    PROPOSAL_TYPES = [
+        ('feature', 'Feature Request'),
+        ('parameter', 'Network Parameter'),
+        ('moderation', 'Content Moderation'),
+        ('upgrade', 'Protocol Upgrade'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('passed', 'Passed'),
+        ('rejected', 'Rejected'),
+        ('executed', 'Executed'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    proposal_type = models.CharField(max_length=50, choices=PROPOSAL_TYPES)
+    
+    proposed_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='proposals')
+    
+    # Voting
+    votes_for = models.IntegerField(default=0)
+    votes_against = models.IntegerField(default=0)
+    voters = models.ManyToManyField(User, through='Vote', related_name='voted_proposals')
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    # Blockchain integration
+    blockchain_proposal_id = models.CharField(max_length=100, blank=True, null=True)
+    on_chain = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    voting_ends_at = models.DateTimeField()
+    executed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.status}"
+
+
+class Vote(models.Model):
+    """Individual votes on governance proposals"""
+    VOTE_CHOICES = [
+        ('for', 'For'),
+        ('against', 'Against'),
+        ('abstain', 'Abstain'),
+    ]
+    
+    proposal = models.ForeignKey(NetworkGovernance, on_delete=models.CASCADE, related_name='proposal_votes')
+    voter = models.ForeignKey(User, on_delete=models.CASCADE)
+    vote = models.CharField(max_length=10, choices=VOTE_CHOICES)
+    
+    # Weight based on reputation
+    voting_power = models.IntegerField(default=1)
+    
+    # Blockchain verification
+    blockchain_signature = models.TextField(blank=True, null=True)
+    
+    voted_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['proposal', 'voter']
+    
+    def __str__(self):
+        return f"{self.voter.username} - {self.vote} on {self.proposal.title}"

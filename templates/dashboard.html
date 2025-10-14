@@ -160,7 +160,50 @@
                     </div>
                 </div>
             </div>
-
+            <!-- Reputation & Badges Card -->
+            <div class="col-12 mb-4">
+                <!-- Reputation & Badges Card -->
+                <div class="dawn-card mb-4"
+                    style="background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(107,53,255,0.05)); border: 2px solid var(--dawn-purple);">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div
+                                    style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-size: 40px; box-shadow: 0 4px 16px rgba(255,107,53,0.3);">
+                                    {% if reputation.rank == 'Legend' %}👑
+                                    {% elif reputation.rank == 'Expert' %}⭐
+                                    {% elif reputation.rank == 'Contributor' %}🌟
+                                    {% elif reputation.rank == 'Active' %}✨
+                                    {% else %}🆕{% endif %}
+                                </div>
+                                <div>
+                                    <h3 class="mb-1 fw-bold glow-text">
+                                        {{ reputation.rank }}
+                                    </h3>
+                                    <p class="mb-0" style="color: #666;">
+                                        Reputation: {{ reputation.total_score }} points
+                                    </p>
+                                    <small style="color: #999;">
+                                        {{ reputation.knowledge_shared }} shared •
+                                        {{ reputation.upvotes_received }} upvotes
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                {% for badge in user_badges %}
+                                <div class="badge-item" title="{{ badge.description }}" style="font-size: 32px;">
+                                    {{ badge.icon }}
+                                </div>
+                                {% empty %}
+                                <small class="text-muted">No badges yet - share knowledge to earn them!</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Recent Conversations -->
             <div class="dawn-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
