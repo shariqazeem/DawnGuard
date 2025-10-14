@@ -1,1 +1,11 @@
 INFO 2025-10-14 07:42:21,502 autoreload Watching for file changes with StatReloader
+INFO 2025-10-14 08:01:35,863 autoreload /app/core/views.py changed, reloading.
+INFO 2025-10-14 08:01:36,468 autoreload Watching for file changes with StatReloader
+INFO 2025-10-14 08:01:52,073 autoreload /app/core/views.py changed, reloading.
+INFO 2025-10-14 08:01:52,764 autoreload Watching for file changes with StatReloader
+INFO 2025-10-14 08:03:12,716 autoreload /app/cyphervault/settings.py changed, reloading.
+INFO 2025-10-14 08:03:13,280 autoreload Watching for file changes with StatReloader
+INFO 2025-10-14 08:03:24,570 autoreload /app/cyphervault/settings.py changed, reloading.
+INFO 2025-10-14 08:03:25,085 autoreload Watching for file changes with StatReloader
+INFO 2025-10-14 08:03:33,336 autoreload /app/cyphervault/settings.py changed, reloading.
+INFO 2025-10-14 08:03:33,927 autoreload Watching for file changes with StatReloader
