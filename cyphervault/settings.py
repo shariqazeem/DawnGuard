@@ -8,7 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-xyz')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']
+
+# IMPORTANT: Allow your server IP
+ALLOWED_HOSTS = ['*']  # For production, replace with your actual IP/domain
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,18 +19,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # Add this
     'crispy_forms',
     'crispy_bootstrap5',
     'channels',
     'core',
-    'corsheaders',  # ADD THIS
-
-    
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # ADD THIS LINE
+    'corsheaders.middleware.CorsMiddleware',  # Add this BEFORE CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -36,6 +36,49 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS Settings - CRITICAL for Phantom wallet
+CORS_ALLOW_ALL_ORIGINS = True  # For development/demo
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+# Add these CORS headers
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# Session settings - IMPORTANT for wallet auth
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'cyphervault_session'
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'  # Important for cross-origin
+
+# CSRF Settings
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read it
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
 ROOT_URLCONF = 'cyphervault.urls'
 
@@ -58,7 +101,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cyphervault.wsgi.application'
 ASGI_APPLICATION = 'cyphervault.asgi.application'
 
-# Database - Using SQLite for development, PostgreSQL for production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -66,7 +108,6 @@ DATABASES = {
     }
 }
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -110,38 +151,16 @@ LOGOUT_REDIRECT_URL = 'home'
 # Encryption Key
 ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY', 'default-key-change-this')
 
-# Session security
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_HTTPONLY = True
-
-# Authentication redirects
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'home'
-
-# Security Settings for Production
+# Security Settings
 if not DEBUG:
-    SECURE_SSL_REDIRECT = False  # Set to True if using HTTPS
-    SESSION_COOKIE_SECURE = False  # Set to True if using HTTPS
-    CSRF_COOKIE_SECURE = False  # Set to True if using HTTPS
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'SAMEORIGIN'
-    
-# CORS Settings (for Solana wallet connection)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "*",
-]
 
-# Add your server IP when you know it
-# CORS_ALLOWED_ORIGINS.append("http://YOUR_SERVER_IP")
-
-CORS_ALLOW_CREDENTIALS = True
-
-# Logging configuration
+# Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -172,8 +191,3 @@ LOGGING = {
         },
     },
 }
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_HTTPONLY = False
