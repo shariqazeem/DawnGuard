@@ -16,7 +16,8 @@ import platform
 import socket
 from django.db.models import Count
 from django.db.models.functions import TruncDate, TruncHour
-
+from django.views.decorators.http import require_http_methods
+from django.middleware.csrf import get_token
 # Import models
 from .models import (
     Conversation, 
@@ -1222,128 +1223,188 @@ def auth_wallet(request):
 import secrets
 import time
 
+
+
 @csrf_exempt
+@require_http_methods(["GET", "POST"])
 def wallet_login_view(request):
     """Wallet-based login - Sign in with Solana wallet"""
+    if request.method == "GET":
+        # Ensure CSRF token is generated
+        get_token(request)
     return render(request, 'wallet_login.html')
 
-@csrf_exempt
-def wallet_auth_challenge(request):
-    """Generate challenge for wallet signature"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            wallet_address = data.get('wallet')
-            
-            if not wallet_address:
-                return JsonResponse({'success': False, 'error': 'Wallet address required'}, status=400)
-            
-            # Generate unique challenge message
-            challenge = f"CypherVault Login\nWallet: {wallet_address}\nTimestamp: {int(time.time())}\nNonce: {secrets.token_hex(16)}"
-            
-            # Store challenge in session
-            request.session['wallet_challenge'] = challenge
-            request.session['wallet_address'] = wallet_address
-            request.session['challenge_time'] = time.time()
-            
-            return JsonResponse({
-                'success': True,
-                'challenge': challenge,
-                'message': 'Sign this message with your wallet'
-            })
-            
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
-    return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @csrf_exempt
+@require_http_methods(["POST"])
+def wallet_auth_challenge(request):
+    """Generate challenge for wallet signature"""
+    try:
+        # Parse request data
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+            
+        wallet_address = data.get('wallet')
+        
+        if not wallet_address:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Wallet address required'
+            }, status=400)
+        
+        # Generate unique challenge message
+        timestamp = int(time.time())
+        nonce = secrets.token_hex(16)
+        challenge = f"CypherVault Login\nWallet: {wallet_address}\nTimestamp: {timestamp}\nNonce: {nonce}"
+        
+        # Store challenge in session
+        request.session['wallet_challenge'] = challenge
+        request.session['wallet_address'] = wallet_address
+        request.session['challenge_time'] = timestamp
+        request.session.modified = True  # Force session save
+        
+        return JsonResponse({
+            'success': True,
+            'challenge': challenge,
+            'message': 'Sign this message with your wallet'
+        })
+        
+    except Exception as e:
+        print(f"Challenge error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'error': f'Server error: {str(e)}'
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def wallet_auth_verify(request):
     """Verify wallet signature and login user"""
-    if request.method == 'POST':
-        try:
+    try:
+        # Parse request data
+        if request.content_type == 'application/json':
             data = json.loads(request.body)
-            wallet_address = data.get('wallet')
-            signature = data.get('signature')
+        else:
+            data = request.POST
             
-            # Get challenge from session
-            challenge = request.session.get('wallet_challenge')
-            stored_wallet = request.session.get('wallet_address')
-            challenge_time = request.session.get('challenge_time')
-            
-            if not challenge or not stored_wallet:
-                return JsonResponse({'success': False, 'error': 'No active challenge'}, status=400)
-            
-            # Check if challenge expired (5 minutes)
-            if time.time() - challenge_time > 300:
-                return JsonResponse({'success': False, 'error': 'Challenge expired'}, status=400)
-            
-            # Verify wallet matches
-            if wallet_address != stored_wallet:
-                return JsonResponse({'success': False, 'error': 'Wallet mismatch'}, status=400)
-            
-            # In production, verify signature with Solana SDK
-            # For hackathon demo, we'll accept the signature if it exists
-            if not signature or len(signature) < 10:
-                return JsonResponse({'success': False, 'error': 'Invalid signature'}, status=400)
-            
-            # Find or create user for this wallet
-            try:
-                profile = UserProfile.objects.get(solana_wallet=wallet_address)
-                user = profile.user
-                
-                # Update verification
-                profile.wallet_verified = True
-                profile.wallet_signature = signature
-                profile.save()
-                
-            except UserProfile.DoesNotExist:
-                # Create new user for this wallet
-                username = f"wallet_{wallet_address[:8]}"
-                
-                # Check if username exists, make unique
-                counter = 1
-                original_username = username
-                while User.objects.filter(username=username).exists():
-                    username = f"{original_username}_{counter}"
-                    counter += 1
-                
-                user = User.objects.create_user(
-                    username=username,
-                    password=secrets.token_urlsafe(32)  # Random password
-                )
-                
-                # Create profile with wallet
-                profile = UserProfile.objects.create(
-                    user=user,
-                    solana_wallet=wallet_address,
-                    wallet_verified=True,
-                    wallet_signature=signature
-                )
-            
-            # Login user
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            
-            # Clear session
-            del request.session['wallet_challenge']
-            del request.session['wallet_address']
-            del request.session['challenge_time']
-            
-            # Store wallet in session
-            request.session['solana_wallet'] = wallet_address
-            
+        wallet_address = data.get('wallet')
+        signature = data.get('signature')
+        
+        print(f"Verifying wallet: {wallet_address}")
+        
+        # Get challenge from session
+        challenge = request.session.get('wallet_challenge')
+        stored_wallet = request.session.get('wallet_address')
+        challenge_time = request.session.get('challenge_time')
+        
+        print(f"Session data - Challenge exists: {bool(challenge)}, Stored wallet: {stored_wallet}")
+        
+        if not challenge or not stored_wallet:
             return JsonResponse({
-                'success': True,
-                'message': 'Wallet authenticated successfully',
-                'redirect': '/dashboard/',
-                'username': user.username
-            })
+                'success': False, 
+                'error': 'No active challenge. Please refresh and try again.'
+            }, status=400)
+        
+        # Check if challenge expired (5 minutes)
+        if time.time() - challenge_time > 300:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Challenge expired. Please try again.'
+            }, status=400)
+        
+        # Verify wallet matches
+        if wallet_address != stored_wallet:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Wallet mismatch'
+            }, status=400)
+        
+        # Verify signature exists (simplified for demo)
+        if not signature or len(signature) < 10:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Invalid signature'
+            }, status=400)
+        
+        print(f"All checks passed, finding/creating user...")
+        
+        # Find or create user for this wallet
+        try:
+            profile = UserProfile.objects.get(solana_wallet=wallet_address)
+            user = profile.user
+            print(f"Found existing user: {user.username}")
             
-        except Exception as e:
-            print(f"Wallet auth error: {str(e)}")
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+            # Update verification
+            profile.wallet_verified = True
+            profile.wallet_signature = signature
+            profile.save()
+            
+        except UserProfile.DoesNotExist:
+            # Create new user for this wallet
+            username = f"wallet_{wallet_address[:8]}"
+            
+            # Make username unique
+            counter = 1
+            original_username = username
+            while User.objects.filter(username=username).exists():
+                username = f"{original_username}_{counter}"
+                counter += 1
+            
+            print(f"Creating new user: {username}")
+            
+            # Create user with random password
+            user = User.objects.create_user(
+                username=username,
+                password=secrets.token_urlsafe(32)
+            )
+            
+            # Create profile with wallet
+            profile = UserProfile.objects.create(
+                user=user,
+                solana_wallet=wallet_address,
+                wallet_verified=True,
+                wallet_signature=signature
+            )
+            
+            print(f"Created new user and profile")
+        
+        # Login user
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        print(f"User logged in: {user.username}")
+        
+        # Clear challenge from session
+        if 'wallet_challenge' in request.session:
+            del request.session['wallet_challenge']
+        if 'wallet_address' in request.session:
+            del request.session['wallet_address']
+        if 'challenge_time' in request.session:
+            del request.session['challenge_time']
+        
+        # Store wallet in session
+        request.session['solana_wallet'] = wallet_address
+        request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Wallet authenticated successfully',
+            'redirect': '/dashboard/',
+            'username': user.username
+        })
+        
+    except Exception as e:
+        print(f"Wallet verification error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'error': f'Authentication error: {str(e)}'
+        }, status=500)
+
 
 @login_required
 @csrf_exempt
@@ -1356,7 +1417,10 @@ def wallet_link(request):
             signature = data.get('signature')
             
             if not wallet_address or not signature:
-                return JsonResponse({'success': False, 'error': 'Wallet and signature required'}, status=400)
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Wallet and signature required'
+                }, status=400)
             
             # Check if wallet is already linked to another account
             existing_profile = UserProfile.objects.filter(solana_wallet=wallet_address).first()
@@ -1373,8 +1437,9 @@ def wallet_link(request):
             profile.wallet_signature = signature
             profile.save()
             
-            # Store in session too
+            # Store in session
             request.session['solana_wallet'] = wallet_address
+            request.session.modified = True
             
             return JsonResponse({
                 'success': True,
@@ -1384,6 +1449,9 @@ def wallet_link(request):
             
         except Exception as e:
             print(f"Wallet link error: {str(e)}")
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+            return JsonResponse({
+                'success': False, 
+                'error': str(e)
+            }, status=500)
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
