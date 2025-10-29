@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Family-Focused Hero Section -->
+<div class="position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--dawn-cream) 0%, #FFF8F5 100%);">
+    <div class="container">
+        <div class="row min-vh-100 align-items-center py-5">
+            <div class="col-lg-6 pe-lg-5">
+                <div class="mb-4">
+                    <span class="badge mb-3" style="background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple)); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px;">
+                        <i class="bi bi-house-heart-fill me-2"></i> Built for Families on DAWN Black Box
+                    </span>
+                    <h1 class="display-3 fw-bold mb-4" style="line-height: 1.1; color: var(--dawn-dark);">
+                        Replace Dropbox.<br>
+                        Protect Your Kids.<br>
+                        <span class="glow-text">Save $240/Year.</span>
+                    </h1>
+                    <p class="lead mb-4" style="color: #666; font-size: 1.3rem; line-height: 1.6;">
+                        HomeGuardian AI transforms your DAWN Black Box into your family's private cloud storage + kids-safe AI tutor.
+                        <strong>Unlimited storage. 100% private. $0/month forever.</strong>
+                    </p>
+                </div>
+
+                <!-- CTA Buttons -->
+                <div class="d-flex flex-column gap-3 mb-5">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'family_dashboard' %}" class="btn btn-dawn btn-lg shadow-lg" style="font-size: 1.2rem; padding: 18px 40px;">
+                            <i class="bi bi-house-door-fill me-2"></i> Open Family Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-dawn btn-lg shadow-lg" style="font-size: 1.2rem; padding: 18px 40px;">
+                            <i class="bi bi-shield-lock-fill me-2"></i> Start Free - Setup Your Family
+                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'login' %}" class="btn btn-outline-dawn btn-lg flex-fill">
+                                <i class="bi bi-key me-2"></i> Login
+                            </a>
+                            <a href="#learn-more" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-play-circle me-2"></i> See Demo
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Value Props -->
+                <div class="row g-3">
+                    <div class="col-4">
+                        <div class="text-center p-3" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(76,175,80,0.05)); border-radius: 16px; border: 2px solid rgba(76,175,80,0.2);">
+                            <div class="h2 mb-0 fw-bold" style="color: #4CAF50;">$0</div>
+                            <small style="color: #666; font-weight: 600;">Monthly Cost</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-3" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,107,53,0.05)); border-radius: 16px; border: 2px solid rgba(255,107,53,0.2);">
+                            <div class="h2 mb-0 glow-text fw-bold">∞</div>
+                            <small style="color: #666; font-weight: 600;">Storage</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-3" style="background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(107,53,255,0.05)); border-radius: 16px; border: 2px solid rgba(107,53,255,0.2);">
+                            <div class="h2 mb-0 fw-bold" style="color: var(--dawn-purple);">100%</div>
+                            <small style="color: #666; font-weight: 600;">Private</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Image/Visual -->
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <!-- Main Card - Family Vault -->
+                    <div class="dawn-card mb-4" style="transform: rotate(-2deg); box-shadow: 0 20px 60px rgba(255,107,53,0.15);">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-shield-lock-fill" style="font-size: 32px; color: white;"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h4 class="mb-0 fw-bold">Family Vault</h4>
+                                <small class="text-muted">Your Private Cloud</small>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="flex-fill p-3 text-center" style="background: rgba(255,107,53,0.1); border-radius: 12px;">
+                                <div class="fw-bold">2,547</div>
+                                <small class="text-muted">Files</small>
+                            </div>
+                            <div class="flex-fill p-3 text-center" style="background: rgba(107,53,255,0.1); border-radius: 12px;">
+                                <div class="fw-bold">125 GB</div>
+                                <small class="text-muted">Stored</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Card - Kids AI -->
+                    <div class="dawn-card" style="transform: rotate(2deg); box-shadow: 0 20px 60px rgba(107,53,255,0.15);">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-robot" style="font-size: 32px; color: white;"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h4 class="mb-0 fw-bold">Kids-Safe AI</h4>
+                                <small class="text-muted">Homework Helper</small>
+                            </div>
+                        </div>
+                        <div class="p-3" style="background: rgba(107,53,255,0.05); border-radius: 12px;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">✅ Filtered Content</small>
+                                <small class="text-muted">✅ Parent Dashboard</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-5" style="background: white;">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold mb-3" style="color: var(--dawn-dark);">
+                Two Powerful Features. One Family Device.
+            </h2>
+            <p class="lead text-muted">Everything your family needs. Nothing you don't.</p>
+        </div>
+
+        <div class="row g-5">
+            <!-- Feature 1: Family Vault -->
+            <div class="col-lg-6">
+                <div class="h-100" style="background: linear-gradient(135deg, rgba(255,107,53,0.05), rgba(255,107,53,0.02)); padding: 40px; border-radius: 24px; border: 2px solid rgba(255,107,53,0.1);">
+                    <div class="mb-4">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="bi bi-shield-lock-fill" style="font-size: 40px; color: white;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Family Vault</h3>
+                        <p class="lead mb-4" style="color: #666;">
+                            Replace Dropbox with unlimited private storage on YOUR Black Box.
+                        </p>
+                    </div>
+
+                    <ul class="list-unstyled">
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>Unlimited Storage</strong>
+                                <div class="text-muted">Only limited by your Black Box hardware</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>AI-Powered Search</strong>
+                                <div class="text-muted">"Show me vacation photos" → Instant results</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>Family Accounts</strong>
+                                <div class="text-muted">Everyone gets their own space + parental controls</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>Save $240/Year</strong>
+                                <div class="text-muted">vs Dropbox's $20/month plan</div>
+                            </div>
+                        </li>
+                    </ul>
+
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'vault_home' %}" class="btn btn-dawn btn-lg w-100 mt-3">
+                        <i class="bi bi-folder-fill me-2"></i> Open Family Vault
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Feature 2: Kids-Safe AI -->
+            <div class="col-lg-6">
+                <div class="h-100" style="background: linear-gradient(135deg, rgba(107,53,255,0.05), rgba(107,53,255,0.02)); padding: 40px; border-radius: 24px; border: 2px solid rgba(107,53,255,0.1);">
+                    <div class="mb-4">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="bi bi-robot" style="font-size: 40px; color: white;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Kids-Safe AI Tutor</h3>
+                        <p class="lead mb-4" style="color: #666;">
+                            ChatGPT for kids - but 100% safe and monitored by you.
+                        </p>
+                    </div>
+
+                    <ul class="list-unstyled">
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>Content Filtering</strong>
+                                <div class="text-muted">AI responses filtered for kids' safety</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>Parental Dashboard</strong>
+                                <div class="text-muted">See all conversations, set limits, monitor usage</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>Homework Help</strong>
+                                <div class="text-muted">Math, science, writing - age-appropriate answers</div>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill me-3" style="color: #4CAF50; font-size: 24px;"></i>
+                            <div>
+                                <strong>100% Private</strong>
+                                <div class="text-muted">Conversations never leave your Black Box</div>
+                            </div>
+                        </li>
+                    </ul>
+
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'kids_ai_home' %}" class="btn btn-dawn btn-lg w-100 mt-3">
+                        <i class="bi bi-chat-dots-fill me-2"></i> Open Kids AI Tutor
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cost Comparison -->
+<div class="py-5" style="background: linear-gradient(135deg, var(--dawn-cream), #FFF8F5);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="display-4 fw-bold mb-3" style="color: var(--dawn-dark);">
+                The Math is Simple
+            </h2>
+            <p class="lead text-muted">One Black Box replaces expensive subscriptions</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="dawn-card text-center h-100" style="border: 3px solid rgba(244,67,54,0.2);">
+                    <h4 class="fw-bold mb-3">❌ Old Way</h4>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Dropbox (2TB)</span>
+                            <strong style="color: #f44336;">$20/mo</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>ChatGPT Plus</span>
+                            <strong style="color: #f44336;">$20/mo</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Total/Year:</span>
+                            <strong class="h4 mb-0" style="color: #f44336;">$480</strong>
+                        </div>
+                    </div>
+                    <div class="p-3" style="background: rgba(244,67,54,0.05); border-radius: 12px;">
+                        <small class="text-muted">+ They scan your data for ads</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="dawn-card text-center h-100" style="border: 3px solid rgba(76,175,80,0.3); box-shadow: 0 8px 32px rgba(76,175,80,0.2);">
+                    <h4 class="fw-bold mb-3">✅ HomeGuardian AI</h4>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Family Vault</span>
+                            <strong style="color: #4CAF50;">$0/mo</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Kids-Safe AI</span>
+                            <strong style="color: #4CAF50;">$0/mo</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Total/Year:</span>
+                            <strong class="h4 mb-0" style="color: #4CAF50;">$0</strong>
+                        </div>
+                    </div>
+                    <div class="p-3" style="background: rgba(76,175,80,0.1); border-radius: 12px;">
+                        <small class="fw-bold" style="color: #4CAF50;">100% Private. Unlimited Storage.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="dawn-card text-center h-100" style="background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,152,0,0.05)); border: 3px solid rgba(255,193,7,0.3);">
+                    <h4 class="fw-bold mb-3">💰 You Save</h4>
+                    <div class="display-3 fw-bold mb-3" style="color: #FFC107;">$480</div>
+                    <p class="mb-4" style="color: #666;">Every single year</p>
+                    <div class="p-3" style="background: rgba(255,193,7,0.1); border-radius: 12px;">
+                        <strong>Black Box pays for itself in < 1 year</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="py-5" style="background: linear-gradient(135deg, var(--dawn-dark), #1a1a1a);">
+    <div class="container py-5 text-center">
+        <h2 class="display-4 fw-bold mb-4" style="color: white;">
+            Ready to Protect Your Family's Data?
+        </h2>
+        <p class="lead mb-5" style="color: rgba(255,255,255,0.7); max-width: 600px; margin: 0 auto;">
+            Join families who've taken control of their digital life with HomeGuardian AI on DAWN Black Box.
+        </p>
+
+        {% if not user.is_authenticated %}
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="{% url 'register' %}" class="btn btn-dawn btn-lg" style="font-size: 1.2rem; padding: 18px 40px;">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i> Get Started Free
+            </a>
+            <a href="#" class="btn btn-outline-light btn-lg" style="font-size: 1.2rem; padding: 18px 40px;">
+                <i class="bi bi-play-circle me-2"></i> Watch Demo
+            </a>
+        </div>
+        {% else %}
+        <a href="{% url 'family_dashboard' %}" class="btn btn-dawn btn-lg" style="font-size: 1.2rem; padding: 18px 40px;">
+            <i class="bi bi-house-door-fill me-2"></i> Go to Dashboard
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.hero-visual {
+    animation: float 6s ease-in-out infinite;
+}
+</style>
+{% endblock %}

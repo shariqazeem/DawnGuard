@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(107,53,255,0.1));">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            <i class="bi bi-house-heart-fill"></i> Welcome Back, {{ family_member.display_name }}!
+                        </h2>
+                        <p class="mb-0" style="color: #666; font-size: 1.1rem;">
+                            Your family's private digital home on the Black Box
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <span class="badge" style="background: {{ family_member.role|yesno:'#4CAF50,#2196F3,#FF9800' }}; color: white; padding: 10px 20px; font-size: 16px;">
+                            <i class="bi bi-person-badge"></i> {{ family_member.get_role_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Features - 2 Big Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Family Vault -->
+        <div class="col-lg-6">
+            <a href="{% url 'vault_home' %}" class="text-decoration-none">
+                <div class="dawn-card h-100" style="background: linear-gradient(135deg, rgba(255,107,53,0.05), white); border-left: 6px solid var(--dawn-orange); transition: all 0.3s;"
+                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 40px rgba(255,107,53,0.2)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 24px rgba(255,107,53,0.08)';">
+                    <div class="d-flex align-items-center mb-4">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a); border-radius: 20px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-shield-lock-fill" style="font-size: 40px; color: white;"></i>
+                        </div>
+                        <div class="ms-4">
+                            <h3 class="mb-1 fw-bold" style="color: var(--dawn-dark);">Family Vault</h3>
+                            <p class="mb-0 text-muted">Your Private Cloud Storage</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3 text-center" style="background: rgba(255,107,53,0.1); border-radius: 12px;">
+                                <div class="h3 mb-1 fw-bold glow-text">{{ total_files }}</div>
+                                <small class="text-muted">Files Stored</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 text-center" style="background: rgba(255,107,53,0.1); border-radius: 12px;">
+                                <div class="h3 mb-1 fw-bold glow-text">{{ storage_used_gb }} GB</div>
+                                <small class="text-muted">Space Used</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted">Storage</small>
+                            <small class="fw-bold" style="color: var(--dawn-orange);">{{ storage_percentage }}%</small>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 10px;">
+                            <div class="progress-bar" style="width: {{ storage_percentage }}%; background: var(--dawn-orange);"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small style="color: #4CAF50;">
+                            <i class="bi bi-shield-check"></i> All files encrypted
+                        </small>
+                        <span class="btn btn-dawn btn-sm">
+                            Open Vault <i class="bi bi-arrow-right"></i>
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Kids-Safe AI -->
+        <div class="col-lg-6">
+            <a href="{% url 'kids_ai_home' %}" class="text-decoration-none">
+                <div class="dawn-card h-100" style="background: linear-gradient(135deg, rgba(107,53,255,0.05), white); border-left: 6px solid var(--dawn-purple); transition: all 0.3s;"
+                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 40px rgba(107,53,255,0.2)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 24px rgba(107,53,255,0.08)';">
+                    <div class="d-flex align-items-center mb-4">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border-radius: 20px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-robot" style="font-size: 40px; color: white;"></i>
+                        </div>
+                        <div class="ms-4">
+                            <h3 class="mb-1 fw-bold" style="color: var(--dawn-dark);">Kids-Safe AI Tutor</h3>
+                            <p class="mb-0 text-muted">Homework Help & Learning</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <div class="p-3" style="background: rgba(107,53,255,0.1); border-radius: 12px;">
+                                <div class="d-flex justify-content-around text-center">
+                                    <div>
+                                        <div class="h5 mb-0 fw-bold" style="color: var(--dawn-purple);">
+                                            <i class="bi bi-shield-check-fill"></i>
+                                        </div>
+                                        <small class="text-muted">Filtered</small>
+                                    </div>
+                                    <div>
+                                        <div class="h5 mb-0 fw-bold" style="color: var(--dawn-purple);">
+                                            <i class="bi bi-eye-fill"></i>
+                                        </div>
+                                        <small class="text-muted">Monitored</small>
+                                    </div>
+                                    <div>
+                                        <div class="h5 mb-0 fw-bold" style="color: var(--dawn-purple);">
+                                            <i class="bi bi-lock-fill"></i>
+                                        </div>
+                                        <small class="text-muted">Private</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if family_member.ai_chat_enabled %}
+                    <div class="alert alert-success mb-3" style="border-radius: 12px; border-left: 4px solid #4CAF50;">
+                        <small>
+                            <strong><i class="bi bi-check-circle-fill"></i> AI Chat Enabled</strong><br>
+                            Safe for {% if family_member.role == 'child' %}kids{% else %}your family{% endif %} to use
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mb-3" style="border-radius: 12px; border-left: 4px solid #FF9800;">
+                        <small>
+                            <strong><i class="bi bi-exclamation-triangle-fill"></i> AI Chat Disabled</strong><br>
+                            Ask a parent to enable it
+                        </small>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small style="color: #4CAF50;">
+                            <i class="bi bi-cpu"></i> Runs on Black Box
+                        </small>
+                        <span class="btn btn-dawn btn-sm">
+                            Open AI Tutor <i class="bi bi-arrow-right"></i>
+                        </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Family Members -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-people-fill"></i> Family Members ({{ all_family_members.count }})
+                </h4>
+                <div class="row g-3">
+                    {% for member in all_family_members %}
+                    <div class="col-md-4">
+                        <div class="p-3" style="background: rgba(0,0,0,0.02); border-radius: 12px; border-left: 4px solid {{ member.avatar_color }};">
+                            <div class="d-flex align-items-center">
+                                <div style="width: 50px; height: 50px; border-radius: 50%; background: {{ member.avatar_color }}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+                                    {{ member.display_name.0 }}
+                                </div>
+                                <div class="ms-3 flex-fill">
+                                    <div class="fw-bold">{{ member.display_name }}</div>
+                                    <small class="text-muted">{{ member.get_role_display }}</small>
+                                    <div class="mt-1">
+                                        <small style="color: var(--dawn-orange);">
+                                            {{ member.get_storage_used_gb|floatformat:1 }} / {{ member.storage_quota_gb }} GB
+                                        </small>
+                                    </div>
+                                </div>
+                                {% if member == family_member %}
+                                <span class="badge bg-success">You</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if family_member.role == 'admin' %}
+                <div class="mt-3">
+                    <a href="{% url 'vault_family_settings' %}" class="btn btn-outline-dawn btn-sm">
+                        <i class="bi bi-gear"></i> Manage Family
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Value Proposition Reminder -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(33,150,243,0.1));">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            💰 You're Saving Money Every Month
+                        </h5>
+                        <p class="mb-0" style="color: #666;">
+                            Dropbox costs $20/month. ChatGPT Plus costs $20/month.
+                            <strong>You're paying $0/month with HomeGuardian AI.</strong>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="display-4 fw-bold" style="color: #4CAF50;">$480/yr</div>
+                        <small class="text-muted">Annual Savings</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

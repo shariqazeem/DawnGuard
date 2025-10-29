@@ -272,25 +272,34 @@ def settings_view(request):
     return render(request, 'settings.html', context)
 
 def register_view(request):
-    """User registration"""
+    """User registration - Redirect to family dashboard"""
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            
+
             # Create user profile WITHOUT ZKP enabled
             UserProfile.objects.create(
                 user=user,
                 zkp_enabled=False,  # User must manually enable it
                 zkp_secret_hash=None
             )
-            
+
+            # Create family member for new user
+            from .models import FamilyMember
+            FamilyMember.objects.create(
+                user=user,
+                display_name=user.username.title(),
+                role='admin',  # First user is admin
+                avatar_color='#FF6B35'
+            )
+
             login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('dashboard')
+            messages.success(request, '🎉 Welcome to HomeGuardian AI! Your family dashboard is ready.')
+            return redirect('family_dashboard')  # Changed from 'dashboard'
     else:
         form = UserCreationForm()
-    
+
     return render(request, 'registration/register.html', {'form': form})
 
 def logout_view(request):
@@ -302,27 +311,31 @@ def logout_view(request):
 @login_required
 def p2p_network_view(request):
     """P2P network dashboard"""
-    # Get or create user's Black Box node
-    node, created = BlackBoxNode.objects.get_or_create(
-        user=request.user,
-        defaults={
-            'node_id': '',
-            'public_key': ''
-        }
-    )
-    
+    # Get or create user's Black Box node - FIX: Use try/except to handle existing nodes
+    try:
+        node = BlackBoxNode.objects.get(user=request.user)
+        created = False
+    except BlackBoxNode.DoesNotExist:
+        node = BlackBoxNode.objects.create(
+            user=request.user,
+            node_id='',
+            public_key=''
+        )
+        created = True
+
     if created or not node.public_key:
         # Generate keypair for new node
         node.generate_node_id()
         private_key, public_key = p2p_handler.generate_keypair()
         node.public_key = public_key
         node.save()
-        
+
         # Store private key securely in session
         request.session['p2p_private_key'] = private_key
-    
+
     # Mark this node as online
     node.is_online = True
+    node.last_seen = timezone.now()
     node.save()
     
     # Get network statistics - COUNT ALL NODES, not just online
@@ -331,25 +344,84 @@ def p2p_network_view(request):
     # If no other nodes exist, create some demo nodes for testing
     if total_nodes == 1:
         # Create a few demo nodes so the network doesn't look empty
-        for i in range(3):
-            demo_node, created = BlackBoxNode.objects.get_or_create(
-                node_id=f"demo_node_{i}",
-                defaults={
-                    'user': request.user,  # Temporary
-                    'public_key': f"demo_key_{i}",
-                    'is_online': True,
-                    'reputation_score': 85 + i * 5
-                }
-            )
+        demo_users = []
+        demo_names = ['Alice-HomeGuard', 'Bob-FamilyVault', 'Charlie-DataShield']
+
+        for i, demo_name in enumerate(demo_names):
+            # Check if demo node already exists
+            if not BlackBoxNode.objects.filter(node_id=f"demo_node_{i}").exists():
+                # Create demo user if doesn't exist
+                demo_user, _ = User.objects.get_or_create(
+                    username=f'demo_user_{i}',
+                    defaults={'email': f'demo{i}@homeguard.local'}
+                )
+                demo_users.append(demo_user)
+
+                # Create demo node
+                BlackBoxNode.objects.create(
+                    node_id=f"demo_node_{i}",
+                    user=demo_user,
+                    public_key=f"demo_key_{i}_{timezone.now().timestamp()}",
+                    is_online=True,
+                    reputation_score=85 + i * 5
+                )
         total_nodes = BlackBoxNode.objects.count()
-    
+
+        # Create demo knowledge to make network look active
+        demo_knowledge_items = [
+            {
+                'title': '🔐 How to Secure Your Family Photos',
+                'content': 'Best practices for encrypting and backing up precious family memories using AES-256 encryption.',
+                'category': 'security',
+                'views': 127
+            },
+            {
+                'title': '💡 AI-Powered Home Automation Tips',
+                'content': 'Learn how to set up smart home devices while maintaining privacy with local-first AI.',
+                'category': 'ai',
+                'views': 94
+            },
+            {
+                'title': '🏠 Setting Up Your Family Vault',
+                'content': 'Step-by-step guide to creating a private cloud storage for your family without subscriptions.',
+                'category': 'tutorial',
+                'views': 203
+            },
+            {
+                'title': '⚡ Solana Smart Contracts for Privacy',
+                'content': 'Building decentralized apps on Solana that prioritize user privacy and data ownership.',
+                'category': 'blockchain',
+                'views': 156
+            }
+        ]
+
+        demo_nodes = BlackBoxNode.objects.filter(node_id__startswith='demo_node_')
+        for idx, demo_node in enumerate(demo_nodes):
+            if idx < len(demo_knowledge_items):
+                item = demo_knowledge_items[idx]
+                # Only create if doesn't exist
+                if not SharedKnowledge.objects.filter(title=item['title'], shared_by=demo_node).exists():
+                    encrypted_content = encryption_manager.encrypt(item['content'])
+                    content_hash = p2p_handler.create_knowledge_hash(item['content'])
+
+                    SharedKnowledge.objects.create(
+                        title=item['title'],
+                        content=encrypted_content,
+                        encryption_key_hash=content_hash,
+                        shared_by=demo_node,
+                        is_public=True,
+                        category=item['category'],
+                        views_count=item['views'],
+                        upvotes=15 + idx * 5
+                    )
+
     my_shared_knowledge = SharedKnowledge.objects.filter(shared_by=node).count()
     received_knowledge = node.received_knowledge.count()
     active_connections = P2PConnection.objects.filter(
         from_node=node,
         is_active=True
     ).count()
-    
+
     # Get available knowledge from network
     public_knowledge = SharedKnowledge.objects.filter(is_public=True).exclude(shared_by=node).order_by('-created_at')[:10]
     my_knowledge = SharedKnowledge.objects.filter(shared_by=node).order_by('-created_at')[:10]
@@ -823,7 +895,7 @@ def zkp_login_view(request):
             return JsonResponse({
                 'success': True,
                 'message': 'ZKP Authentication successful',
-                'redirect': '/dashboard/'
+                'redirect': '/family/'  # Redirect to family dashboard
             })
             
         except Exception as e:
@@ -1163,42 +1235,76 @@ def share_knowledge(request):
 @login_required
 @csrf_exempt
 def confirm_blockchain_share(request):
-    """Confirm knowledge sharing with blockchain signature"""
+    """
+    Confirm knowledge sharing with REAL Solana blockchain verification
+    This verifies the transaction actually exists on Solana
+    """
     if request.method == 'POST':
         try:
+            from .utils.solana_handler import solana_handler
+            
             data = json.loads(request.body)
             knowledge_id = data.get('knowledge_id')
             signature = data.get('signature')
             transaction_data = data.get('transaction_data')
             
             if not knowledge_id or not signature:
-                return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Missing required fields'
+                }, status=400)
             
-            # Get knowledge
+            print(f"🔍 Verifying Solana transaction...")
+            print(f"   Signature: {signature}")
+            print(f"   Knowledge ID: {knowledge_id}")
+            
+            # ✅ VERIFY THE SIGNATURE ON SOLANA BLOCKCHAIN
+            is_valid = solana_handler.verify_transaction(signature)
+            
+            if not is_valid:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid Solana transaction. Please wait 10-15 seconds for confirmation and try again.'
+                }, status=400)
+            
+            # Get detailed transaction info
+            tx_details = solana_handler.get_transaction_details(signature)
+            
+            # Update knowledge with blockchain data
             knowledge = SharedKnowledge.objects.get(id=knowledge_id)
             
-            # Verify signature (simplified for demo - in production, verify on Solana)
-            # In production, you would submit this to a Solana program
-            
-            # Create a pseudo transaction hash
-            tx_hash = base58.b58encode(
-                hashlib.sha256(f"{knowledge_id}{signature}{time.time()}".encode()).digest()
-            ).decode()[:44]
-            
-            # Update knowledge with blockchain info
-            # You would add fields to SharedKnowledge model:
+            # Store blockchain signature
+            # Note: You may need to add this field to SharedKnowledge model:
             # blockchain_tx = models.CharField(max_length=100, blank=True, null=True)
-            # blockchain_confirmed = models.BooleanField(default=False)
+            # For now, we'll just confirm it worked
+            
+            print(f"✅ Blockchain verification successful!")
+            print(f"   TX Details: {tx_details}")
             
             return JsonResponse({
                 'success': True,
-                'message': 'Knowledge recorded on blockchain!',
-                'tx_signature': tx_hash,
-                'explorer_url': f'https://explorer.solana.com/tx/{tx_hash}?cluster=devnet'
+                'message': 'Knowledge verified on Solana blockchain!',
+                'tx_signature': signature,
+                'explorer_url': f'https://explorer.solana.com/tx/{signature}?cluster=devnet',
+                'tx_details': tx_details,
+                'block_time': tx_details.get('block_time'),
+                'slot': tx_details.get('slot'),
+                'confirmed': tx_details.get('confirmed', False)
             })
             
+        except SharedKnowledge.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Knowledge entry not found'
+            }, status=404)
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+            print(f"❌ Blockchain confirmation error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'error': f'Verification failed: {str(e)}'
+            }, status=500)
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
@@ -1376,7 +1482,18 @@ def wallet_auth_verify(request):
         # Login user
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print(f"User logged in: {user.username}")
-        
+
+        # Create family member if doesn't exist
+        from .models import FamilyMember
+        FamilyMember.objects.get_or_create(
+            user=user,
+            defaults={
+                'display_name': user.username.title(),
+                'role': 'admin',
+                'avatar_color': '#6B35FF'  # Purple for wallet users
+            }
+        )
+
         # Clear challenge from session
         if 'wallet_challenge' in request.session:
             del request.session['wallet_challenge']
@@ -1384,15 +1501,15 @@ def wallet_auth_verify(request):
             del request.session['wallet_address']
         if 'challenge_time' in request.session:
             del request.session['challenge_time']
-        
+
         # Store wallet in session
         request.session['solana_wallet'] = wallet_address
         request.session.modified = True
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Wallet authenticated successfully',
-            'redirect': '/dashboard/',
+            'redirect': '/family/',  # Redirect to family dashboard
             'username': user.username
         })
         
@@ -1455,3 +1572,67 @@ def wallet_link(request):
             }, status=500)
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
+@login_required
+def guardian_alerts_view(request):
+    """AI Guardian Alerts Dashboard - Real-time data from scans"""
+    from .models import AIGuardianScan, AIGuardianAlert, FamilyMember
+    from django.db.models import Count, Q
+
+    try:
+        # Get family member
+        family_member = FamilyMember.objects.get(user=request.user)
+
+        # Get all scans
+        all_scans = AIGuardianScan.objects.select_related('file', 'scanned_by').all()
+
+        # Get active alerts for this user (if admin, show all; otherwise show own)
+        if family_member.role == 'admin':
+            active_alerts = AIGuardianAlert.objects.filter(
+                status='active'
+            ).select_related('scan__file', 'family_member').order_by('-created_at')[:5]
+        else:
+            active_alerts = AIGuardianAlert.objects.filter(
+                family_member=family_member,
+                status='active'
+            ).select_related('scan__file').order_by('-created_at')[:5]
+
+        # Calculate statistics
+        total_scans = all_scans.count()
+        safe_scans = all_scans.filter(severity='safe').count()
+        alert_scans = all_scans.filter(severity__in=['medium', 'high', 'critical']).count()
+
+        # Calculate family safety score (percentage of safe files)
+        if total_scans > 0:
+            safety_score = int((safe_scans / total_scans) * 100)
+        else:
+            safety_score = 100
+
+        # Recent scans for table
+        recent_scans = all_scans.order_by('-created_at')[:20]
+
+        # Severity breakdown
+        severity_stats = all_scans.values('severity').annotate(count=Count('id'))
+
+        context = {
+            'family_member': family_member,
+            'safety_score': safety_score,
+            'total_scans': total_scans,
+            'safe_scans': safe_scans,
+            'alert_scans': alert_scans,
+            'active_alerts': active_alerts,
+            'recent_scans': recent_scans,
+            'severity_stats': severity_stats,
+        }
+
+        return render(request, 'guardian_alerts.html', context)
+
+    except FamilyMember.DoesNotExist:
+        # Create family member if doesn't exist
+        from .models import FamilyMember
+        family_member = FamilyMember.objects.create(
+            user=request.user,
+            display_name=request.user.username.title(),
+            role='admin'
+        )
+        return redirect('guardian_alerts')
+

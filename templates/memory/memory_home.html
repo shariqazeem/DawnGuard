@@ -1,0 +1,561 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #FFF5F7, #F0E6FF); min-height: 100vh;">
+
+    <!-- Hero Header -->
+    <div class="row mb-4 animate-fade-in">
+        <div class="col-12">
+            <div class="memory-hero" style="background: linear-gradient(135deg, rgba(156,39,176,0.15), rgba(244,143,177,0.15)); border-radius: 30px; padding: 40px; box-shadow: 0 10px 40px rgba(156,39,176,0.2); border: 2px solid rgba(156,39,176,0.2);">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #9C27B0, #F48FB1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 20px;">
+                                <i class="bi bi-journal-heart" style="font-size: 40px; color: white;"></i>
+                            </div>
+                            <div>
+                                <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                                    📖 Family Memory
+                                </h2>
+                                <p class="mb-0" style="color: #666; font-size: 1.1rem;">
+                                    ✨ Your family's digital memory book • 🔒 Encrypted locally • 🤖 AI-powered summaries
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <button class="btn btn-lg" onclick="showNewEntryModal()" style="background: linear-gradient(135deg, #9C27B0, #E91E63); color: white; border: none; min-height: 50px; border-radius: 15px; box-shadow: 0 4px 15px rgba(156,39,176,0.3);">
+                            <i class="bi bi-plus-circle"></i> Write Memory
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid #9C27B0;">
+                <div class="h2 mb-2 fw-bold" style="color: #9C27B0;">{{ total_entries }}</div>
+                <div style="color: #666; font-weight: 600;">Memories Saved</div>
+                <small class="text-muted"><i class="bi bi-journal-text"></i> Your entries</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid #E91E63;">
+                <div class="h2 mb-2 fw-bold" style="color: #E91E63;">{{ this_week_entries }}</div>
+                <div style="color: #666; font-weight: 600;">This Week</div>
+                <small style="color: #E91E63;"><i class="bi bi-calendar-week"></i> Entries</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid #F48FB1;">
+                <div class="h2 mb-2 fw-bold" style="color: #F48FB1;">{{ total_summaries }}</div>
+                <div style="color: #666; font-weight: 600;">AI Summaries</div>
+                <small style="color: #F48FB1;"><i class="bi bi-stars"></i> Generated</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid #CE93D8;">
+                <div class="h2 mb-2 fw-bold" style="color: #CE93D8;">{{ total_milestones }}</div>
+                <div style="color: #666; font-weight: 600;">Milestones</div>
+                <small style="color: #CE93D8;"><i class="bi bi-trophy"></i> Special moments</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" onclick="generateWeeklySummary(event)" style="min-height: 60px; border-radius: 15px;">
+                            <i class="bi bi-magic" style="font-size: 24px;"></i><br>
+                            <span>AI, Summarize Our Week</span>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-success w-100" onclick="window.location.href='/memory/entries/'" style="min-height: 60px; border-radius: 15px;">
+                            <i class="bi bi-book" style="font-size: 24px;"></i><br>
+                            <span>View All Memories</span>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-warning w-100" onclick="window.location.href='/memory/summaries/'" style="min-height: 60px; border-radius: 15px;">
+                            <i class="bi bi-calendar-range" style="font-size: 24px;"></i><br>
+                            <span>Weekly Summaries</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Entries & Weekly Summaries -->
+    <div class="row g-4">
+        <!-- My Recent Entries -->
+        <div class="col-md-6">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-journal-text"></i> Your Recent Memories
+                </h4>
+                {% if my_entries %}
+                    {% for entry in my_entries %}
+                    <div class="memory-entry" style="background: linear-gradient(135deg, rgba(156,39,176,0.05), rgba(244,143,177,0.05)); border-left: 4px solid {{ entry.mood|yesno:'#4CAF50,#FF9800,#F44336' }}; border-radius: 10px; padding: 15px; margin-bottom: 15px; cursor: pointer;" onclick="viewEntry({{ entry.id }})">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0 fw-bold">{{ entry.get_mood_emoji }} {{ entry.title }}</h6>
+                            <small class="text-muted">{{ entry.entry_date }}</small>
+                        </div>
+                        <p class="mb-2 text-muted" style="font-size: 0.9rem;">
+                            {{ entry.content|truncatewords:20 }}
+                        </p>
+                        {% if entry.tags %}
+                        <div>
+                            {% for tag in entry.tags %}
+                            <span class="badge bg-light text-dark me-1">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4" style="opacity: 0.5;">
+                        <i class="bi bi-journal-plus" style="font-size: 48px;"></i>
+                        <p class="mt-2 mb-0">No memories yet. Start writing!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Weekly Summaries -->
+        <div class="col-md-6">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-stars"></i> AI Weekly Summaries
+                </h4>
+                {% if weekly_summaries %}
+                    {% for summary in weekly_summaries %}
+                    <div class="weekly-summary" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(33,150,243,0.05)); border-radius: 15px; padding: 20px; margin-bottom: 15px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold">{{ summary.get_mood_emoji }} {{ summary.get_week_label }}</h6>
+                            <span class="badge bg-primary">{{ summary.total_entries }} entries</span>
+                        </div>
+                        <p class="mb-2" style="font-size: 0.95rem; line-height: 1.6;">
+                            {{ summary.ai_summary|truncatewords:30 }}
+                        </p>
+                        {% if summary.highlights %}
+                        <div class="mt-2">
+                            <strong style="font-size: 0.85rem;">Highlights:</strong>
+                            <ul class="mb-0 mt-1" style="font-size: 0.85rem;">
+                                {% for highlight in summary.highlights|slice:":2" %}
+                                <li>{{ highlight }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4" style="opacity: 0.5;">
+                        <i class="bi bi-magic" style="font-size: 48px;"></i>
+                        <p class="mt-2 mb-3">No summaries yet.</p>
+                        <button class="btn btn-primary" onclick="generateWeeklySummary(event)">
+                            Generate This Week's Summary
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Milestones -->
+    {% if recent_milestones %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-trophy"></i> Recent Milestones
+                </h4>
+                <div class="row g-3">
+                    {% for milestone in recent_milestones %}
+                    <div class="col-md-4">
+                        <div class="milestone-card" style="background: linear-gradient(135deg, rgba(255,193,7,0.1), rgba(255,152,0,0.05)); border-radius: 15px; padding: 20px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">{{ milestone.get_type_emoji }}</div>
+                            <h6 class="fw-bold mb-2">{{ milestone.title }}</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.85rem;">{{ milestone.milestone_date }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- New Entry Modal -->
+<div class="modal fade" id="newEntryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #9C27B0, #E91E63); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title"><i class="bi bi-journal-plus"></i> Write New Memory</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="newEntryForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Title</label>
+                        <input type="text" class="form-control" id="entryTitle" placeholder="What happened today?" required style="border-radius: 10px; min-height: 50px;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">How are you feeling?</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="mood" id="mood_amazing" value="amazing">
+                            <label class="btn btn-outline-success" for="mood_amazing">😄 Amazing</label>
+
+                            <input type="radio" class="btn-check" name="mood" id="mood_happy" value="happy" checked>
+                            <label class="btn btn-outline-success" for="mood_happy">😊 Happy</label>
+
+                            <input type="radio" class="btn-check" name="mood" id="mood_okay" value="okay">
+                            <label class="btn btn-outline-secondary" for="mood_okay">😐 Okay</label>
+
+                            <input type="radio" class="btn-check" name="mood" id="mood_sad" value="sad">
+                            <label class="btn btn-outline-warning" for="mood_sad">😢 Sad</label>
+
+                            <input type="radio" class="btn-check" name="mood" id="mood_stressed" value="stressed">
+                            <label class="btn btn-outline-danger" for="mood_stressed">😰 Stressed</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Your Memory</label>
+                        <textarea class="form-control" id="entryContent" rows="6" placeholder="Tell us about your day..." required style="border-radius: 10px;"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Date</label>
+                        <input type="date" class="form-control" id="entryDate" value="{{ today|date:'Y-m-d' }}" style="border-radius: 10px;">
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="isPrivate">
+                        <label class="form-check-label" for="isPrivate">
+                            <i class="bi bi-lock"></i> Keep this entry private (only you can see it)
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn w-100" style="background: linear-gradient(135deg, #9C27B0, #E91E63); color: white; min-height: 50px; border-radius: 10px; font-weight: bold;">
+                        <i class="bi bi-save"></i> Save Memory
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes animate-fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: animate-fade-in 0.6s ease-out;
+}
+
+.memory-entry:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(156,39,176,0.2);
+    transition: all 0.3s ease;
+}
+
+.weekly-summary {
+    transition: all 0.3s ease;
+}
+
+.weekly-summary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(76,175,80,0.2);
+}
+</style>
+
+<script>
+function showNewEntryModal() {
+    new bootstrap.Modal(document.getElementById('newEntryModal')).show();
+}
+
+let isSubmitting = false; // Prevent double-submission
+
+document.getElementById('newEntryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Prevent double submission
+    if (isSubmitting) {
+        console.log('⚠️ Already submitting, ignoring duplicate click');
+        return;
+    }
+
+    isSubmitting = true;
+
+    // Get submit button and show loading state
+    const submitBtn = document.querySelector('#newEntryForm button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    submitBtn.disabled = true;
+
+    const title = document.getElementById('entryTitle').value;
+    const content = document.getElementById('entryContent').value;
+    const mood = document.querySelector('input[name="mood"]:checked').value;
+    const entry_date = document.getElementById('entryDate').value;
+    const is_private = document.getElementById('isPrivate').checked;
+
+    try {
+        const response = await fetch('/memory/entry/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                title, content, mood, entry_date, is_private
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Show success message immediately
+            showSuccessNotification('✅ ' + data.message);
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('newEntryModal')).hide();
+
+            // Reset form
+            document.getElementById('newEntryForm').reset();
+
+            // Refresh dashboard quickly (lightweight refresh)
+            setTimeout(() => refreshDashboardQuick(), 300);
+        } else {
+            showErrorNotification('❌ Error: ' + data.error);
+        }
+    } catch (error) {
+        showErrorNotification('❌ Failed to save entry: ' + error.message);
+    } finally {
+        // Re-enable button
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+        isSubmitting = false;
+    }
+});
+
+let isGeneratingSummary = false; // Prevent double-click
+
+async function generateWeeklySummary(event) {
+    // Prevent double-click
+    if (isGeneratingSummary) {
+        console.log('⚠️ Already generating summary, ignoring duplicate click');
+        return;
+    }
+
+    if (!confirm('Generate AI summary for this week? This will analyze all family journal entries.')) return;
+
+    isGeneratingSummary = true;
+
+    // Show loading indicator
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>AI is thinking...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/memory/summary/generate/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({})
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showSuccessNotification('✨ ' + data.message);
+
+            // Show summary in a beautiful modal
+            showSummaryModal(data);
+
+            // Refresh dashboard quickly (lightweight)
+            setTimeout(() => refreshDashboardQuick(), 300);
+        } else {
+            showErrorNotification('❌ ' + data.error);
+        }
+    } catch (error) {
+        showErrorNotification('❌ Failed to generate summary: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        isGeneratingSummary = false;
+    }
+}
+
+// Fast lightweight refresh - only updates what's needed
+async function refreshDashboardQuick() {
+    try {
+        console.log('🚀 Quick refresh started...');
+        const response = await fetch(window.location.href, {
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Only update the stats numbers (not entire cards)
+        const statNumbers = document.querySelectorAll('.dawn-card .h2');
+        const newStatNumbers = doc.querySelectorAll('.dawn-card .h2');
+        for (let i = 0; i < Math.min(4, statNumbers.length, newStatNumbers.length); i++) {
+            if (statNumbers[i] && newStatNumbers[i]) {
+                statNumbers[i].textContent = newStatNumbers[i].textContent;
+            }
+        }
+
+        // Update recent entries (only if needed)
+        const entriesSection = document.querySelector('.col-md-6:first-of-type .dawn-card');
+        const newEntriesSection = doc.querySelector('.col-md-6:first-of-type .dawn-card');
+        if (entriesSection && newEntriesSection) {
+            entriesSection.innerHTML = newEntriesSection.innerHTML;
+        }
+
+        // Update summaries section (only if needed)
+        const summariesSection = document.querySelector('.col-md-6:last-of-type .dawn-card');
+        const newSummariesSection = doc.querySelector('.col-md-6:last-of-type .dawn-card');
+        if (summariesSection && newSummariesSection) {
+            summariesSection.innerHTML = newSummariesSection.innerHTML;
+        }
+
+        console.log('✅ Quick refresh complete');
+    } catch (error) {
+        console.error('❌ Quick refresh failed:', error);
+        // Silently fail - user already got success notification
+    }
+}
+
+// Full refresh (slower, for when everything needs updating)
+async function refreshDashboard() {
+    try {
+        const response = await fetch(window.location.href, {
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Update stats
+        const statsCards = document.querySelectorAll('.dawn-card');
+        const newStatsCards = doc.querySelectorAll('.dawn-card');
+        for (let i = 0; i < Math.min(4, statsCards.length); i++) {
+            statsCards[i].innerHTML = newStatsCards[i].innerHTML;
+        }
+
+        // Update recent entries
+        const entriesSection = document.querySelector('.col-md-6:first-of-type .dawn-card');
+        const newEntriesSection = doc.querySelector('.col-md-6:first-of-type .dawn-card');
+        if (entriesSection && newEntriesSection) {
+            entriesSection.innerHTML = newEntriesSection.innerHTML;
+        }
+
+        // Update summaries
+        const summariesSection = document.querySelector('.col-md-6:last-of-type .dawn-card');
+        const newSummariesSection = doc.querySelector('.col-md-6:last-of-type .dawn-card');
+        if (summariesSection && newSummariesSection) {
+            summariesSection.innerHTML = newSummariesSection.innerHTML;
+        }
+    } catch (error) {
+        console.error('Failed to refresh dashboard:', error);
+    }
+}
+
+// Show success notification (no alert!)
+function showSuccessNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    notification.style.boxShadow = '0 4px 15px rgba(76,175,80,0.3)';
+    notification.innerHTML = `<i class="bi bi-check-circle"></i> ${message}`;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// Show error notification (no alert!)
+function showErrorNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'alert alert-danger position-fixed top-0 start-50 translate-middle-x mt-3';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    notification.style.boxShadow = '0 4px 15px rgba(244,67,54,0.3)';
+    notification.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 4000);
+}
+
+// Show summary in modal
+function showSummaryModal(data) {
+    const modalHtml = `
+        <div class="modal fade" id="summaryModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" style="border-radius: 20px; border: none;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #9C27B0, #E91E63); color: white; border-radius: 20px 20px 0 0;">
+                        <h5 class="modal-title"><i class="bi bi-stars"></i> ${data.mood_emoji} Weekly Summary Generated!</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-2">AI Summary:</h6>
+                            <div class="p-3" style="background: linear-gradient(135deg, rgba(156,39,176,0.05), rgba(244,143,177,0.05)); border-radius: 10px; line-height: 1.8;">
+                                ${data.summary}
+                            </div>
+                        </div>
+                        ${data.highlights && data.highlights.length > 0 ? `
+                        <div>
+                            <h6 class="fw-bold mb-2"><i class="bi bi-stars"></i> Highlights:</h6>
+                            <ul>
+                                ${data.highlights.map(h => `<li>${h}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                        <div class="text-muted text-center mt-3">
+                            <small>Based on ${data.entries_count} journal entries</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="window.location.href='/memory/summaries/'">
+                            View All Summaries
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('summaryModal');
+    if (existingModal) existingModal.remove();
+
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Show modal
+    new bootstrap.Modal(document.getElementById('summaryModal')).show();
+
+    // Clean up after close
+    document.getElementById('summaryModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+</script>
+{% endblock %}

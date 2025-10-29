@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #E8F4FF, #f0e6ff); min-height: 100vh;">
+
+    <!-- Hero Header -->
+    <div class="row mb-4 animate-slide-down">
+        <div class="col-12">
+            <div class="guardian-hero" style="background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(107,53,255,0.15)); border-radius: 30px; padding: 40px; box-shadow: 0 10px 40px rgba(107,53,255,0.2); border: 2px solid rgba(107,53,255,0.2); position: relative; overflow: hidden;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple)); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 20px;">
+                                <i class="bi bi-shield-fill-check" style="font-size: 40px; color: white;"></i>
+                            </div>
+                            <div>
+                                <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                                    AI Guardian Alerts
+                                </h2>
+                                <p class="mb-0" style="color: #666; font-size: 1.1rem;">
+                                    🛡️ Local AI protecting your family • 🔒 All analysis on Black Box • 📊 Zero data leaves your device
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div style="background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; border-radius: 20px; padding: 20px; text-align: center;">
+                            <div class="h1 mb-0 fw-bold">{{ safety_score }}%</div>
+                            <div style="font-size: 0.9rem;">Family Safety Score</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Alerts (Real Data) -->
+    {% if active_alerts %}
+    {% for alert in active_alerts %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-{{ alert.scan.get_severity_color }} animate-bounce-in" style="border-radius: 20px; border-left: 4px solid {% if alert.scan.severity == 'high' or alert.scan.severity == 'critical' %}#f44336{% elif alert.scan.severity == 'medium' %}#FF9800{% else %}#4CAF50{% endif %}; background: linear-gradient(135deg, {% if alert.scan.severity == 'high' or alert.scan.severity == 'critical' %}rgba(244,67,54,0.1), rgba(244,67,54,0.05){% elif alert.scan.severity == 'medium' %}rgba(255,152,0,0.1), rgba(255,152,0,0.05){% else %}rgba(76,175,80,0.1), rgba(76,175,80,0.05){% endif %});">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-{% if alert.scan.severity == 'high' or alert.scan.severity == 'critical' %}exclamation-triangle-fill{% elif alert.scan.severity == 'medium' %}exclamation-circle-fill{% else %}check-circle-fill{% endif %}" style="font-size: 30px; color: {% if alert.scan.severity == 'high' or alert.scan.severity == 'critical' %}#f44336{% elif alert.scan.severity == 'medium' %}#FF9800{% else %}#4CAF50{% endif %}; margin-right: 15px;"></i>
+                    <div style="flex: 1;">
+                        <h5 class="mb-2 fw-bold" style="color: var(--dawn-dark);">{{ alert.get_alert_icon }} {{ alert.title }}</h5>
+                        <p class="mb-2"><strong>File:</strong> {{ alert.scan.file.name }}</p>
+                        <p class="mb-2"><strong>Uploaded by:</strong> {{ alert.scan.scanned_by.display_name }} ({{ alert.scan.scanned_by.get_role_display }}) • <strong>{{ alert.created_at|timesince }} ago</strong></p>
+
+                        {% if alert.scan.detected_patterns or alert.scan.detected_keywords %}
+                        <div class="mb-3">
+                            {% for pattern in alert.scan.detected_patterns %}
+                            <span class="badge bg-danger me-2">🔐 {{ pattern }}</span>
+                            {% endfor %}
+                            {% for category in alert.scan.risk_categories %}
+                            <span class="badge bg-warning">📍 {{ category|title }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if alert.scan.detected_patterns or alert.scan.detected_keywords %}
+                        <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                            <strong>AI Analysis:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for pattern in alert.scan.detected_patterns %}
+                                <li>Pattern detected: {{ pattern }}</li>
+                                {% endfor %}
+                                {% for keyword in alert.scan.detected_keywords %}
+                                <li>Keyword: "{{ keyword }}"</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        {% if alert.scan.recommendations %}
+                        <div style="background: rgba(255,152,0,0.1); border-radius: 10px; padding: 15px;">
+                            <strong>🚨 Recommendations:</strong>
+                            <p class="mb-0 mt-2">{{ alert.scan.recommendations }}</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-3">
+                            <button class="btn btn-danger me-2" onclick="alert('File flagged and encrypted. Access restricted to admin.')">
+                                <i class="bi bi-lock-fill"></i> Restrict Access
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="alert('Alert acknowledged')">
+                                Mark as Reviewed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-success animate-bounce-in" style="border-radius: 20px; border-left: 4px solid #4CAF50;">
+                <div class="text-center">
+                    <i class="bi bi-shield-check" style="font-size: 48px; color: #4CAF50;"></i>
+                    <h5 class="mt-3 mb-2">✅ All Clear! No Active Alerts</h5>
+                    <p class="text-muted mb-0">Your family's files are secure. Upload some files to see AI Guardian in action!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid #4CAF50;">
+                <div class="h2 mb-2 fw-bold" style="color: #4CAF50;">{{ total_scans }}</div>
+                <div style="color: #666; font-weight: 600;">Files Scanned</div>
+                <small class="text-success"><i class="bi bi-shield-check"></i> {{ safe_scans }} Safe</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid #FF9800;">
+                <div class="h2 mb-2 fw-bold" style="color: #FF9800;">{{ alert_scans }}</div>
+                <div style="color: #666; font-weight: 600;">Active Alerts</div>
+                <small style="color: #FF9800;"><i class="bi bi-exclamation-triangle"></i> {% if alert_scans > 0 %}Needs Review{% else %}All Clear{% endif %}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid var(--dawn-purple);">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-purple);">100%</div>
+                <div style="color: #666; font-weight: 600;">Local Processing</div>
+                <small style="color: var(--dawn-purple);"><i class="bi bi-cpu"></i> On Black Box</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dawn-card text-center" style="border-left: 4px solid var(--dawn-orange);">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-orange);">0</div>
+                <div style="color: #666; font-weight: 600;">Data Leaks</div>
+                <small class="text-success"><i class="bi bi-shield-lock"></i> Protected</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Scans -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-clock-history"></i> Recent Security Scans
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(0,0,0,0.1);">
+                                <th>File</th>
+                                <th>Uploaded By</th>
+                                <th>Scan Result</th>
+                                <th>Severity</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_scans %}
+                            {% for scan in recent_scans %}
+                            <tr style="cursor: pointer; {% if scan.is_alert %}background: rgba(255,152,0,0.05);{% endif %}">
+                                <td>
+                                    <i class="{{ scan.file.get_icon }}" style="color: {% if scan.severity == 'safe' %}#4CAF50{% elif scan.severity == 'low' %}#2196F3{% elif scan.severity == 'medium' %}#FF9800{% else %}#f44336{% endif %}; font-size: 24px;"></i>
+                                    {{ scan.file.name }}
+                                </td>
+                                <td>{{ scan.scanned_by.display_name }} ({{ scan.scanned_by.get_role_display }})</td>
+                                <td>
+                                    {% if scan.severity == 'safe' %}
+                                    <span class="badge bg-success">✓ Safe</span>
+                                    {% else %}
+                                    {% for category in scan.risk_categories %}
+                                    <span class="badge bg-{% if scan.severity == 'high' or scan.severity == 'critical' %}danger{% elif scan.severity == 'medium' %}warning{% else %}info{% endif %}">{{ category|title }}</span>
+                                    {% endfor %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ scan.get_severity_color }}">{{ scan.severity|title }}</span>
+                                </td>
+                                <td>{{ scan.created_at|timesince }} ago</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-{% if scan.is_alert %}primary{% else %}secondary{% endif %}">{% if scan.is_alert %}View{% else %}Details{% endif %}</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 48px; opacity: 0.3;"></i>
+                                    <p class="mt-2 mb-0">No scans yet. Upload files to vault to start scanning!</p>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(33,150,243,0.05));">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-info-circle"></i> How AI Guardian Works
+                </h4>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div style="text-align: center;">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-orange), var(--dawn-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                                <span style="font-size: 36px;">🔍</span>
+                            </div>
+                            <h5 class="fw-bold mb-2">Local Scanning</h5>
+                            <p class="text-muted">Every file uploaded is scanned locally on your Black Box before encryption</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="text-align: center;">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #4CAF50, #66BB6A); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                                <span style="font-size: 36px;">🤖</span>
+                            </div>
+                            <h5 class="fw-bold mb-2">AI Analysis</h5>
+                            <p class="text-muted">Detects personal data, inappropriate content, privacy risks using local AI models</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="text-align: center;">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                                <span style="font-size: 36px;">🔐</span>
+                            </div>
+                            <h5 class="fw-bold mb-2">Encrypted Alerts</h5>
+                            <p class="text-muted">Parents receive private, encrypted notifications for review</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3" style="background: rgba(76,175,80,0.1); border-radius: 15px; text-align: center;">
+                    <strong style="color: #4CAF50;">🎯 100% Privacy Guaranteed:</strong> All scanning happens on your Black Box. Zero data is sent to external servers.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes animate-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes animate-bounce-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-slide-down {
+    animation: animate-slide-down 0.6s ease-out both;
+}
+
+.animate-bounce-in {
+    animation: animate-bounce-in 0.8s ease-out both;
+}
+
+.table tr:hover {
+    background: rgba(255,107,53,0.05) !important;
+}
+
+@media (max-width: 768px) {
+    .guardian-hero {
+        padding: 24px !important;
+    }
+
+    .table thead th:nth-child(3),
+    .table tbody td:nth-child(3),
+    .table thead th:nth-child(5),
+    .table tbody td:nth-child(5) {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

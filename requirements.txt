@@ -25,3 +25,4 @@ psutil==5.9.6
 # Solana (use compatible version without httpx conflict)
 solders==0.18.1
 base58==2.1.1
+requests==2.31.0

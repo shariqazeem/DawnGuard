@@ -33,6 +33,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.SetupRequiredMiddleware',  # One-time setup wizard redirect
 ]
 
 # CORS Configuration - CRITICAL for wallet connection
@@ -152,7 +153,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Login URLs
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = 'family_dashboard'  # New family-focused dashboard
 LOGOUT_REDIRECT_URL = 'home'
 
 # Encryption Key

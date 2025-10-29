@@ -1,0 +1,492 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #E8F4FF, #f0e6ff, #FFE5DC); min-height: 100vh;">
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="blackbox-header animate-slide-down" style="background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(107,53,255,0.15)); border-radius: 30px; padding: 32px; box-shadow: 0 10px 40px rgba(107,53,255,0.2); border: 2px solid rgba(107,53,255,0.2); position: relative; overflow: hidden;">
+                <!-- Animated gradient overlay -->
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent); background-size: 200% 200%; animation: gradient-shift 3s ease infinite;"></div>
+
+                <div class="row align-items-center position-relative" style="z-index: 1;">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <span style="font-size: 48px; margin-right: 16px; animation: pulse-glow 2s ease-in-out infinite;">⚡</span>
+                            <div>
+                                <h2 class="mb-1 fw-bold" style="color: var(--dawn-dark); font-size: 2.2rem;">
+                                    Black Box System Monitor
+                                </h2>
+                                <p class="mb-0 animate-fade-in" style="color: #555; font-size: 1.1rem; animation-delay: 0.2s;">
+                                    <i class="bi bi-hdd-rack" style="color: var(--dawn-orange);"></i>
+                                    Real-time hardware monitoring & performance stats
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <span class="status-badge animate-bounce-in" style="background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; padding: 12px 24px; font-size: 16px; border-radius: 25px; box-shadow: 0 4px 15px rgba(76,175,80,0.4); display: inline-block; animation-delay: 0.4s;">
+                            <i class="bi bi-circle-fill me-2" style="font-size: 10px; animation: blink 1.5s ease-in-out infinite;"></i>
+                            System Online
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Stats Cards -->
+    <div class="row g-4 mb-4">
+        <!-- CPU Usage -->
+        <div class="col-md-3">
+            <div class="stat-card animate-slide-in-left" style="background: white; border-radius: 25px; padding: 24px; box-shadow: 0 8px 30px rgba(255,107,53,0.15); border-left: 6px solid var(--dawn-orange); transition: all 0.3s ease;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">CPU USAGE</div>
+                        <div class="h2 fw-bold mb-0" style="color: var(--dawn-orange);">
+                            <span id="cpu-percent">{{ cpu_percent|default:"0" }}</span>%
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a); border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(255,107,53,0.3); animation: pulse-icon 3s ease-in-out infinite;">
+                        <i class="bi bi-cpu-fill" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <div class="progress" style="height: 10px; border-radius: 10px; background: rgba(255,107,53,0.1);">
+                    <div class="progress-bar-animated" id="cpu-bar" style="width: {{ cpu_percent|default:"0" }}%; background: linear-gradient(90deg, var(--dawn-orange), #ff8c5a); border-radius: 10px; transition: width 0.5s ease;"></div>
+                </div>
+                <div class="mt-2">
+                    <small style="color: #666;">
+                        <i class="bi bi-arrow-up" style="color: #4CAF50;"></i> Processing requests
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Usage -->
+        <div class="col-md-3">
+            <div class="stat-card animate-slide-in-left" style="background: white; border-radius: 25px; padding: 24px; box-shadow: 0 8px 30px rgba(107,53,255,0.15); border-left: 6px solid var(--dawn-purple); transition: all 0.3s ease; animation-delay: 0.1s;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">RAM USAGE</div>
+                        <div class="h2 fw-bold mb-0" style="color: var(--dawn-purple);">
+                            <span id="memory-percent">{{ memory_percent|default:"0" }}</span>%
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(107,53,255,0.3); animation: pulse-icon 3s ease-in-out infinite 0.3s;">
+                        <i class="bi bi-memory" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <div class="progress" style="height: 10px; border-radius: 10px; background: rgba(107,53,255,0.1);">
+                    <div class="progress-bar-animated" id="memory-bar" style="width: {{ memory_percent|default:"0" }}%; background: linear-gradient(90deg, var(--dawn-purple), #8b5aff); border-radius: 10px; transition: width 0.5s ease;"></div>
+                </div>
+                <div class="mt-2">
+                    <small style="color: #666;">
+                        <span id="memory-used">{{ memory_used_gb|default:"0" }}</span> / <span id="memory-total">{{ memory_total_gb|default:"16" }}</span> GB
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disk Usage -->
+        <div class="col-md-3">
+            <div class="stat-card animate-slide-in-right" style="background: white; border-radius: 25px; padding: 24px; box-shadow: 0 8px 30px rgba(76,175,80,0.15); border-left: 6px solid #4CAF50; transition: all 0.3s ease; animation-delay: 0.2s;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">DISK USAGE</div>
+                        <div class="h2 fw-bold mb-0" style="color: #4CAF50;">
+                            <span id="disk-percent">{{ disk_percent|default:"0" }}</span>%
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #4CAF50, #66BB6A); border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(76,175,80,0.3); animation: pulse-icon 3s ease-in-out infinite 0.6s;">
+                        <i class="bi bi-hdd-fill" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <div class="progress" style="height: 10px; border-radius: 10px; background: rgba(76,175,80,0.1);">
+                    <div class="progress-bar-animated" id="disk-bar" style="width: {{ disk_percent|default:"0" }}%; background: linear-gradient(90deg, #4CAF50, #66BB6A); border-radius: 10px; transition: width 0.5s ease;"></div>
+                </div>
+                <div class="mt-2">
+                    <small style="color: #666;">
+                        <span id="disk-used">{{ disk_used_gb|default:"0" }}</span> / <span id="disk-total">{{ disk_total_gb|default:"200" }}</span> GB
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Activity -->
+        <div class="col-md-3">
+            <div class="stat-card animate-slide-in-right" style="background: white; border-radius: 25px; padding: 24px; box-shadow: 0 8px 30px rgba(33,150,243,0.15); border-left: 6px solid #2196F3; transition: all 0.3s ease; animation-delay: 0.3s;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">NETWORK</div>
+                        <div class="h2 fw-bold mb-0" style="color: #2196F3;">
+                            <i class="bi bi-wifi"></i>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #2196F3, #64B5F6); border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(33,150,243,0.3); animation: pulse-icon 3s ease-in-out infinite 0.9s;">
+                        <i class="bi bi-graph-up" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between text-center mt-2">
+                    <div class="flex-fill">
+                        <div class="fw-bold" style="color: #4CAF50;">
+                            <i class="bi bi-arrow-down"></i>
+                            <span id="net-recv">{{ net_recv_mb|default:"0" }}</span>
+                        </div>
+                        <small class="text-muted">MB Down</small>
+                    </div>
+                    <div class="flex-fill">
+                        <div class="fw-bold" style="color: #FF9800;">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="net-sent">{{ net_sent_mb|default:"0" }}</span>
+                        </div>
+                        <small class="text-muted">MB Up</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Breakdown & System Info -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="dawn-card animate-fade-in-up" style="border-radius: 25px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); animation-delay: 0.4s;">
+                <h4 class="mb-4 fw-bold" style="color: var(--dawn-dark); font-size: 1.6rem;">
+                    <i class="bi bi-pie-chart-fill me-2" style="color: var(--dawn-orange);"></i>
+                    Storage Breakdown
+                </h4>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="storage-item" style="background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,107,53,0.05)); border-radius: 18px; padding: 20px; text-align: center; border: 2px solid rgba(255,107,53,0.3); transition: all 0.3s ease;">
+                            <div class="h3 fw-bold mb-2" style="color: var(--dawn-orange);">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </div>
+                            <div class="h5 fw-bold mb-1" style="color: var(--dawn-dark);">
+                                <span id="vault-storage">--</span> GB
+                            </div>
+                            <small class="text-muted fw-bold">Family Vault</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="storage-item" style="background: linear-gradient(135deg, rgba(107,53,255,0.15), rgba(107,53,255,0.05)); border-radius: 18px; padding: 20px; text-align: center; border: 2px solid rgba(107,53,255,0.3); transition: all 0.3s ease;">
+                            <div class="h3 fw-bold mb-2" style="color: var(--dawn-purple);">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="h5 fw-bold mb-1" style="color: var(--dawn-dark);">5 GB</div>
+                            <small class="text-muted fw-bold">AI Models</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="storage-item" style="background: linear-gradient(135deg, rgba(76,175,80,0.15), rgba(76,175,80,0.05)); border-radius: 18px; padding: 20px; text-align: center; border: 2px solid rgba(76,175,80,0.3); transition: all 0.3s ease;">
+                            <div class="h3 fw-bold mb-2" style="color: #4CAF50;">
+                                <i class="bi bi-gear-fill"></i>
+                            </div>
+                            <div class="h5 fw-bold mb-1" style="color: var(--dawn-dark);">10 GB</div>
+                            <small class="text-muted fw-bold">System</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="storage-item" style="background: linear-gradient(135deg, rgba(33,150,243,0.15), rgba(33,150,243,0.05)); border-radius: 18px; padding: 20px; text-align: center; border: 2px solid rgba(33,150,243,0.3); transition: all 0.3s ease;">
+                            <div class="h3 fw-bold mb-2" style="color: #2196F3;">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <div class="h5 fw-bold mb-1" style="color: var(--dawn-dark);">
+                                <span id="disk-free">{{ disk_free_gb|default:"180" }}</span> GB
+                            </div>
+                            <small class="text-muted fw-bold">Available</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert" style="background: linear-gradient(135deg, rgba(76,175,80,0.15), rgba(76,175,80,0.05)); border: 2px solid rgba(76,175,80,0.3); border-radius: 15px; border-left: 4px solid #4CAF50; margin-bottom: 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-shield-check-fill me-3" style="font-size: 32px; color: #4CAF50;"></i>
+                        <div>
+                            <strong style="color: var(--dawn-dark);">100% Local Processing</strong>
+                            <p class="mb-0" style="color: #666; font-size: 0.95rem;">All data stored on your Black Box. Never touches the cloud!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Info -->
+        <div class="col-lg-4">
+            <div class="dawn-card animate-fade-in-up" style="border-radius: 25px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); animation-delay: 0.5s;">
+                <h5 class="mb-4 fw-bold" style="color: var(--dawn-dark); font-size: 1.4rem;">
+                    <i class="bi bi-info-circle me-2" style="color: var(--dawn-purple);"></i>
+                    System Info
+                </h5>
+
+                <div class="info-item mb-3 p-3" style="background: rgba(76,175,80,0.1); border-radius: 12px; border-left: 4px solid #4CAF50;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #666; font-weight: 600;">Status</span>
+                        <span class="fw-bold" style="color: #4CAF50;">
+                            <i class="bi bi-circle-fill" style="font-size: 8px;"></i> Online
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-item mb-3 p-3" style="background: rgba(107,53,255,0.1); border-radius: 12px; border-left: 4px solid var(--dawn-purple);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #666; font-weight: 600;">Docker Containers</span>
+                        <span class="fw-bold" style="color: var(--dawn-purple);">3 running</span>
+                    </div>
+                </div>
+
+                <div class="info-item mb-3 p-3" style="background: rgba(255,107,53,0.1); border-radius: 12px; border-left: 4px solid var(--dawn-orange);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #666; font-weight: 600;">AI Status</span>
+                        <span class="fw-bold" style="color: var(--dawn-orange);">
+                            <i class="bi bi-robot"></i> Ready
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-item mb-3 p-3" style="background: rgba(76,175,80,0.1); border-radius: 12px; border-left: 4px solid #4CAF50;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #666; font-weight: 600;">Privacy Level</span>
+                        <span class="fw-bold" style="color: #4CAF50;">
+                            <i class="bi bi-shield-check"></i> 100% Local
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button onclick="refreshStats()" class="btn btn-outline-dawn w-100 mb-2" style="border-radius: 15px; padding: 12px; font-weight: 600;">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Refresh Stats
+                    </button>
+                    <a href="{% url 'family_dashboard' %}" class="btn btn-dawn w-100" style="border-radius: 15px; padding: 12px; font-weight: 600;">
+                        <i class="bi bi-house-door-fill me-2"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dawn-card animate-fade-in-up" style="border-radius: 25px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); animation-delay: 0.6s;">
+                <h5 class="mb-4 fw-bold" style="color: var(--dawn-dark); font-size: 1.4rem;">
+                    <i class="bi bi-lightning-fill me-2" style="color: #FFC107;"></i>
+                    Quick Actions
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{% url 'vault_home' %}" class="action-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,107,53,0.05)); border-radius: 18px; border: 2px solid rgba(255,107,53,0.2); text-decoration: none; color: var(--dawn-dark); transition: all 0.3s ease;">
+                            <i class="bi bi-shield-lock-fill" style="font-size: 36px; color: var(--dawn-orange); margin-bottom: 10px;"></i>
+                            <span style="font-weight: 600; font-size: 1.05rem;">Family Vault</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'kids_ai_home' %}" class="action-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(107,53,255,0.05)); border-radius: 18px; border: 2px solid rgba(107,53,255,0.2); text-decoration: none; color: var(--dawn-dark); transition: all 0.3s ease;">
+                            <i class="bi bi-robot" style="font-size: 36px; color: var(--dawn-purple); margin-bottom: 10px;"></i>
+                            <span style="font-weight: 600; font-size: 1.05rem;">Kids AI</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'vault_family_settings' %}" class="action-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(76,175,80,0.05)); border-radius: 18px; border: 2px solid rgba(76,175,80,0.2); text-decoration: none; color: var(--dawn-dark); transition: all 0.3s ease;">
+                            <i class="bi bi-people-fill" style="font-size: 36px; color: #4CAF50; margin-bottom: 10px;"></i>
+                            <span style="font-weight: 600; font-size: 1.05rem;">Family Settings</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'home' %}" class="action-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg, rgba(33,150,243,0.1), rgba(33,150,243,0.05)); border-radius: 18px; border: 2px solid rgba(33,150,243,0.2); text-decoration: none; color: var(--dawn-dark); transition: all 0.3s ease;">
+                            <i class="bi bi-house-heart-fill" style="font-size: 36px; color: #2196F3; margin-bottom: 10px;"></i>
+                            <span style="font-weight: 600; font-size: 1.05rem;">Home</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animations */
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 5px rgba(255,193,7,0.5));
+        transform: scale(1);
+    }
+    50% {
+        filter: drop-shadow(0 0 20px rgba(255,193,7,0.8));
+        transform: scale(1.05);
+    }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+@keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes animate-slide-down {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes animate-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes animate-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes animate-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-slide-down {
+    animation: animate-slide-down 0.6s ease-out both;
+}
+
+.animate-slide-in-left {
+    animation: animate-slide-in-left 0.6s ease-out both;
+}
+
+.animate-slide-in-right {
+    animation: animate-slide-in-right 0.6s ease-out both;
+}
+
+.animate-fade-in-up {
+    animation: animate-fade-in-up 0.6s ease-out both;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out both;
+}
+
+.animate-bounce-in {
+    animation: bounceIn 0.6s ease-out both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Hover Effects */
+.stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(107,53,255,0.25) !important;
+}
+
+.storage-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: var(--dawn-orange) !important;
+}
+</style>
+
+<script>
+// Auto-refresh stats every 5 seconds
+let refreshInterval;
+
+function refreshStats() {
+    fetch('/blackbox/status/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update CPU
+                document.getElementById('cpu-percent').textContent = data.cpu_percent;
+                document.getElementById('cpu-bar').style.width = data.cpu_percent + '%';
+
+                // Update Memory
+                document.getElementById('memory-percent').textContent = data.memory_percent;
+                document.getElementById('memory-bar').style.width = data.memory_percent + '%';
+                document.getElementById('memory-used').textContent = data.memory_used_gb;
+                document.getElementById('memory-total').textContent = data.memory_total_gb;
+
+                // Update Disk
+                document.getElementById('disk-percent').textContent = data.disk_percent;
+                document.getElementById('disk-bar').style.width = data.disk_percent + '%';
+                document.getElementById('disk-used').textContent = data.disk_used_gb;
+                document.getElementById('disk-total').textContent = data.disk_total_gb;
+                document.getElementById('disk-free').textContent = data.disk_free_gb;
+
+                // Update Network
+                document.getElementById('net-sent').textContent = data.net_sent_mb;
+                document.getElementById('net-recv').textContent = data.net_recv_mb;
+            }
+        })
+        .catch(error => console.error('Error refreshing stats:', error));
+}
+
+// Start auto-refresh
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial refresh after 1 second
+    setTimeout(refreshStats, 1000);
+    // Then every 5 seconds
+    refreshInterval = setInterval(refreshStats, 5000);
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    clearInterval(refreshInterval);
+});
+</script>
+{% endblock %}

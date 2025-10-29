@@ -27,7 +27,7 @@ services:
   # Ollama for Local LLM
   ollama:
     image: ollama/ollama:latest
-    container_name: cyphervault_ollama
+    container_name: dawnguard_ollama
     volumes:
       - ollama_data:/root/.ollama
     ports:

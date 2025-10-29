@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SunVault - Your Private AI on Black Box</title>
+    <title>HomeGuardian AI - Your Private AI on Black Box</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
@@ -85,7 +85,7 @@
             font-weight: 700;
         }
 
-        /* Primary Button - DAWN Orange */
+        /* Primary Button - DAWN Orange - RESPONSIVE */
         .btn-dawn {
             background: var(--dawn-orange);
             border: none;
@@ -95,6 +95,12 @@
             border-radius: 12px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 16px rgba(255, 107, 53, 0.2);
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            white-space: nowrap;
         }
 
         .btn-dawn:hover {
@@ -104,7 +110,23 @@
             color: white;
         }
 
-        /* Outline Button */
+        .btn-dawn:active {
+            transform: translateY(0);
+        }
+
+        .btn-dawn.btn-sm {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            min-height: 36px;
+        }
+
+        .btn-dawn.btn-lg {
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            min-height: 52px;
+        }
+
+        /* Outline Button - RESPONSIVE */
         .btn-outline-dawn {
             border: 2px solid var(--dawn-orange);
             color: var(--dawn-orange);
@@ -113,12 +135,30 @@
             padding: 12px 28px;
             border-radius: 12px;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            white-space: nowrap;
         }
 
         .btn-outline-dawn:hover {
             background: var(--dawn-orange);
             color: white;
             border-color: var(--dawn-orange);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-dawn.btn-sm {
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            min-height: 36px;
+        }
+
+        .btn-outline-dawn.btn-lg {
+            padding: 14px 36px;
+            font-size: 1.1rem;
+            min-height: 52px;
         }
 
         /* Black Box Badge */
@@ -150,33 +190,118 @@
             letter-spacing: 0.5px;
         }
 
-        /* Navbar - Clean DAWN Style */
+        /* Navbar - Clean DAWN Style - RESPONSIVE */
         .navbar {
             background: rgba(255, 255, 255, 0.98) !important;
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 107, 53, 0.1);
-            padding: 16px 0;
+            padding: 12px 0;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+            position: relative;
+            z-index: 1050;
         }
 
         .navbar-brand {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             color: var(--dawn-dark) !important;
         }
 
         .nav-link {
             color: var(--dawn-dark) !important;
             font-weight: 500;
-            padding: 8px 16px !important;
-            transition: color 0.3s ease;
+            padding: 10px 16px !important;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .nav-link:hover {
             color: var(--dawn-orange) !important;
+        }
+
+        /* Beautiful Dropdown Menus */
+        .dropdown-menu {
+            border-radius: 16px !important;
+            border: 1px solid rgba(255, 107, 53, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            padding: 8px;
+            margin-top: 8px;
+            animation: dropdownSlide 0.2s ease;
+            z-index: 1060 !important;
+            background: white !important;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+            color: var(--dawn-orange);
+            transform: translateX(4px);
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* Hide dropdown arrow for user avatar */
+        .nav-link.dropdown-toggle::after {
+            display: none;
+        }
+
+        /* Mobile Navigation Improvements */
+        @media (max-width: 991px) {
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .navbar-collapse {
+                background: white;
+                margin-top: 16px;
+                padding: 16px;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-link {
+                padding: 12px 16px !important;
+                margin: 4px 0;
+            }
+
+            .navbar-nav .nav-item {
+                width: 100%;
+            }
+
+            .btn-dawn,
+            .btn-outline-dawn {
+                width: 100%;
+                margin: 8px 0;
+            }
         }
 
         /* DAWN Logo */
@@ -209,68 +334,136 @@
         * {
             transition: background-color 0.3s ease, border-color 0.3s ease;
         }
+
+        /* Mobile Responsive Utilities */
+        @media (max-width: 768px) {
+            .dawn-card {
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            h1, .display-2 {
+                font-size: 2rem !important;
+            }
+
+            h2, .display-4 {
+                font-size: 1.75rem !important;
+            }
+
+            .lead {
+                font-size: 1.1rem !important;
+            }
+
+            /* Full-width buttons on mobile */
+            .btn-dawn-mobile-full,
+            .mobile-full-btn {
+                width: 100%;
+                margin: 8px 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container, .container-fluid {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .dawn-card {
+                padding: 16px;
+            }
+        }
+
+        /* Touch-friendly spacing */
+        @media (hover: none) and (pointer: coarse) {
+            .btn-dawn,
+            .btn-outline-dawn,
+            .nav-link,
+            a {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark py-3">
+    <nav class="navbar navbar-expand-lg navbar-light py-3">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}" style="display: flex; align-items: center;">
-            <div class="dawn-logo">
-                <img src="/static/img/logo.png" alt="SunVault Logo" style="height: 100px; width: auto; margin-right: 8px;">
+        <!-- Beautiful Logo - Single Color -->
+        <a class="navbar-brand" href="{% url 'home' %}" style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--dawn-orange); border-radius: 12px; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);">
+                <i class="bi bi-shield-fill-check" style="font-size: 24px; color: white;"></i>
             </div>
-            <span class="glow-text">SunVault</span>
+            <span style="color: var(--dawn-dark); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px;">
+                Home<span style="color: var(--dawn-orange);">Guardian</span>
+            </span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="padding: 8px;">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
                 {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'chat' %}">Chat</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'settings' %}">Settings</a>
+
+                <!-- Main Navigation - Compact -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle fw-semibold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" style="color: var(--dawn-dark);">
+                        <i class="bi bi-grid-3x3-gap-fill"></i> Apps
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="border-radius: 12px; border: 1px solid rgba(255,107,53,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <li><a class="dropdown-item" href="{% url 'family_dashboard' %}"><i class="bi bi-house-door-fill text-primary"></i> Dashboard</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'vault_home' %}"><i class="bi bi-shield-lock-fill text-success"></i> Family Vault</a></li>
+                        <li><a class="dropdown-item" href="{% url 'memory_home' %}"><i class="bi bi-journal-heart text-danger"></i> Memory Journal</a></li>
+                        <li><a class="dropdown-item" href="{% url 'kids_ai_home' %}"><i class="bi bi-robot text-info"></i> Kids AI Chat</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'guardian_alerts' %}"><i class="bi bi-shield-fill-exclamation text-warning"></i> AI Guardian</a></li>
+                        <li><a class="dropdown-item" href="{% url 'blackbox_dashboard' %}"><i class="bi bi-hdd-rack text-secondary"></i> Black Box</a></li>
+                        <li><a class="dropdown-item" href="{% url 'p2p_network' %}"><i class="bi bi-diagram-3 text-success"></i> P2P Network</a></li>
+                    </ul>
                 </li>
 
-                <!-- Wallet Display or Connect Button -->
-                <li class="nav-item ms-3">
+                <!-- Wallet -->
+                <li class="nav-item">
                     {% with profile=user.userprofile %}
                         {% if profile.solana_wallet %}
-                        <span class="badge"
-                            style="background: var(--dawn-purple); color: white; padding: 8px 16px; border-radius: 20px; font-family: monospace;">
-                            <i class="bi bi-wallet2 me-1"></i>
-                            {{ profile.solana_wallet|slice:":6" }}...{{ profile.solana_wallet|slice:"-6:" }}
+                        <span class="badge" style="background: var(--dawn-orange); color: white; padding: 10px 16px; border-radius: 12px; font-family: monospace; font-size: 0.85rem;">
+                            <i class="bi bi-wallet2 me-1"></i>{{ profile.solana_wallet|slice:":4" }}...{{ profile.solana_wallet|slice:"-4:" }}
                         </span>
                         {% else %}
-                        <button id="connect-wallet" class="btn btn-dawn btn-sm" onclick="connectWalletNav()">
-                            <i class="bi bi-wallet2"></i> Link Wallet
+                        <button id="connect-wallet" class="btn btn-outline-dawn btn-sm" onclick="connectWalletNav()" style="border-radius: 12px; font-weight: 600;">
+                            <i class="bi bi-wallet2"></i> Connect
                         </button>
                         {% endif %}
                     {% endwith %}
                 </li>
 
-                <li class="nav-item ms-2">
-                    <a class="btn btn-outline-dawn btn-sm" href="{% url 'logout' %}">Logout</a>
-                </li>
-                {% else %}
-                
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Sign In</a>
-                </li>
-                <li class="nav-item">
-                    <a class="btn btn-dawn btn-sm me-2" href="{% url 'wallet_login' %}">
-                        <i class="bi bi-wallet2"></i> Wallet Login
+                <!-- User Menu -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style="color: var(--dawn-dark);">
+                        <div style="width: 36px; height: 36px; background: var(--dawn-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="border-radius: 12px; border: 1px solid rgba(255,107,53,0.1);">
+                        <li><span class="dropdown-item-text fw-bold">{{ user.username }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    </ul>
                 </li>
-                <li class="nav-item ms-2">
-                    <a class="btn btn-dawn btn-sm" href="{% url 'register' %}">Get Started</a>
+
+                {% else %}
+
+                <!-- Guest Navigation -->
+                <li class="nav-item">
+                    <a class="nav-link fw-semibold" href="{% url 'login' %}" style="color: var(--dawn-dark);">Sign In</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-dawn btn-sm" href="{% url 'register' %}" style="border-radius: 12px; font-weight: 600;">
+                        Get Started Free
+                    </a>
                 </li>
                 {% endif %}
                 <li class="nav-item ms-3">
@@ -303,7 +496,7 @@
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="dawn-logo">☀️</div>
                         <div>
-                            <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">SunVault</h5>
+                            <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">HomeGuardian AI</h5>
                             <small style="color: #999;">by DAWN</small>
                         </div>
                     </div>
@@ -422,9 +615,9 @@ async function connectWalletNav() {
             }
 
             showNotification('✅ Wallet linked successfully!', 'success');
-            
-            // Optional: reload to update UI everywhere
-            setTimeout(() => location.reload(), 1500);
+
+            // Update UI without reload - wallet is already shown in navbar
+            // No need to reload the entire page
         } else {
             throw new Error(linkData.error || 'Failed to link wallet');
         }

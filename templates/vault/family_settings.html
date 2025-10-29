@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'vault_home' %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left"></i> Back to Vault
+            </a>
+            <h2 class="fw-bold" style="color: var(--dawn-dark);">
+                <i class="bi bi-people-fill"></i> Family Management
+            </h2>
+            <p class="text-muted">Manage family members, permissions, and storage quotas</p>
+        </div>
+    </div>
+
+    <!-- Add New Member -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-person-plus"></i> Add Family Member
+                </h4>
+                <form id="add-member-form" onsubmit="addFamilyMember(event)">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Username</label>
+                            <input type="text" class="form-control" id="username" required
+                                   placeholder="e.g., mom, dad, sarah" style="border-radius: 12px;">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Display Name</label>
+                            <input type="text" class="form-control" id="display-name" required
+                                   placeholder="e.g., Mom, Dad, Sarah" style="border-radius: 12px;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Role</label>
+                            <select class="form-select" id="role" style="border-radius: 12px;">
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                                <option value="child">Child</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Storage (GB)</label>
+                            <input type="number" class="form-control" id="storage-quota"
+                                   value="50" min="1" max="1000" style="border-radius: 12px;">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">&nbsp;</label>
+                            <button type="submit" class="btn btn-dawn w-100">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Family Members List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-people"></i> Family Members ({{ all_members.count }})
+                </h4>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(0,0,0,0.1);">
+                                <th>Member</th>
+                                <th>Role</th>
+                                <th>Storage Used</th>
+                                <th>Quota</th>
+                                <th>Permissions</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in all_members %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ member.avatar_color }}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px;">
+                                                {{ member.display_name.0 }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ member.display_name }}</div>
+                                            <small class="text-muted">@{{ member.user.username }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge" style="
+                                        {% if member.role == 'admin' %}background: #4CAF50;
+                                        {% elif member.role == 'child' %}background: #FF9800;
+                                        {% else %}background: #2196F3;{% endif %}
+                                        color: white; padding: 6px 12px;">
+                                        {{ member.get_role_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ member.get_storage_used_gb|floatformat:2 }} GB</div>
+                                    <div class="progress mt-1" style="height: 6px; border-radius: 10px;">
+                                        <div class="progress-bar" style="width: {{ member.get_storage_percentage }}%; background: var(--dawn-orange);"></div>
+                                    </div>
+                                </td>
+                                <td>{{ member.storage_quota_gb }} GB</td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        {% if member.ai_chat_enabled %}
+                                        <span class="badge bg-success" style="font-size: 10px;">
+                                            <i class="bi bi-chat"></i> AI
+                                        </span>
+                                        {% endif %}
+                                        {% if member.file_upload_enabled %}
+                                        <span class="badge bg-success" style="font-size: 10px;">
+                                            <i class="bi bi-upload"></i> Upload
+                                        </span>
+                                        {% endif %}
+                                        {% if member.can_share_files %}
+                                        <span class="badge bg-success" style="font-size: 10px;">
+                                            <i class="bi bi-share"></i> Share
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" onclick="editMember({{ member.id }})"
+                                                {% if member.user == user %}disabled{% endif %}>
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        {% if member.user != user %}
+                                        <button class="btn btn-outline-danger" onclick="deleteMember({{ member.id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Family Stats -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="dawn-card text-center">
+                <div class="h3 mb-2 fw-bold" style="color: var(--dawn-orange);">{{ all_members.count }}</div>
+                <div class="text-muted">Total Members</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dawn-card text-center">
+                <div class="h3 mb-2 fw-bold" style="color: var(--dawn-purple);">
+                    {% widthratio all_members.count 1 50 %} GB
+                </div>
+                <div class="text-muted">Total Quota Allocated</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dawn-card text-center">
+                <div class="h3 mb-2 fw-bold" style="color: #4CAF50;">Active</div>
+                <div class="text-muted">Family Vault Status</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addFamilyMember(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('username').value.trim().toLowerCase();
+    const displayName = document.getElementById('display-name').value.trim();
+    const role = document.getElementById('role').value;
+    const storageQuota = document.getElementById('storage-quota').value;
+
+    if (!username || !displayName) {
+        showNotification('❌ Please fill in all fields', 'error');
+        return;
+    }
+
+    // Call backend API to create family member
+    fetch('/vault/family/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            username: username,
+            display_name: displayName,
+            role: role,
+            storage_quota: storageQuota,
+            password: 'blackbox123'  // Default password
+        })
+    })
+    .then(response => response.json())
+    .then(async data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            // Clear form
+            document.getElementById('add-member-form').reset();
+            // Refresh family members list without reload
+            await refreshFamilyMembers();
+        } else {
+            showNotification('❌ ' + (data.error || 'Failed to add family member'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Error adding family member', 'error');
+    });
+}
+
+function editMember(memberId) {
+    // Show permission toggles
+    const newAIChatEnabled = confirm('Enable AI Chat for this member?');
+    const newFileUploadEnabled = confirm('Enable File Upload for this member?');
+    const newCanShareFiles = confirm('Allow File Sharing for this member?');
+
+    fetch(`/vault/family/${memberId}/update/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            ai_chat_enabled: newAIChatEnabled,
+            file_upload_enabled: newFileUploadEnabled,
+            can_share_files: newCanShareFiles
+        })
+    })
+    .then(response => response.json())
+    .then(async data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            await refreshFamilyMembers();
+        } else {
+            showNotification('❌ ' + (data.error || 'Failed to update permissions'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Error updating permissions', 'error');
+    });
+}
+
+function deleteMember(memberId) {
+    if (!confirm('⚠️ Remove this family member?\n\nTheir user account will be deleted, but their files will remain.')) {
+        return;
+    }
+
+    fetch(`/vault/family/${memberId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(async data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+
+            // Remove member card from DOM with animation
+            const memberCard = event.target.closest('.member-card');
+            if (memberCard) {
+                memberCard.style.opacity = '0';
+                memberCard.style.transform = 'scale(0.8)';
+                setTimeout(() => memberCard.remove(), 300);
+            }
+
+            await refreshFamilyMembers();
+        } else {
+            showNotification('❌ ' + (data.error || 'Failed to delete member'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Error deleting member', 'error');
+    });
+}
+
+// Refresh family members list without page reload
+async function refreshFamilyMembers() {
+    try {
+        const response = await fetch(window.location.href);
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Update members grid
+        const membersGrid = document.querySelector('.row.g-4');
+        const newMembersGrid = doc.querySelector('.row.g-4');
+        if (membersGrid && newMembersGrid) {
+            membersGrid.innerHTML = newMembersGrid.innerHTML;
+        }
+
+        // Update stats if exists
+        const statsSection = document.querySelector('.stats-section');
+        const newStatsSection = doc.querySelector('.stats-section');
+        if (statsSection && newStatsSection) {
+            statsSection.innerHTML = newStatsSection.innerHTML;
+        }
+    } catch (error) {
+        console.error('Failed to refresh family members:', error);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showNotification(message, type = 'success') {
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800'
+    };
+
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 start-50 translate-middle-x mb-4 p-3 rounded-3';
+    notification.style.cssText = `background: ${colors[type]}; color: white; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2); max-width: 600px;`;
+    notification.innerHTML = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 5000);
+}
+</script>
+{% endblock %}

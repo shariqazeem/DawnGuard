@@ -623,7 +623,7 @@
         opacity: 0.8;
     }
 
-    /* Responsive */
+    /* Responsive Enhancements */
     @media (max-width: 768px) {
         .stat-value {
             font-size: 1.5rem;
@@ -633,6 +633,105 @@
             width: 40px;
             height: 40px;
             font-size: 20px;
+        }
+
+        /* Stack hero section */
+        .col-md-8, .col-md-4 {
+            text-align: center !important;
+        }
+
+        .text-md-end {
+            text-align: center !important;
+            margin-top: 16px;
+        }
+
+        /* Full width buttons on mobile */
+        .btn-dawn, .btn-outline-dawn {
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        /* Smaller decorative elements */
+        .dawn-logo {
+            width: 48px !important;
+            height: 48px !important;
+        }
+
+        h1 {
+            font-size: 1.75rem !important;
+        }
+
+        /* Compact cards */
+        .dawn-card {
+            padding: 20px !important;
+        }
+
+        .stat-card {
+            padding: 16px !important;
+        }
+
+        /* Better conversation list on mobile */
+        .conversation-icon {
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 16px !important;
+            margin-right: 12px !important;
+        }
+
+        .conversation-meta {
+            flex-direction: column !important;
+            gap: 4px !important;
+        }
+
+        /* Quick actions grid */
+        .quick-action-btn {
+            padding: 12px !important;
+        }
+
+        .quick-action-btn i {
+            font-size: 20px !important;
+        }
+
+        .quick-action-btn span {
+            font-size: 0.75rem !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        /* Extra compact on small phones */
+        .container-fluid {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
+        .row.g-3 {
+            margin-left: -6px !important;
+            margin-right: -6px !important;
+        }
+
+        .row.g-3 > * {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+
+        h1 {
+            font-size: 1.5rem !important;
+        }
+
+        .display-4 {
+            font-size: 1.75rem !important;
+        }
+    }
+
+    /* Tablet optimizations */
+    @media (min-width: 769px) and (max-width: 991px) {
+        .col-lg-8, .col-lg-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .sidebar {
+            margin-top: 24px;
         }
     }
 </style>

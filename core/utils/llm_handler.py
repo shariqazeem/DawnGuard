@@ -14,33 +14,39 @@ class LLMHandler:
         except:
             return False
     
-    def generate_response(self, prompt, context=None, model=None):
+    def generate_response(self, prompt, context=None, model=None, max_tokens=None):
         """Generate a complete response (non-streaming)"""
         if not self.available:
             return self._mock_response(prompt)
-        
+
         try:
             messages = []
-            
+
             # Add context if provided
             if context:
                 messages.extend(context)
-            
+
             # Add current prompt
             messages.append({
                 'role': 'user',
                 'content': prompt
             })
-            
+
+            # Prepare options
+            options = {}
+            if max_tokens:
+                options['num_predict'] = max_tokens
+
             # Generate response
             response = ollama.chat(
                 model=model or self.default_model,
                 messages=messages,
-                stream=False
+                stream=False,
+                options=options if options else None
             )
-            
+
             return response['message']['content']
-            
+
         except Exception as e:
             print(f"LLM Error: {e}")
             return self._mock_response(prompt)

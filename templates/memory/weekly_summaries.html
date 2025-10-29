@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="fw-bold" style="color: var(--dawn-dark);">
+                    <i class="bi bi-calendar-range"></i> Weekly Summaries
+                </h2>
+                <a href="{% url 'memory_home' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="row">
+        <div class="col-12">
+            {% if summaries %}
+                {% for summary in summaries %}
+                <div class="mb-4">
+                    <div class="dawn-card" style="border-left: 4px solid #9C27B0;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="fw-bold mb-1">
+                                    {{ summary.get_mood_emoji }} {{ summary.get_week_label }}
+                                </h4>
+                                <small class="text-muted">
+                                    {{ summary.total_entries }} entries •
+                                    {{ summary.participating_members|join:", " }}
+                                </small>
+                            </div>
+                            <span class="badge bg-purple">Week {{ summary.week_number }}</span>
+                        </div>
+
+                        <div class="mb-3 p-3" style="background: linear-gradient(135deg, rgba(156,39,176,0.05), rgba(244,143,177,0.05)); border-radius: 10px;">
+                            <p style="font-size: 1.05rem; line-height: 1.8; white-space: pre-wrap;">{{ summary.ai_summary }}</p>
+                        </div>
+
+                        {% if summary.highlights %}
+                        <div>
+                            <h6 class="fw-bold mb-2"><i class="bi bi-stars"></i> Highlights</h6>
+                            <ul class="mb-0">
+                                {% for highlight in summary.highlights %}
+                                <li>{{ highlight }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5" style="opacity: 0.5;">
+                    <i class="bi bi-calendar-x" style="font-size: 64px;"></i>
+                    <h4 class="mt-3">No weekly summaries yet</h4>
+                    <p class="text-muted">Write some memories and generate your first summary!</p>
+                    <a href="{% url 'memory_home' %}" class="btn btn-primary mt-2">
+                        <i class="bi bi-magic"></i> Generate Summary
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

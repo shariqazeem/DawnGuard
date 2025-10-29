@@ -1,0 +1,13 @@
+CONFIDENTIAL FAMILY DATA
+
+Emergency Contact:
+Name: Emma Thompson
+SSN: 123-45-6789
+Credit Card: 4532-1234-5678-9010
+Phone: (555) 123-4567
+Email: emma@example.com
+Home Address: 789 Oak Street
+Password: Family2025!
+Medical: Diabetes medication - Metformin 500mg
+
+PRIVATE - DO NOT SHARE

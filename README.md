@@ -1,68 +1,112 @@
-# ☀️🔐 SunVault - Your Private AI, Rising with DAWN
+# ☀️🔐 HomeGuardian AI - Your Family's Private AI + Cloud Storage on Black Box
 
-![SunVault](https://img.shields.io/badge/DAWN-Black%20Box-orange) ![Solana](https://img.shields.io/badge/Solana-Devnet-purple) ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![HomeGuardian AI](https://img.shields.io/badge/DAWN-Black%20Box-orange) ![Solana](https://img.shields.io/badge/Solana-Devnet-purple) ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 
-**The first truly private AI assistant that lives in your Black Box - not in someone else's cloud.**
+**Replace Dropbox + ChatGPT with ONE Black Box. Save $240/year. 100% Private.**
 
-> *"What if your AI knew everything about you, but nobody else did?"*
+> *"What if your family had unlimited private storage AND AI - all running at home?"*
 
 ---
 
-## 🌅 Why Every Black Box Needs SunVault
+## 💰 Why Every Family Needs HomeGuardian AI
 
 ### The Problem
-- 💸 ChatGPT reads all your conversations
-- 🕵️ Your personal data trains corporate AI
-- 🔓 Cloud AI = Zero privacy
-- 🌐 Centralized = Single point of failure
+- 💸 **Dropbox costs $240/year** (2TB at $20/month)
+- 🕵️ **Google scans your family photos** for ads
+- 🔓 **ChatGPT has no parental controls** for kids
+- 🌐 **Cloud storage = Privacy nightmare**
 
-### The SunVault Solution
+### The HomeGuardian Solution
+
+#### 🏠 **Family Vault** (Dropbox Killer)
+- ☁️ **Unlimited storage** on YOUR Black Box
+- 🔐 **AES-256 encrypted** - Military-grade security
+- 👨‍👩‍👧‍👦 **Multi-user accounts** - Mom, Dad, Kids
+- 🤖 **AI-powered search** - "Show me vacation photos"
+- 💰 **Save $240/year** vs Dropbox
+- 📱 **Mobile-friendly** upload from phone
+
+#### 🤖 **Private AI Assistant**
 - 🏠 **100% Local** - AI never leaves your Black Box
-- 🔐 **Military-grade encryption** - AES-256 + RSA-2048
-- 🤖 **Private AI** - Powered by Ollama (Meta's Llama 3.2)
-- 🔗 **Blockchain verified** - Solana-secured authentication
-- 🌐 **P2P network** - Share knowledge, not data
-- 🛡️ **Zero-knowledge proofs** - Prove identity without revealing secrets
+- 💬 **Ollama (Llama 3.2)** - Latest AI models
+- 🔗 **Blockchain verified** - Solana authentication
+- 🛡️ **Zero-knowledge proofs** - Privacy by design
+
+#### 🌐 **P2P Knowledge Network**
+- 🤝 **Share knowledge, not data** - Encrypted P2P
+- 🏆 **Reputation system** - Blockchain verified
+- 🎯 **Community governance** - Democratic decision-making
 
 ---
 
 ## ✨ Features
 
-### 🤖 Local AI Processing
+### 🆕 **FAMILY VAULT** - Replace Dropbox for $0/month
+
+The killer feature that makes HomeGuardian AI a must-have for every family:
+
+#### 💾 Unlimited Private Storage
+- Upload unlimited files to YOUR Black Box
+- Drag-and-drop interface (mobile + desktop)
+- Automatic file organization with folders
+- **No monthly fees. Ever.**
+
+#### 🤖 AI-Powered File Management
+- **Smart Search**: "Show me vacation photos" → Instant results
+- **Auto-Tagging**: AI automatically tags uploaded files
+- **AI Descriptions**: Every file gets an AI-generated description
+- **Face Recognition**: (Coming soon) Find photos by person
+
+#### 👨‍👩‍👧‍👦 Family-Friendly
+- **Multi-User Accounts**: Mom, Dad, Kids each get their own space
+- **Storage Quotas**: Set per-user storage limits
+- **Parental Controls**: Monitor what kids upload/download
+- **Activity Logging**: See all family vault activity
+- **Secure Sharing**: Share files between family members
+
+#### 🔐 Privacy & Security
+- **AES-256 Encryption**: Military-grade security at rest
+- **Local Storage**: Data NEVER leaves your Black Box
+- **No Cloud Sync**: No third-party access
+- **Encrypted Thumbnails**: Even previews are encrypted
+
+#### 💰 Cost Comparison
+
+| Service | Storage | Monthly Cost | Annual Cost |
+|---------|---------|--------------|-------------|
+| Dropbox | 2TB | $20 | $240 |
+| Google One | 2TB | $10 | $120 |
+| **Family Vault** | **Unlimited** | **$0** | **$0** |
+
+**ROI**: Family Vault pays for your Black Box in the first year!
+
+---
+
+### 🤖 Private AI Assistant (Original Features)
 - Runs Ollama LLMs completely offline
 - Streaming responses for real-time chat
-- **Your data NEVER leaves your Black Box**
+- **Your conversations NEVER leave your Black Box**
+- Zero-knowledge proof authentication
 
 ### 🔗 Solana Blockchain Integration
 - Wallet-based authentication (Phantom/Solflare)
 - Knowledge sharing recorded on-chain
 - Reputation system with blockchain verification
-- Future: NFT achievement badges
+- NFT achievement badges
 
-### 🔐 Military-Grade Security
-- **AES-256** encryption for all messages
-- **RSA-2048** for P2P key exchange
-- **Zero-knowledge proofs** for authentication
-- End-to-end encrypted storage
-
-### 🌐 P2P Mesh Network
+### 🌐 P2P Knowledge Network
 - Black Boxes form decentralized knowledge network
-- Direct node-to-node communication
+- Direct node-to-node encrypted communication
 - Reputation-based trust system
-- Encrypted knowledge sharing
-
-### 🏆 Gamification
-- Achievement system (NFT-ready)
-- Reputation scoring
 - Community governance proposals
 
 ---
 
 ## 🎯 Perfect for DAWN's Cypherpunk Vision
 
-SunVault embodies the **"Praise the Sun"** ethos:
+HomeGuardian AI embodies the **"Praise the Sun"** ethos:
 
-| DAWN Principle | SunVault Implementation |
+| DAWN Principle | HomeGuardian AI Implementation |
 |----------------|------------------------|
 | **Decentralization** | No central server - pure P2P mesh |
 | **User Ownership** | Your AI, your data, your Black Box |
@@ -289,7 +333,7 @@ MIT License - Own your code, own your AI, own your data.
 
 <div align="center">
 
-**☀️ Rise with SunVault. Privacy is the new power. 🔐**
+**☀️ Rise with HomeGuardian AI. Privacy is the new power. 🔐**
 
 *Built for DAWN Black Box | Powered by Solana | Secured by Cryptography*
 

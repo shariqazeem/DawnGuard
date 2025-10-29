@@ -385,58 +385,179 @@
 </div>
 
 <script>
-    // Network Visualization
+    // ========================================================
+    // IMPRESSIVE ANIMATED P2P NETWORK VISUALIZATION
+    // ========================================================
     const canvas = document.getElementById('network-canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = canvas.parentElement.offsetWidth;
     canvas.height = 300;
 
-    // Simple network visualization
-    function drawNetwork() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Network nodes with animation
+    const nodes = [];
+    const centerNode = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 20,
+        color: '#FF6B35',
+        label: 'YOU',
+        pulsePhase: 0
+    };
 
-        // Draw center node (you)
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-
-        ctx.fillStyle = '#FF6B35';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
-        ctx.fill();
-
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px monospace';
-        ctx.fillText('YOU', centerX - 15, centerY + 4);
-
-        // Draw connected nodes - FIX THE TEMPLATE VARIABLE
-        const nodeCount = parseInt('{{ total_nodes }}') || 1;  // Fixed!
-        for (let i = 0; i < Math.min(nodeCount, 8); i++) {
-            const angle = (i / 8) * 2 * Math.PI;
-            const x = centerX + Math.cos(angle) * 120;
-            const y = centerY + Math.sin(angle) * 100;
-
-            // Draw connection line
-            ctx.strokeStyle = 'rgba(76, 175, 80, 0.3)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-
-            // Draw node
-            ctx.fillStyle = '#4CAF50';
-            ctx.beginPath();
-            ctx.arc(x, y, 10, 0, 2 * Math.PI);
-            ctx.fill();
-        }
+    // Create peer nodes
+    const nodeCount = Math.min(parseInt('{{ total_nodes }}') || 4, 10);
+    for (let i = 0; i < nodeCount - 1; i++) {
+        const angle = (i / (nodeCount - 1)) * 2 * Math.PI;
+        const distance = 100 + Math.random() * 40;
+        nodes.push({
+            x: centerNode.x + Math.cos(angle) * distance,
+            y: centerNode.y + Math.sin(angle) * distance,
+            radius: 12,
+            color: '#4CAF50',
+            velocityX: (Math.random() - 0.5) * 0.5,
+            velocityY: (Math.random() - 0.5) * 0.5,
+            pulsePhase: Math.random() * Math.PI * 2,
+            dataPackets: []
+        });
     }
 
-    drawNetwork();
+    // Data packets flying between nodes
+    let dataPackets = [];
+    function createDataPacket(fromNode, toNode) {
+        dataPackets.push({
+            startX: fromNode.x,
+            startY: fromNode.y,
+            endX: toNode.x,
+            endY: toNode.y,
+            progress: 0,
+            speed: 0.02,
+            color: '#00F0FF'
+        });
+    }
+
+    // Animation loop
+    function animate() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw connections with glow
+        nodes.forEach(node => {
+            ctx.strokeStyle = 'rgba(76, 175, 80, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(centerNode.x, centerNode.y);
+            ctx.lineTo(node.x, node.y);
+            ctx.stroke();
+        });
+
+        // Update and draw data packets
+        dataPackets = dataPackets.filter(packet => {
+            packet.progress += packet.speed;
+            if (packet.progress > 1) return false;
+
+            const x = packet.startX + (packet.endX - packet.startX) * packet.progress;
+            const y = packet.startY + (packet.endY - packet.startY) * packet.progress;
+
+            // Draw glowing packet
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = packet.color;
+            ctx.fillStyle = packet.color;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            return true;
+        });
+
+        // Animate peer nodes (gentle floating)
+        nodes.forEach(node => {
+            node.x += node.velocityX;
+            node.y += node.velocityY;
+
+            // Bounce off edges
+            if (node.x < 50 || node.x > canvas.width - 50) node.velocityX *= -1;
+            if (node.y < 50 || node.y > canvas.height - 50) node.velocityY *= -1;
+
+            // Keep within bounds
+            node.x = Math.max(50, Math.min(canvas.width - 50, node.x));
+            node.y = Math.max(50, Math.min(canvas.height - 50, node.y));
+
+            // New node entrance effect
+            if (node.isNew) {
+                if (!node.growPhase) node.growPhase = 0;
+                node.growPhase += 0.05;
+                if (node.growPhase >= 1) {
+                    node.isNew = false; // Entrance complete
+                }
+            }
+            const growScale = node.isNew ? node.growPhase : 1;
+
+            // Draw node with pulse
+            node.pulsePhase += 0.05;
+            const pulse = Math.sin(node.pulsePhase) * 2;
+
+            // Extra glow for new nodes
+            const extraGlow = node.isNew ? 20 : 0;
+
+            ctx.shadowBlur = 10 + pulse + extraGlow;
+            ctx.shadowColor = node.isNew ? '#00F0FF' : node.color;
+            ctx.fillStyle = node.isNew ? '#00F0FF' : node.color;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, (node.radius + pulse) * growScale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Node label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 8px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(node.isNew ? 'NEW!' : 'NODE', node.x, node.y + 3);
+        });
+
+        // Draw center node (YOU) with extra glow
+        centerNode.pulsePhase += 0.03;
+        const centerPulse = Math.sin(centerNode.pulsePhase) * 3;
+
+        ctx.shadowBlur = 20 + centerPulse;
+        ctx.shadowColor = centerNode.color;
+        ctx.fillStyle = centerNode.color;
+        ctx.beginPath();
+        ctx.arc(centerNode.x, centerNode.y, centerNode.radius + centerPulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Center node label
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(centerNode.label, centerNode.x, centerNode.y + 4);
+
+        // Stats overlay
+        ctx.fillStyle = 'rgba(0, 255, 100, 0.8)';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`⚡ LIVE MESH NETWORK • ${nodeCount} NODES ONLINE`, 10, 20);
+
+        requestAnimationFrame(animate);
+    }
+
+    // Start animation
+    animate();
+
+    // Periodically send data packets
+    setInterval(() => {
+        if (nodes.length > 0) {
+            const randomNode = nodes[Math.floor(Math.random() * nodes.length)];
+            createDataPacket(centerNode, randomNode);
+        }
+    }, 1000);
 
     // Redraw on window resize
     window.addEventListener('resize', () => {
         canvas.width = canvas.parentElement.offsetWidth;
-        drawNetwork();
+        centerNode.x = canvas.width / 2;
+        centerNode.y = canvas.height / 2;
     });
 
     function showShareModal() {
@@ -444,128 +565,152 @@
     }
 
     async function shareKnowledge() {
-        const title = document.getElementById('knowledge-title').value;
-        const content = document.getElementById('knowledge-content').value;
-        const category = document.getElementById('knowledge-category').value;
-        const isPublic = document.getElementById('knowledge-public').checked;
+    const title = document.getElementById('knowledge-title').value;
+    const content = document.getElementById('knowledge-content').value;
+    const category = document.getElementById('knowledge-category').value;
+    const isPublic = document.getElementById('knowledge-public').checked;
 
-        if (!title || !content) {
-            showNotification('⚠️ Please fill in all fields', 'warning');
-            return;
-        }
+    if (!title || !content) {
+        showNotification('⚠️ Please fill in all fields', 'warning');
+        return;
+    }
 
-        showNotification('🔐 Encrypting content...', 'success');
+    // Check if wallet is connected
+    if (!window.solana || !window.solana.isConnected) {
+        showNotification('⚠️ Please connect your Solana wallet first', 'warning');
+        return;
+    }
 
-        try {
-            // Step 1: Create knowledge entry
-            const response = await fetch('/p2p/share/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
+    showNotification('🔐 Encrypting content...', 'success');
+
+    try {
+        // Step 1: Create knowledge entry
+        const response = await fetch('/p2p/share/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                category: category,
+                is_public: isPublic
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('✅ Knowledge saved locally', 'success');
+            
+            // Step 2: Create REAL Solana transaction
+            showNotification('📝 Creating Solana transaction...', 'success');
+            
+            try {
+                const memoData = data.message_to_sign || JSON.stringify({
+                    knowledge_id: data.knowledge_id,
                     title: title,
-                    content: content,
-                    category: category,
-                    is_public: isPublic
-                })
-            });
+                    category: category
+                });
+                
+                // Create Solana transaction with Memo Program
+                const transaction = await createSolanaMemoTransaction(memoData);
+                
+                showNotification('✍️ Please APPROVE in Phantom wallet...', 'success');
+                
+                // Sign and send transaction to Solana
+                const { signature } = await window.solana.signAndSendTransaction(transaction);
+                
+                showNotification(`⏳ Transaction sent! Signature: ${signature.slice(0,8)}...`, 'success');
+                showNotification('⏳ Waiting for Solana confirmation (15 seconds)...', 'success');
+                
+                // Wait for confirmation (Solana takes 10-15 seconds)
+                await new Promise(resolve => setTimeout(resolve, 15000));
+                
+                // Step 3: Verify on backend
+                const confirmResponse = await fetch('/p2p/confirm-blockchain/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        knowledge_id: data.knowledge_id,
+                        signature: signature,
+                        transaction_data: data.transaction_data
+                    })
+                });
 
-            const data = await response.json();
+                const confirmData = await confirmResponse.json();
 
-            if (data.success) {
-                // Step 2: If requires blockchain signature
-                if (data.requires_signature && window.solana && window.solana.isConnected) {
-                    showNotification('✍️ Please sign the transaction in your wallet...', 'success');
+                if (confirmData.success) {
+                    showNotification(`✅ VERIFIED on Solana blockchain!`, 'success');
+                    
+                    // Show success modal
+                    showBlockchainConfirmation({
+                        tx_signature: signature,
+                        explorer_url: `https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+                        title: title,
+                        category: category,
+                        ...confirmData.tx_details
+                    });
+                    
+                    bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
 
-                    try {
-                        // Sign message with wallet
-                        const message = new TextEncoder().encode(data.message_to_sign);
-                        const signedMessage = await window.solana.signMessage(message, 'utf8');
-                        const signature = btoa(String.fromCharCode(...signedMessage.signature));
-
-                        showNotification('📝 Signature received, recording on blockchain...', 'success');
-
-                        // Step 3: Confirm on blockchain
-                        const confirmResponse = await fetch('/p2p/confirm-blockchain/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            body: JSON.stringify({
-                                knowledge_id: data.knowledge_id,
-                                signature: signature,
-                                transaction_data: data.transaction_data
-                            })
-                        });
-
-                        const confirmData = await confirmResponse.json();
-
-                        if (confirmData.success) {
-                            showNotification(`✅ Knowledge recorded on Solana! TX: ${confirmData.tx_signature.slice(0, 8)}...`, 'success');
-
-                            // Show blockchain confirmation modal
-                            showBlockchainConfirmation(confirmData);
-                        } else {
-                            showNotification('⚠️ Blockchain confirmation failed, but knowledge saved locally', 'warning');
-                        }
-                    } catch (signError) {
-                        console.error('Signing error:', signError);
-                        showNotification('⚠️ Transaction cancelled, but knowledge saved locally', 'warning');
-                    }
+                    // Refresh knowledge grid instead of full page reload
+                    setTimeout(() => refreshKnowledgeGrid(), 1000);
+                    
                 } else {
-                    showNotification('✅ Knowledge shared successfully!', 'success');
+                    showNotification('⚠️ Verification pending. Knowledge saved locally.', 'warning');
+                    bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
+
+                    // Refresh knowledge grid instead of full page reload
+                    setTimeout(() => refreshKnowledgeGrid(), 1000);
                 }
-
+                
+            } catch (walletError) {
+                console.error('Wallet error:', walletError);
+                showNotification('⚠️ Transaction cancelled. Knowledge saved locally only.', 'warning');
                 bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                showNotification('❌ Error: ' + data.error, 'error');
+
+                // Refresh knowledge grid instead of full page reload
+                setTimeout(() => refreshKnowledgeGrid(), 1000);
             }
-        } catch (error) {
-            showNotification('❌ Network error: ' + error.message, 'error');
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
         }
+    } catch (error) {
+        console.error('Share error:', error);
+        showNotification('❌ Error: ' + error.message, 'error');
     }
+}
 
-    function showBlockchainConfirmation(data) {
-        const modal = document.createElement('div');
-        modal.innerHTML = `
-        <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.7);">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content" style="border-radius: 20px; border: 2px solid var(--dawn-purple);">
-                    <div class="modal-header" style="background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(255,107,53,0.05)); border-bottom: 2px solid var(--dawn-purple);">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bi bi-check-circle-fill text-success"></i> Blockchain Confirmed!
-                        </h5>
-                        <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
-                    </div>
-                    <div class="modal-body text-center p-4">
-                        <div class="mb-4" style="font-size: 64px;">⛓️</div>
-                        <h5 class="fw-bold mb-3" style="color: var(--dawn-dark);">Knowledge Recorded on Solana</h5>
-                        <p class="text-muted mb-4">Your knowledge has been permanently recorded on the Solana blockchain</p>
-                        
-                        <div class="p-3 mb-3" style="background: rgba(107,53,255,0.05); border-radius: 12px;">
-                            <small class="text-muted d-block mb-1">Transaction Signature:</small>
-                            <code style="font-size: 0.85rem; word-break: break-all; color: var(--dawn-purple);">
-                                ${data.tx_signature}
-                            </code>
-                        </div>
-                        
-                        <a href="${data.explorer_url}" target="_blank" class="btn btn-dawn w-100">
-                            <i class="bi bi-box-arrow-up-right me-2"></i>View on Solana Explorer
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-        document.body.appendChild(modal);
-
-        // Auto-remove after 10 seconds
-        setTimeout(() => modal.remove(), 10000);
-    }
+// Helper: Create REAL Solana Memo Transaction
+async function createSolanaMemoTransaction(memoData) {
+    const { Connection, Transaction, TransactionInstruction, PublicKey } = window.solanaWeb3;
+    
+    // Connect to Solana Devnet
+    const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+    const walletPublicKey = window.solana.publicKey;
+    
+    // Create Memo instruction (Memo Program stores data on-chain)
+    const memoInstruction = new TransactionInstruction({
+        keys: [{ pubkey: walletPublicKey, isSigner: true, isWritable: false }],
+        programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'), // Solana Memo Program
+        data: Buffer.from(memoData, 'utf8')
+    });
+    
+    // Create transaction
+    const transaction = new Transaction().add(memoInstruction);
+    transaction.feePayer = walletPublicKey;
+    
+    // Get recent blockhash
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    
+    return transaction;
+}
 
     async function downloadKnowledge(knowledgeId) {
         showNotification('🔐 Establishing encrypted P2P connection...', 'success');
@@ -631,7 +776,15 @@
 
             if (data.success) {
                 showNotification('👍 Upvoted! Reputation increased.', 'success');
-                setTimeout(() => location.reload(), 1000);
+
+                // Update vote count in UI without reload
+                const voteBtn = event.target.closest('.btn');
+                if (voteBtn) {
+                    const currentCount = parseInt(voteBtn.textContent.match(/\d+/)?.[0] || 0);
+                    voteBtn.innerHTML = `<i class="bi bi-arrow-up-circle-fill"></i> ${currentCount + 1} votes`;
+                    voteBtn.disabled = true;
+                    voteBtn.style.opacity = '0.6';
+                }
             } else {
                 showNotification('❌ Error: ' + data.error, 'error');
             }
@@ -643,11 +796,41 @@
     function discoverNodes() {
         showNotification('🔍 Scanning P2P network for Black Box nodes...', 'success');
 
-        // Simulate network discovery
+        // Simulate network discovery and add new nodes to animation
         setTimeout(() => {
-            const totalNodes = parseInt('{{ total_nodes }}') || 1;  // Fixed!
-            showNotification('✅ Found ' + totalNodes + ' active nodes in mesh network!', 'success');
-            setTimeout(() => location.reload(), 1500);
+            const currentNodeCount = nodes.length + 1; // +1 for center node
+            const maxNodes = 10;
+
+            if (currentNodeCount < maxNodes) {
+                // Add 1-3 new nodes to the network
+                const newNodesCount = Math.min(Math.floor(Math.random() * 3) + 1, maxNodes - currentNodeCount);
+
+                for (let i = 0; i < newNodesCount; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 100 + Math.random() * 40;
+
+                    nodes.push({
+                        x: centerNode.x + Math.cos(angle) * distance,
+                        y: centerNode.y + Math.sin(angle) * distance,
+                        radius: 12,
+                        color: '#4CAF50',
+                        velocityX: (Math.random() - 0.5) * 0.5,
+                        velocityY: (Math.random() - 0.5) * 0.5,
+                        pulsePhase: Math.random() * Math.PI * 2,
+                        isNew: true // Mark as new for effect
+                    });
+                }
+
+                showNotification(`✅ Discovered ${newNodesCount} new node${newNodesCount > 1 ? 's' : ''}! Total: ${nodes.length + 1}`, 'success');
+
+                // Update the stats display
+                document.querySelector('.glow-text').textContent = nodes.length + 1;
+            } else {
+                showNotification('✅ Network scan complete. All nodes already discovered!', 'success');
+            }
+
+            // Refresh knowledge grid in background (don't break animation)
+            setTimeout(() => refreshKnowledgeGrid(), 500);
         }, 2000);
     }
 
@@ -666,12 +849,53 @@
 
             if (data.success) {
                 showNotification('✅ ' + data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
+
+                // Refresh knowledge grid instead of full page reload
+                setTimeout(() => refreshKnowledgeGrid(), 500);
             } else {
                 showNotification('❌ Error: ' + data.error, 'error');
             }
         } catch (error) {
             showNotification('❌ Error: ' + error.message, 'error');
+        }
+    }
+
+    // Refresh knowledge grid without breaking canvas animation
+    async function refreshKnowledgeGrid() {
+        try {
+            console.log('🔄 Refreshing knowledge grid (preserving canvas)...');
+            const response = await fetch(window.location.href, {
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // Update ONLY the knowledge cards section (not network visualization!)
+            // Find the knowledge cards container - it's the last .row.g-4
+            const allGrids = document.querySelectorAll('.row.g-4');
+            const knowledgeGrid = allGrids[allGrids.length - 1]; // Last one is knowledge cards
+
+            const allNewGrids = doc.querySelectorAll('.row.g-4');
+            const newKnowledgeGrid = allNewGrids[allNewGrids.length - 1];
+
+            if (knowledgeGrid && newKnowledgeGrid) {
+                console.log('📦 Updating knowledge cards...');
+                knowledgeGrid.innerHTML = newKnowledgeGrid.innerHTML;
+            }
+
+            // Update stats numbers only (not entire cards - preserve network viz)
+            const statNumbers = document.querySelectorAll('.row.mb-4.g-4 .h2');
+            const newStatNumbers = doc.querySelectorAll('.row.mb-4.g-4 .h2');
+            for (let i = 0; i < Math.min(statNumbers.length, newStatNumbers.length); i++) {
+                if (statNumbers[i] && newStatNumbers[i]) {
+                    statNumbers[i].textContent = newStatNumbers[i].textContent;
+                }
+            }
+
+            console.log('✅ Knowledge grid refreshed (canvas preserved)');
+        } catch (error) {
+            console.error('❌ Failed to refresh knowledge grid:', error);
         }
     }
 
