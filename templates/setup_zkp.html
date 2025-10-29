@@ -55,7 +55,7 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'dashboard' %}" class="btn btn-dawn w-100 mt-4">
+                    <a href="{% url 'family_dashboard' %}" class="btn btn-dawn w-100 mt-4">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>
@@ -118,7 +118,7 @@
                 </form>
 
                 <div class="text-center mt-3">
-                    <a href="{% url 'dashboard' %}" style="color: #666; text-decoration: none;">
+                    <a href="{% url 'family_dashboard' %}" style="color: #666; text-decoration: none;">
                         ← Back to Dashboard
                     </a>
                 </div>
@@ -170,7 +170,7 @@ document.getElementById('zkp-setup-form').addEventListener('submit', async (e) =
         if (data.success) {
             showNotification('✅ ZKP Authentication enabled successfully!', 'success');
             setTimeout(() => {
-                window.location.href = '/dashboard/';
+                window.location.href = '{% url "family_dashboard" %}';
             }, 2000);
         } else {
             showNotification('❌ Error: ' + data.error, 'error');
