@@ -1,8 +1,16 @@
-# ☀️🔐 DawnGuard - Your Family's Private AI + Cloud Storage on Black Box
+<div align="center">
+
+<img src="static/img/DAWNGUARD-LOGO.png" alt="DawnGuard Logo" width="200"/>
+
+# ☀️🔐 DawnGuard
+
+### Your Family's Private AI + Cloud Storage on Black Box
 
 ![DawnGuard](https://img.shields.io/badge/DAWN-Black%20Box-orange) ![Solana](https://img.shields.io/badge/Solana-Devnet-purple) ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 
 **Replace Dropbox + ChatGPT with ONE Black Box. Save $240/year. 100% Private.**
+
+</div>
 
 > *"What if your family had unlimited private storage AND AI - all running at home?"*
 

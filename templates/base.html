@@ -389,12 +389,10 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light py-3">
     <div class="container">
-        <!-- Beautiful Logo - Single Color -->
-        <a class="navbar-brand" href="{% url 'home' %}" style="display: flex; align-items: center; gap: 12px;">
-            <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--dawn-orange); border-radius: 12px; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);">
-                <i class="bi bi-shield-fill-check" style="font-size: 24px; color: white;"></i>
-            </div>
-            <span style="color: var(--dawn-dark); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px;">
+        <!-- DawnGuard Logo -->
+        <a class="navbar-brand" href="{% url 'home' %}" style="display: flex; align-items: center; gap: 12px; padding: 0;">
+            <img src="{% static 'img/DAWNGUARD-LOGO.png' %}" alt="DawnGuard Logo" style="height: 45px; width: auto; object-fit: contain;">
+            <span style="color: var(--dawn-dark); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px; line-height: 1;">
                 Dawn<span style="color: var(--dawn-orange);">Guard</span>
             </span>
         </a>
@@ -494,7 +492,7 @@
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="dawn-logo">☀️</div>
+                        <img src="{% static 'img/DAWNGUARD-LOGO.png' %}" alt="DawnGuard" style="height: 50px; width: auto;">
                         <div>
                             <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">DawnGuard</h5>
                             <small style="color: #999;">by DAWN</small>
