@@ -295,7 +295,7 @@ def register_view(request):
             )
 
             login(request, user)
-            messages.success(request, '🎉 Welcome to HomeGuardian AI! Your family dashboard is ready.')
+            messages.success(request, '🎉 Welcome to DawnGuard! Your family dashboard is ready.')
             return redirect('family_dashboard')  # Changed from 'dashboard'
     else:
         form = UserCreationForm()

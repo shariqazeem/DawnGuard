@@ -20,7 +20,7 @@ class SolanaHandler:
         This will be included in the transaction
         """
         memo_data = json.dumps({
-            'app': 'HomeGuardian AI',
+            'app': 'DawnGuard',
             'action': 'knowledge_share',
             'knowledge_id': str(knowledge_id),
             'content_hash': content_hash,
