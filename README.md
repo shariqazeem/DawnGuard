@@ -2,17 +2,20 @@
 
 <img src="static/img/DAWNGUARD-LOGO.png" alt="DawnGuard Logo" width="200"/>
 
-# ☀️🔐 DawnGuard
+# 🛡️ DawnGuard
 
-### Your Family's Private AI + Cloud Storage on Black Box
+### Privacy-First AI Family Assistant - True Decentralized Application
 
-![DawnGuard](https://img.shields.io/badge/DAWN-Black%20Box-orange) ![Solana](https://img.shields.io/badge/Solana-Devnet-purple) ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)](https://www.docker.com/)
+[![Blockchain](https://img.shields.io/badge/blockchain-Solana-purple.svg)](https://solana.com/)
 
-**Replace Dropbox + ChatGPT with ONE Black Box. Save $240/year. 100% Private.**
+**Your data, your family, your control. Replace cloud services with self-hosted AI + storage.**
 
 </div>
 
-> *"What if your family had unlimited private storage AND AI - all running at home?"*
+> *"Privacy-first AI assistant that keeps your family safe without compromising your data."*
 
 ---
 
@@ -225,54 +228,61 @@ DawnGuard brings:
 
 ---
 
-## 🚀 5-Minute Setup
+## 🚀 Quick Start
 
 ### Prerequisites
-- DAWN Black Box (or any Linux machine with Docker)
-- 4GB RAM minimum (8GB recommended)
-- 10GB disk space (30GB+ for AI models)
+- **Docker & Docker Compose** installed
+- **Ubuntu/Linux server** or macOS for local development
+- **2GB RAM minimum** (4GB recommended)
+- **10GB disk space** (for AI models)
 
-### Installation
+### One-Command Deployment
 
-**Option 1: Quick Deploy (Recommended)**
 ```bash
+# Clone the repository
 git clone https://github.com/shariqazeem/DawnGuard.git
 cd DawnGuard
-docker-compose up -d
+
+# Run quick deploy
+chmod +x scripts/quick-deploy.sh
+./scripts/quick-deploy.sh
 ```
 
-**That's it!** Open `http://localhost:8000`
+**Access:** `http://YOUR_SERVER_IP`
 
 ### First-Time Setup
-1. Complete one-time setup wizard (2 minutes)
-2. Choose authentication method:
-   - **Traditional:** Username + password
-   - **Blockchain:** Connect Phantom wallet
-   - **ZKP:** Zero-knowledge proof (most private)
-3. Add family members (optional)
-4. Start using!
 
-### Optional: Enable AI (Recommended)
+1. **Welcome Screen**: You'll see the welcome page (fresh installation)
+2. **Create Account**: Register your first user account
+3. **Set Up Profile**: Configure your secure encryption keys
+4. **Optional - Connect Wallet**: Link your Phantom wallet for blockchain features
+5. **Start Using**: Chat with AI, upload files, create family profiles
+
+### Full HTTPS Deployment (Optional)
+
+For production with free domain and HTTPS:
+
 ```bash
+./scripts/setup.sh
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions including DuckDNS setup.
+
+### Useful Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Stop everything
+docker-compose down
+
+# Pull AI model manually
 docker-compose exec ollama ollama pull llama3.2:3b
 ```
-*Note: App works perfectly without Ollama in mock mode*
-
-### Troubleshooting
-
-**Port 8000 already in use:**
-```bash
-docker-compose down
-docker-compose up -d
-```
-
-**Ollama not responding:**
-```bash
-docker-compose restart ollama
-```
-
-**Need help?**
-- Check issues: [GitHub Issues](https://github.com/shariqazeem/DawnGuard/issues)
 
 ---
 

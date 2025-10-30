@@ -23,10 +23,14 @@ wheels/
 # Django
 *.log
 local_settings.py
-db.sqlite3
+*.sqlite3
+*.db
 db.sqlite3-journal
 /staticfiles/
 /media/
+
+# Migrations (exclude from main branch - keep only __init__.py)
+*/migrations/0*.py
 
 # Environment
 .env
