@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+    <!-- TRUE DAPP Badge -->
+    <div class="alert alert-success text-center mb-4" style="background: linear-gradient(135deg, #6B35FF, #8b5aff); border: none; color: white;">
+        <h5 class="mb-0">
+            <i class="bi bi-diagram-3 me-2"></i>
+            <strong>TRUE P2P DAPP</strong> - Gun.js Database | Solana Blockchain | NO Central Server
+        </h5>
+    </div>
+
+    <!-- Share Knowledge -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="dawn-card">
+                <h4 class="fw-bold mb-3"><i class="bi bi-share"></i> Share Knowledge (Gun.js P2P)</h4>
+
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" id="knowledge-title-dapp" class="form-control" placeholder="What are you sharing?">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Content</label>
+                    <textarea id="knowledge-content-dapp" class="form-control" rows="4" placeholder="Your knowledge..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Category</label>
+                    <select id="knowledge-category-dapp" class="form-select">
+                        <option value="general">General</option>
+                        <option value="security">Security</option>
+                        <option value="ai">AI</option>
+                        <option value="blockchain">Blockchain</option>
+                        <option value="tutorial">Tutorial</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-dawn w-100" onclick="shareKnowledgeP2P()">
+                    <i class="bi bi-cloud-arrow-up"></i> Share on P2P Network + Blockchain
+                </button>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dawn-card">
+                <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> Network Stats</h5>
+                <div class="mb-3">
+                    <strong>Your Address:</strong><br>
+                    <code style="font-size: 0.8rem;" id="my-address">Connecting...</code>
+                </div>
+                <div class="mb-3">
+                    <strong>Knowledge Shared:</strong><br>
+                    <span class="h3" id="knowledge-count">0</span>
+                </div>
+                <div>
+                    <strong>Storage:</strong><br>
+                    <span class="badge bg-success">Gun.js P2P Database</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Knowledge Feed (Real-time from Gun.js) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dawn-card">
+                <h4 class="fw-bold mb-3"><i class="bi bi-collection"></i> P2P Knowledge Feed (Real-time Sync)</h4>
+                <div id="knowledge-feed" class="row g-3">
+                    <div class="col-12 text-center text-muted">
+                        <i class="bi bi-hourglass-split"></i> Loading from Gun.js P2P network...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize Gun.js P2P knowledge database
+const knowledgeDB = window.dawnguardGun.get('dawnguard').get('knowledge');
+const myAddress = window.solana?.publicKey?.toString() || 'demo_' + Math.random().toString(36).substr(2, 9);
+
+document.getElementById('my-address').textContent = myAddress.slice(0, 20) + '...';
+
+// Load knowledge from Gun.js (real-time!)
+loadKnowledgeFromGun();
+
+function loadKnowledgeFromGun() {
+    const feed = document.getElementById('knowledge-feed');
+    let knowledgeCount = 0;
+    let hasLoadedAny = false;
+
+    // Listen for ALL knowledge in real-time
+    knowledgeDB.map().on((data, key) => {
+        if (data && data.title) {
+            hasLoadedAny = true;
+            knowledgeCount++;
+            document.getElementById('knowledge-count').textContent = knowledgeCount;
+
+            // Check if already exists
+            if (document.getElementById(`knowledge-${key}`)) {
+                return; // Already displayed
+            }
+
+            // Clear loading message on first item
+            if (feed.innerHTML.includes('Loading from Gun') || feed.innerHTML.includes('No knowledge yet')) {
+                feed.innerHTML = '';
+            }
+
+            // Create knowledge card
+            const card = document.createElement('div');
+            card.className = 'col-md-6 col-lg-4';
+            card.id = `knowledge-${key}`;
+            card.innerHTML = `
+                <div class="card h-100" style="border-radius: 15px; border: 2px solid ${data.verified ? '#4CAF50' : '#ddd'};">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge" style="background: var(--dawn-purple);">${data.category || 'general'}</span>
+                            ${data.verified ? '<span class="badge bg-success"><i class="bi bi-shield-check"></i> Verified</span>' : ''}
+                        </div>
+                        <h5 class="card-title">${escapeHtml(data.title)}</h5>
+                        <p class="card-text text-muted">${escapeHtml(data.content.substring(0, 100))}...</p>
+                        <hr>
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> ${data.author?.slice(0, 8)}...
+                            <br>
+                            <i class="bi bi-clock"></i> ${new Date(data.timestamp).toLocaleString()}
+                            ${data.txSignature ? '<br><i class="bi bi-shield-check"></i> On-chain' : ''}
+                        </small>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <button class="btn btn-sm btn-outline-primary w-100" onclick="viewKnowledge('${key}')">
+                            <i class="bi bi-eye"></i> View Full
+                        </button>
+                    </div>
+                </div>
+            `;
+            feed.prepend(card);
+        }
+    });
+
+    // After 3 seconds, if no knowledge loaded, show "empty" message
+    setTimeout(() => {
+        if (!hasLoadedAny) {
+            feed.innerHTML = `
+                <div class="col-12 text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size: 64px; opacity: 0.3;"></i>
+                    <p class="mt-3">No knowledge shared yet. Be the first to share!</p>
+                </div>
+            `;
+        }
+    }, 3000);
+}
+
+async function shareKnowledgeP2P() {
+    const title = document.getElementById('knowledge-title-dapp').value;
+    const content = document.getElementById('knowledge-content-dapp').value;
+    const category = document.getElementById('knowledge-category-dapp').value;
+
+    if (!title || !content) {
+        alert('Please fill in title and content!');
+        return;
+    }
+
+    try {
+        // Create knowledge ID
+        const knowledgeId = Date.now().toString();
+
+        // Prepare data
+        const knowledgeData = {
+            id: knowledgeId,
+            title: title,
+            content: content,
+            category: category,
+            author: myAddress,
+            timestamp: Date.now(),
+            verified: false
+        };
+
+        // Store in Gun.js (P2P database)
+        knowledgeDB.get(knowledgeId).put(knowledgeData);
+
+        // Also create Solana transaction for verification
+        if (window.solana && window.solana.isConnected) {
+            try {
+                const memoData = JSON.stringify({
+                    app: 'DawnGuard',
+                    action: 'knowledge_share',
+                    id: knowledgeId,
+                    title: title.substring(0, 50),
+                    category: category
+                });
+
+                // Create transaction
+                const transaction = await createSolanaMemoTransaction(memoData);
+                const { signature } = await window.solana.signAndSendTransaction(transaction);
+
+                // Update Gun.js with blockchain signature
+                knowledgeDB.get(knowledgeId).put({
+                    ...knowledgeData,
+                    txSignature: signature,
+                    verified: true
+                });
+
+                alert(`✅ SUCCESS!\n\nKnowledge shared on:\n• Gun.js P2P database\n• Solana blockchain\n\nTx: ${signature.slice(0, 16)}...`);
+            } catch (walletError) {
+                console.warn('Blockchain verification failed:', walletError);
+                alert('✅ Knowledge shared on Gun.js P2P!\n(Blockchain verification skipped - wallet not connected)');
+            }
+        } else {
+            alert('✅ Knowledge shared on Gun.js P2P database!\n\n(Connect wallet for blockchain verification)');
+        }
+
+        // Clear form
+        document.getElementById('knowledge-title-dapp').value = '';
+        document.getElementById('knowledge-content-dapp').value = '';
+
+    } catch (error) {
+        alert(`❌ Error: ${error.message}`);
+    }
+}
+
+async function createSolanaMemoTransaction(memoData) {
+    const { Connection, Transaction, TransactionInstruction, PublicKey } = window.solanaWeb3;
+    const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+    const walletPublicKey = window.solana.publicKey;
+
+    const encoder = new TextEncoder();
+    const dataBytes = encoder.encode(memoData);
+
+    const memoInstruction = new TransactionInstruction({
+        keys: [{ pubkey: walletPublicKey, isSigner: true, isWritable: false }],
+        programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'),
+        data: dataBytes
+    });
+
+    const transaction = new Transaction().add(memoInstruction);
+    transaction.feePayer = walletPublicKey;
+
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+
+    return transaction;
+}
+
+function viewKnowledge(key) {
+    knowledgeDB.get(key).once((data) => {
+        if (data) {
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.8);" onclick="this.remove()">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content" style="border-radius: 20px;">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${escapeHtml(data.title)}</h5>
+                                <button class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Category:</strong> ${data.category}</p>
+                                <p><strong>Author:</strong> <code>${data.author}</code></p>
+                                <p><strong>Time:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                                ${data.txSignature ? `<p><strong>Blockchain:</strong> <a href="https://explorer.solana.com/tx/${data.txSignature}?cluster=devnet" target="_blank">View on Solana</a></p>` : ''}
+                                <hr>
+                                <p>${escapeHtml(data.content)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+
+<style>
+.dawn-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.btn-dawn {
+    background: linear-gradient(135deg, var(--dawn-purple), #8b5aff);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.btn-dawn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107,53,255,0.3);
+}
+</style>
+{% endblock %}

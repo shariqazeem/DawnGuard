@@ -2,12 +2,15 @@
 
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.shortcuts import render
 from . import views
 from . import vault_views
+from . import vault_views_ipfs
 from . import family_views
 from . import blackbox_views
 from . import setup_views
 from . import memory_views
+from . import api_views
 
 urlpatterns = [
     # ============================================================
@@ -25,6 +28,16 @@ urlpatterns = [
     path('kids-ai/chat/', family_views.kids_ai_chat, name='kids_ai_chat'),
     path('kids-ai/conversation/<int:conversation_id>/', family_views.get_conversation_detail, name='kids_ai_conversation_detail'),
 
+    # TRUE DAPP ROUTES (Gun.js + IPFS + Wallet Auth)
+    path('dapp/', lambda request: render(request, 'family_dashboard_dapp.html'), name='family_dashboard_dapp'),
+    path('dapp/kids-ai/', lambda request: render(request, 'kids_ai_dapp.html'), name='kids_ai_dapp'),
+    path('dapp/vault/', lambda request: render(request, 'vault/vault_dapp.html'), name='vault_dapp'),
+    path('vault/dapp/', lambda request: render(request, 'vault/vault_dapp.html'), name='vault_dapp_alt'),  # Alternative URL
+
+    # API Endpoints for dApp
+    path('api/chat/', api_views.api_chat, name='api_chat'),
+    path('api/chat/status/', api_views.api_chat_status, name='api_chat_status'),
+
     # Legacy routes (kept for backwards compatibility)
     path('old-home/', views.home, name='old_home'),
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -39,10 +52,12 @@ urlpatterns = [
 
     # P2P Network
     path('p2p/', views.p2p_network_view, name='p2p_network'),
+    path('p2p/dapp/', lambda request: render(request, 'p2p_dapp.html'), name='p2p_dapp'),
     path('p2p/share/', views.share_knowledge, name='share_knowledge'),
     path('p2p/connect/<str:node_id>/', views.connect_to_node, name='connect_to_node'),
     path('p2p/download/<int:knowledge_id>/', views.download_knowledge, name='download_knowledge'),
     path('p2p/upvote/<int:knowledge_id>/', views.upvote_knowledge, name='upvote_knowledge'),
+    path('p2p/delete-knowledge/<int:knowledge_id>/', views.delete_knowledge, name='delete_knowledge'),
     
     # Zero-Knowledge Proof
     path('zkp/', views.zkp_auth_view, name='zkp_auth'),
@@ -78,6 +93,10 @@ urlpatterns = [
     # ============================================================
     path('vault/', vault_views.vault_home, name='vault_home'),
     path('vault/upload/', vault_views.upload_file, name='vault_upload'),
+
+    # TRUE DAPP: IPFS Decentralized Storage
+    path('vault/ipfs/upload/', vault_views_ipfs.upload_file_ipfs, name='vault_ipfs_upload'),
+    path('vault/ipfs/download/', vault_views_ipfs.download_file_ipfs, name='vault_ipfs_download'),
     path('vault/file/<int:file_id>/', vault_views.view_file, name='vault_view_file'),
     path('vault/file/<int:file_id>/download/', vault_views.download_file, name='vault_download_file'),
     path('vault/file/<int:file_id>/delete/', vault_views.delete_file, name='vault_delete_file'),

@@ -87,9 +87,22 @@ echo "🤖 Downloading AI model (this may take a few minutes)..."
 echo "   Model: Llama 3.2 3B"
 docker-compose exec ollama ollama pull llama3.2:3b
 
+# Wait for IPFS to be ready
+echo ""
+echo "🌐 Setting up IPFS decentralized storage..."
+sleep 5
+
+# Test IPFS connection
+echo "   Testing IPFS connection..."
+if docker-compose exec -T web curl -s -o /dev/null -w "%{http_code}" http://ipfs:5001/api/v0/version | grep -q "200"; then
+    echo -e "${GREEN}   ✓ IPFS is ready${NC}"
+else
+    echo -e "${YELLOW}   ⚠ IPFS may need a moment to start${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}✓ CypherVault is ready!${NC}"
+echo -e "${GREEN}✓ DawnGuard TRUE DAPP is ready!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "📍 Access your private AI assistant at:"
@@ -109,5 +122,12 @@ echo "   1. Open http://localhost:8000 in your browser"
 echo "   2. Create an account"
 echo "   3. Start chatting with your private AI"
 echo ""
+echo "🚀 TRUE DAPP Features:"
+echo "   → IPFS Vault: http://localhost:8000/vault/dapp/"
+echo "   → P2P Knowledge: http://localhost:8000/p2p/dapp/"
+echo "   → Gun.js P2P Database: Automatically syncing"
+echo "   → Solana Blockchain: Connect Phantom wallet"
+echo ""
 echo -e "${YELLOW}⚠️  Remember: Your data never leaves this device!${NC}"
+echo -e "${GREEN}✨ TRUE DECENTRALIZATION: IPFS + Gun.js + Solana${NC}"
 echo ""

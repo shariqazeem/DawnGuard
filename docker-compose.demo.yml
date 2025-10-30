@@ -1,0 +1,39 @@
+# docker-compose.demo.yml
+# Docker Compose configuration for DEMO MODE (without Ollama)
+#
+# Usage: docker-compose -f docker-compose.demo.yml up -d
+#
+# This runs only the web service without Ollama for smooth demo recording
+# Mock AI responses will be used automatically
+
+version: '3.8'
+
+services:
+  # Main DawnGuard Application (NO Ollama dependency)
+  web:
+    build: .
+    container_name: dawnguard_web_demo
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-hackathon-demo-key-change-in-production
+      - ENCRYPTION_KEY=hackathon-encryption-key-32chars
+      - ALLOWED_HOSTS=*
+      - OLLAMA_HOST=http://ollama:11434  # Won't connect, but kept for compatibility
+    networks:
+      - dawnguard_network
+    restart: unless-stopped
+
+volumes:
+  static_volume:
+  media_volume:
+
+networks:
+  dawnguard_network:
+    driver: bridge

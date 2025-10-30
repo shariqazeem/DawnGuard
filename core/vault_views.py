@@ -32,6 +32,7 @@ from .models import (
 from .utils.encryption import EncryptionManager
 from .utils.llm_handler import LLMHandler
 from .ai_guardian import AIGuardian
+from .utils.ipfs_handler import ipfs_handler
 
 encryption_manager = EncryptionManager()
 llm_handler = LLMHandler()

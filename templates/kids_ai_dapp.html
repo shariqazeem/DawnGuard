@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #E8F4FF, #f0e6ff); min-height: 100vh;">
+
+    <!-- TRUE DAPP Badge -->
+    <div class="alert text-center mb-4" style="background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border: none; color: white; border-radius: 20px; box-shadow: 0 8px 30px rgba(107,53,255,0.3);">
+        <h4 class="mb-2 fw-bold">
+            <i class="bi bi-robot me-2"></i>
+            Kids-Safe AI Tutor - TRUE DAPP Mode
+        </h4>
+        <p class="mb-0">
+            🤖 Local Ollama AI • 💾 Gun.js P2P Storage • 👨‍👩‍👧 Parent Monitoring • 🔐 Privacy First
+        </p>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            <i class="bi bi-chat-dots-fill me-2" style="color: var(--dawn-purple);"></i>
+                            Kids-Safe AI Homework Helper
+                        </h2>
+                        <p class="mb-0 text-muted">
+                            Conversations stored in Gun.js P2P database. AI runs locally on your Black Box. Parents can monitor all activity.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="{% url 'family_dashboard_dapp' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Chat Interface -->
+        <div class="col-lg-8">
+            <div class="dawn-card" style="min-height: 600px; display: flex; flex-direction: column;">
+                <h4 class="fw-bold mb-3">
+                    <i class="bi bi-chat-square-text me-2" style="color: var(--dawn-purple);"></i>
+                    Chat with AI Tutor
+                </h4>
+
+                <!-- Messages Area -->
+                <div id="chat-messages" class="flex-grow-1 mb-3" style="overflow-y: auto; max-height: 400px; background: #f8f9fa; border-radius: 15px; padding: 20px;">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-robot" style="font-size: 64px; opacity: 0.3;"></i>
+                        <p class="mt-3">Hi! I'm your AI homework helper. Ask me anything!</p>
+                        <p class="small">Your conversations are stored in Gun.js P2P database.</p>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-group">
+                    <input type="text" id="user-message" class="form-control" placeholder="Ask your question..." style="border-radius: 15px 0 0 15px; padding: 15px;">
+                    <button class="btn btn-dawn" onclick="sendMessage()" style="border-radius: 0 15px 15px 0; padding: 15px 30px;">
+                        <i class="bi bi-send-fill me-2"></i> Send
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        AI responses come from local Ollama running on your Black Box. No external AI service used.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Conversation History -->
+            <div class="dawn-card mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Recent Conversations
+                </h5>
+
+                <div id="conversation-history">
+                    <div class="text-center text-muted py-3">
+                        <small>No conversations yet</small>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-primary w-100 mt-3" onclick="startNewConversation()">
+                    <i class="bi bi-plus-circle me-2"></i> New Conversation
+                </button>
+            </div>
+
+            <!-- Parent Controls -->
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(255,193,7,0.1), white);">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-shield-check me-2" style="color: #FFC107;"></i>
+                    Parental Controls
+                </h5>
+
+                <div class="alert alert-warning mb-3">
+                    <i class="bi bi-eye me-2"></i>
+                    <strong>Parent Monitoring Active</strong>
+                    <p class="mb-0 small">All conversations visible to parents in Gun.js database</p>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="content-filter" checked disabled>
+                        <label class="form-check-label" for="content-filter">
+                            <strong>Content Filtering</strong>
+                            <br><small class="text-muted">AI responses filtered for age-appropriate content</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="save-history" checked>
+                        <label class="form-check-label" for="save-history">
+                            <strong>Save to Gun.js</strong>
+                            <br><small class="text-muted">Store conversations in P2P database</small>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-secondary w-100" onclick="viewAllConversations()">
+                    <i class="bi bi-list-check me-2"></i> View All (Parent)
+                </button>
+            </div>
+
+            <!-- System Info -->
+            <div class="dawn-card mt-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    System Info
+                </h6>
+
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">AI Model:</span>
+                        <strong>Ollama (Local)</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Database:</span>
+                        <strong>Gun.js (P2P)</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Privacy:</span>
+                        <span class="badge bg-success">100% Local</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Status:</span>
+                        <span class="badge bg-success" id="ai-status">Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize Gun.js for conversations
+let myWalletAddress = localStorage.getItem('dawnguard_wallet') || 'demo_' + Date.now();
+const conversationsDB = window.dawnguardGun.get('dawnguard').get('conversations').get(myWalletAddress);
+let currentConversationId = 'conv_' + Date.now();
+
+// Load on page load
+window.addEventListener('load', () => {
+    loadConversationHistory();
+    checkAIStatus();
+});
+
+// Send message to AI
+async function sendMessage() {
+    const input = document.getElementById('user-message');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // Display user message
+    addMessageToChat('user', message);
+    input.value = '';
+
+    // Save to Gun.js
+    saveMessageToGun('user', message);
+
+    // Show "AI is thinking..." message
+    const thinkingId = 'thinking-' + Date.now();
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.id = thinkingId;
+    thinkingDiv.className = 'message mb-3';
+    thinkingDiv.innerHTML = `
+        <div class="d-flex justify-content-start">
+            <div class="message-bubble" style="background: #f8f9fa; padding: 12px 20px; border-radius: 20px 20px 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <i class="bi bi-robot me-2"></i>
+                <span class="text-muted">AI is thinking...</span>
+                <div class="spinner-border spinner-border-sm ms-2" role="status"></div>
+            </div>
+        </div>
+    `;
+    document.getElementById('chat-messages').appendChild(thinkingDiv);
+    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+
+    try {
+        // Call local Ollama AI
+        const response = await fetch('/api/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                message: message,
+                conversation_id: currentConversationId,
+                mode: 'kids_safe'
+            })
+        });
+
+        // Remove thinking message
+        document.getElementById(thinkingId)?.remove();
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Display AI response
+            addMessageToChat('ai', data.response);
+
+            // Save to Gun.js
+            saveMessageToGun('ai', data.response);
+        } else {
+            addMessageToChat('system', 'Error: ' + data.error);
+        }
+    } catch (error) {
+        addMessageToChat('system', 'Failed to connect to AI: ' + error.message);
+    }
+}
+
+function addMessageToChat(sender, message) {
+    const messagesDiv = document.getElementById('chat-messages');
+
+    // Clear welcome message on first message
+    if (messagesDiv.innerHTML.includes('Ask me anything')) {
+        messagesDiv.innerHTML = '';
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message mb-3';
+
+    if (sender === 'user') {
+        messageDiv.innerHTML = `
+            <div class="d-flex justify-content-end">
+                <div class="message-bubble" style="background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); color: white; padding: 12px 20px; border-radius: 20px 20px 0 20px; max-width: 70%;">
+                    <strong>You</strong>
+                    <p class="mb-0 mt-1">${escapeHtml(message)}</p>
+                    <small style="opacity: 0.8;">${new Date().toLocaleTimeString()}</small>
+                </div>
+            </div>
+        `;
+    } else if (sender === 'ai') {
+        messageDiv.innerHTML = `
+            <div class="d-flex justify-content-start">
+                <div class="message-bubble" style="background: white; padding: 12px 20px; border-radius: 20px 20px 20px 0; max-width: 70%; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <strong style="color: var(--dawn-purple);">
+                        <i class="bi bi-robot me-1"></i> AI Tutor
+                    </strong>
+                    <p class="mb-0 mt-1">${escapeHtml(message)}</p>
+                    <small class="text-muted">${new Date().toLocaleTimeString()}</small>
+                </div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="text-center">
+                <small class="text-muted">${escapeHtml(message)}</small>
+            </div>
+        `;
+    }
+
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function saveMessageToGun(sender, message) {
+    const saveEnabled = document.getElementById('save-history').checked;
+    if (!saveEnabled) return;
+
+    const messageId = Date.now().toString();
+
+    conversationsDB.get(currentConversationId).get('messages').get(messageId).put({
+        id: messageId,
+        sender: sender,
+        message: message,
+        timestamp: Date.now(),
+        conversationId: currentConversationId
+    });
+
+    // Update conversation metadata
+    conversationsDB.get(currentConversationId).get('metadata').put({
+        id: currentConversationId,
+        lastMessage: message.substring(0, 50),
+        lastUpdated: Date.now(),
+        messageCount: 0 // Gun.js will handle the count
+    });
+}
+
+function loadConversationHistory() {
+    const historyDiv = document.getElementById('conversation-history');
+    let conversationCount = 0;
+    let conversationsHtml = '';
+
+    conversationsDB.map().once((conversation, convId) => {
+        if (conversation && conversation.metadata) {
+            conversationCount++;
+
+            conversationsHtml += `
+                <div class="conversation-item p-2 mb-2" style="background: #f8f9fa; border-radius: 10px; cursor: pointer;" onclick="loadConversation('${convId}')">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <small class="fw-bold">${escapeHtml(conversation.metadata.lastMessage || 'Conversation')}...</small>
+                            <br>
+                            <small class="text-muted">${new Date(conversation.metadata.lastUpdated).toLocaleString()}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteConversation('${convId}', event)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    setTimeout(() => {
+        if (conversationCount > 0) {
+            historyDiv.innerHTML = conversationsHtml;
+        }
+    }, 500);
+}
+
+function loadConversation(convId) {
+    currentConversationId = convId;
+    const messagesDiv = document.getElementById('chat-messages');
+    messagesDiv.innerHTML = '';
+
+    conversationsDB.get(convId).get('messages').map().once((message) => {
+        if (message && message.sender) {
+            addMessageToChat(message.sender, message.message);
+        }
+    });
+}
+
+function startNewConversation() {
+    currentConversationId = 'conv_' + Date.now();
+    document.getElementById('chat-messages').innerHTML = `
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-robot" style="font-size: 64px; opacity: 0.3;"></i>
+            <p class="mt-3">New conversation started!</p>
+        </div>
+    `;
+}
+
+function deleteConversation(convId, event) {
+    event.stopPropagation();
+    if (confirm('Delete this conversation?')) {
+        conversationsDB.get(convId).put(null);
+        setTimeout(() => loadConversationHistory(), 500);
+    }
+}
+
+function viewAllConversations() {
+    alert('Parent View: All conversations from all family members are visible in Gun.js database.\n\nImplement parent dashboard for full monitoring.');
+}
+
+async function checkAIStatus() {
+    try {
+        const response = await fetch('/api/chat/status/');
+        const data = await response.json();
+
+        const statusBadge = document.getElementById('ai-status');
+        if (data.available) {
+            statusBadge.textContent = 'Online';
+            statusBadge.className = 'badge bg-success';
+        } else {
+            statusBadge.textContent = 'Offline';
+            statusBadge.className = 'badge bg-danger';
+        }
+    } catch (error) {
+        document.getElementById('ai-status').textContent = 'Unknown';
+        document.getElementById('ai-status').className = 'badge bg-secondary';
+    }
+}
+
+// Allow Enter key to send message
+document.getElementById('user-message')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+.dawn-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.btn-dawn {
+    background: linear-gradient(135deg, var(--dawn-purple), #8b5aff);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-dawn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107,53,255,0.3);
+    color: white;
+}
+
+.conversation-item:hover {
+    background: #e9ecef !important;
+}
+
+#chat-messages {
+    scroll-behavior: smooth;
+}
+
+.message-bubble {
+    word-wrap: break-word;
+}
+</style>
+{% endblock %}

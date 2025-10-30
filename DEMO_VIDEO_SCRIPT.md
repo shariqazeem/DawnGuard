@@ -88,101 +88,73 @@ Now it takes us to setup."
 
 ### WHAT YOU'LL SHOW (Walk through each step slowly)
 
-**STEP 1: Choose Authentication (10s)**
-- Show the three options on screen:
-  1. Traditional (Username + Password)
-  2. Blockchain (Wallet)
-  3. Zero-Knowledge Proof (Most Private)
-- Click **"Zero-Knowledge Proof"**
-
-**STEP 2: Create Family Admin (15s)**
-- Fill in form:
-  - Family Name: "The Smith Family"
-  - Admin Username: "dad_smith"
-  - Email: "dad@smith.family"
+**STEP 1: Create Admin Account (20s)**
+- Fill in registration form:
+  - Username: "dad_smith"
   - Password: ••••••••
-- Click **"Next"**
+  - Confirm Password: ••••••••
+- Click **"Register"**
+- System automatically creates family member profile
 
-**STEP 3: Add Family Members (10s)**
-- Show the "Add Family Member" interface
-- Quickly add one member:
-  - Name: "Emma (Daughter)"
-  - Role: "Child"
-  - Storage Quota: "50 GB"
-- Click **"Skip for now"** (for demo speed)
+**STEP 2: Welcome to Family Dashboard (10s)**
+- Dashboard loads showing:
+  - Family stats
+  - Storage usage (starts at 0 GB)
+  - Quick access to Family Vault and Kids AI
 
-**STEP 4: Choose Features (10s)**
-- Show checkboxes:
-  - [✓] Family Vault (Unlimited Storage)
-  - [✓] AI Assistant (Local Llama 3.2)
-  - [✓] AI Guardian (Content Protection)
-  - [✓] P2P Network (Knowledge Sharing)
-- All selected by default
-- Click **"Complete Setup"**
+**NOTE:** Authentication choices (Traditional/Wallet/ZKP) are available at login page, not during signup. For demo, use simple registration.
 
 ### WHAT YOU'LL SAY
 ```
-"Setup is simple. First, choose authentication.
+"Setup is simple. Create your admin account.
 
-I'm going with Zero-Knowledge Proof - the most private option.
-You can also use a traditional password or your Solana wallet.
+Username, password, done. The system creates your family
+profile automatically.
 
-Next, create your family admin account. This is the parent
-who controls everything.
+And just like that - we're in the family dashboard.
 
-Then add family members. Each gets their own space with
-custom storage quotas. I'll skip this for now.
+You can add more family members later, set up wallet login,
+or enable zero-knowledge authentication.
 
-Finally, choose features. Family Vault for storage.
-AI Assistant for local AI. AI Guardian for content protection.
-P2P Network for sharing.
-
-Everything's selected. Click complete.
-
-And just like that - we're in."
+But for now, we're ready to use DawnGuard."
 ```
 
-**[Text overlays: "Step 1: Auth" → "Step 2: Admin" → "Step 3: Family" → "Step 4: Features" → "✅ Complete"]**
+**[Text overlays: "Step 1: Register" → "Step 2: Family Profile Created" → "✅ Ready"]**
 
 ---
 
 ## 🏡 SEGMENT 4: FAMILY DASHBOARD OVERVIEW (1:30-2:00)
 
 ### WHAT YOU'LL SHOW
-- **Dashboard loads** with welcoming hero section:
-  - "Welcome back, Dad Smith"
-  - Family stats cards visible
-- **Scroll down slowly** to show stats:
-  - Total Storage: 2.3 TB used / Unlimited
-  - AI Conversations: 47 chats
-  - Guardian Alerts: 2 items flagged
-  - P2P Reputation: 847 points (Expert)
-  - Active Family Members: 4
-- **Point to navigation**:
+- **Dashboard loads** with welcoming interface:
+  - Family member profile
+  - Quick stats cards
+- **Show main features** prominently displayed:
+  - **Family Vault** - Big card showing storage stats (0 GB used, Unlimited available)
+  - **Kids-Safe AI Tutor** - Card showing it's ready to use
+- **Point to navigation sidebar**:
+  - Family Dashboard (current)
   - Family Vault
-  - AI Assistant
+  - Kids AI Tutor
   - AI Guardian
-  - P2P Network
   - Settings
 
 ### WHAT YOU'LL SAY
 ```
 "Welcome to the Family Dashboard. This is mission control.
 
-At a glance, I see everything. Storage usage - 2.3 terabytes,
-unlimited capacity. 47 AI conversations. 2 items flagged by
-Guardian. My reputation score: 847.
+Two main features front and center: Family Vault for unlimited
+storage, and Kids-Safe AI Tutor for homework help.
 
-Four family members active.
+The sidebar has quick access to everything: Family Vault,
+Kids AI, AI Guardian for content protection, and Settings.
 
-The sidebar has everything: Family Vault for storage,
-AI Assistant for chat, AI Guardian for protection,
-P2P Network for sharing.
+Everything's designed around families. Simple, focused, private.
 
-Let me show you each one."
+Let me show you the vault first."
 ```
 
-**[Text overlay: "Family Dashboard - Mission Control"]**
+**[Text overlay: "Family Dashboard - Your Command Center"]**
 
 ---
 
@@ -190,88 +162,85 @@ Let me show you each one."
 
 ### WHAT YOU'LL SHOW
 
-**FAMILY VAULT (15s)**
-1. Click **"Family Vault"** in sidebar
-2. Drag 2-3 photos into upload area
-3. Watch upload progress (speed up if needed)
-4. AI tags appear instantly ("vacation", "family", "beach")
-5. Type **"vacation"** in search
-6. Results appear immediately
-7. Click one photo → show AI description
+**FAMILY VAULT (20s)**
+1. Click **"Family Vault"** in sidebar or dashboard card
+2. Show upload interface
+3. Drag 2-3 photos into upload area
+4. Watch upload progress (with encryption indicator)
+5. Files appear in vault with thumbnails
+6. Click on a file to view details
+7. Show file is encrypted ("🔒 Encrypted")
 
-**P2P NETWORK (Quick glimpse, 10s)**
-1. Click **"P2P Network"**
-2. Show network graph with connected nodes
-3. Show reputation score
-4. Point to "Share Knowledge" button
+**QUICK FEATURES SHOWCASE (10s)**
+1. Show file organization (folders)
+2. Show family members can access shared files
+3. Demonstrate storage is unlimited (show storage stats)
 
 ### WHAT YOU'LL SAY
 ```
-"Family Vault. Watch me drag photos in.
+"Family Vault. Watch me upload photos.
 
-Uploading... and instantly, AI generates tags. 'Vacation',
-'family', 'beach'. I never typed those.
+Drag and drop... uploading with encryption. Every file is
+encrypted with AES-256 before storage.
 
-Search 'vacation' - boom. Instant results.
+See that lock icon? That's your data, protected. Only your
+family can decrypt it.
 
-Click a photo - AI wrote a full description. All happening
-locally on the Black Box.
+Files organized in folders, searchable, shareable with
+family members. Thumbnails for photos, previews for documents.
 
 Unlike Dropbox's 2-terabyte limit and $240-a-year price tag,
-this is unlimited and free.
-
-Quick look at P2P Network - I'm connected to other Black Boxes.
-My reputation: 847 points. I can share knowledge, vote on
-governance. A DAO in every box."
+this is unlimited and free. All stored on your Black Box."
 ```
 
-**[Text overlays: "⚡ AI Auto-Tag" → "🔍 Smart Search" → "💾 Unlimited" → "🌐 P2P Mesh"]**
+**[Text overlays: "🔒 Auto-Encrypted" → "💾 Unlimited Storage" → "👨‍👩‍👧‍👦 Family Shared"]**
 
 ---
 
-## 🤖 SEGMENT 6: AI & GUARDIAN DEMO (2:30-3:00)
+## 🤖 SEGMENT 6: KIDS AI TUTOR DEMO (2:30-3:00)
 
 ### WHAT YOU'LL SHOW
 
-**AI ASSISTANT (15s)**
-1. Click **"AI Assistant"** in sidebar
-2. Type: **"Help me plan a weekend family activity"**
-3. Hit enter → watch streaming response
-4. Point to **"Running Locally"** badge (green indicator)
-5. Show conversation history sidebar
-
-**AI GUARDIAN (15s)**
-1. Click **"AI Guardian"** in sidebar
-2. Upload test document (contains fake SSN: 123-45-6789)
-3. Watch Guardian scan (0.5 seconds)
-4. Alert appears: **"Personal Data Detected"**
-5. Click alert → show details panel:
-   - Risk: Medium
-   - Pattern: SSN format
-   - Recommendation: "Encrypt before sharing"
+**KIDS-SAFE AI TUTOR (30s)**
+1. Click **"Kids AI Tutor"** in sidebar or dashboard
+2. Show the beautiful interface with safety badges
+3. Type: **"Help me with math homework"**
+4. Hit enter → watch typing indicator appear
+5. Mock response appears (since Ollama isn't running):
+   - Shows helpful, age-appropriate response
+   - Educational and safe content
+6. Point to **"Demo Mode"** indicator at top
+7. Show conversation is saved (for parent monitoring)
+8. Point to safety features in sidebar:
+   - Content Filtered ✓
+   - Parent Monitored ✓
+   - 100% Local ✓
 
 ### WHAT YOU'LL SAY
 ```
-"AI Assistant. I'll ask for weekend activity ideas.
+"Kids-Safe AI Tutor. Built for homework help with full
+parental monitoring.
 
-Watch the response stream in real-time. That's Llama 3.2,
-running entirely on the Black Box. No internet. No OpenAI.
-Your conversations never leave your home.
+I'll ask for math help. Watch - it responds with
+age-appropriate, educational guidance.
 
-ChatGPT Plus: $240 a year, trains on your data.
-This: Free, 100% private.
+Right now we're in demo mode - Ollama isn't running, so you're
+seeing smart mock responses. Perfect for recording demos!
 
-Now AI Guardian. I upload a document with a fake social
-security number.
+When Ollama is installed, this uses Llama 3.2 running entirely
+on your Black Box. No internet. No OpenAI. No cloud.
 
-Half a second - Guardian detects it. 'Personal data detected.
-SSN format found.'
+Notice the safety features: Content filtered, parent monitored,
+100% local processing.
 
-Parents get instant alerts. Everything scans locally.
-No cloud upload. Protects families from accidental exposure."
+ChatGPT Plus costs $240/year and trains on your kids' questions.
+This? Free, private, and parents can review every conversation.
+
+All chats are saved and monitored. Parents can see everything
+their kids ask and every response given."
 ```
 
-**[Text overlays: "🟢 100% Local AI" → "🚫 Never Trains On You" → "⚡ 0.5s Scan" → "🛡️ Family Protected"]**
+**[Text overlays: "🤖 Kids-Safe AI" → "👨‍👩‍👧 Parent Monitored" → "🟢 Demo Mode Active" → "🔒 100% Private"]**
 
 ---
 

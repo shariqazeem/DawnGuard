@@ -1,0 +1,25 @@
+# docker-compose.override.yml
+# Use this file to run DawnGuard WITHOUT Ollama (for demo recording)
+#
+# To use: docker-compose up -d
+# Docker Compose automatically merges this with docker-compose.yml
+#
+# This removes the Ollama dependency and allows smooth demo recording
+# without needing AI model running (mock responses will be used)
+
+version: '3.8'
+
+services:
+  web:
+    depends_on: []  # Remove ollama dependency
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-hackathon-demo-key-change-in-production
+      - ENCRYPTION_KEY=hackathon-encryption-key-32chars
+      - ALLOWED_HOSTS=*
+      - OLLAMA_HOST=http://ollama:11434  # Keep this for compatibility, but won't connect
+
+  # Comment out ollama service entirely
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   # ... rest of config

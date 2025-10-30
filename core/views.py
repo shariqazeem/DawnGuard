@@ -338,82 +338,16 @@ def p2p_network_view(request):
     node.last_seen = timezone.now()
     node.save()
     
-    # Get network statistics - COUNT ALL NODES, not just online
-    total_nodes = BlackBoxNode.objects.count()  # Changed from filter(is_online=True)
-    
-    # If no other nodes exist, create some demo nodes for testing
-    if total_nodes == 1:
-        # Create a few demo nodes so the network doesn't look empty
-        demo_users = []
-        demo_names = ['Alice-HomeGuard', 'Bob-FamilyVault', 'Charlie-DataShield']
+    # Get network statistics - COUNT ONLY REAL NODES (no demo nodes)
+    total_nodes = BlackBoxNode.objects.exclude(node_id__startswith='demo_node_').count()
 
-        for i, demo_name in enumerate(demo_names):
-            # Check if demo node already exists
-            if not BlackBoxNode.objects.filter(node_id=f"demo_node_{i}").exists():
-                # Create demo user if doesn't exist
-                demo_user, _ = User.objects.get_or_create(
-                    username=f'demo_user_{i}',
-                    defaults={'email': f'demo{i}@homeguard.local'}
-                )
-                demo_users.append(demo_user)
-
-                # Create demo node
-                BlackBoxNode.objects.create(
-                    node_id=f"demo_node_{i}",
-                    user=demo_user,
-                    public_key=f"demo_key_{i}_{timezone.now().timestamp()}",
-                    is_online=True,
-                    reputation_score=85 + i * 5
-                )
-        total_nodes = BlackBoxNode.objects.count()
-
-        # Create demo knowledge to make network look active
-        demo_knowledge_items = [
-            {
-                'title': '🔐 How to Secure Your Family Photos',
-                'content': 'Best practices for encrypting and backing up precious family memories using AES-256 encryption.',
-                'category': 'security',
-                'views': 127
-            },
-            {
-                'title': '💡 AI-Powered Home Automation Tips',
-                'content': 'Learn how to set up smart home devices while maintaining privacy with local-first AI.',
-                'category': 'ai',
-                'views': 94
-            },
-            {
-                'title': '🏠 Setting Up Your Family Vault',
-                'content': 'Step-by-step guide to creating a private cloud storage for your family without subscriptions.',
-                'category': 'tutorial',
-                'views': 203
-            },
-            {
-                'title': '⚡ Solana Smart Contracts for Privacy',
-                'content': 'Building decentralized apps on Solana that prioritize user privacy and data ownership.',
-                'category': 'blockchain',
-                'views': 156
-            }
-        ]
-
-        demo_nodes = BlackBoxNode.objects.filter(node_id__startswith='demo_node_')
-        for idx, demo_node in enumerate(demo_nodes):
-            if idx < len(demo_knowledge_items):
-                item = demo_knowledge_items[idx]
-                # Only create if doesn't exist
-                if not SharedKnowledge.objects.filter(title=item['title'], shared_by=demo_node).exists():
-                    encrypted_content = encryption_manager.encrypt(item['content'])
-                    content_hash = p2p_handler.create_knowledge_hash(item['content'])
-
-                    SharedKnowledge.objects.create(
-                        title=item['title'],
-                        content=encrypted_content,
-                        encryption_key_hash=content_hash,
-                        shared_by=demo_node,
-                        is_public=True,
-                        category=item['category'],
-                        views_count=item['views'],
-                        upvotes=15 + idx * 5
-                    )
+    # NOTE: Demo nodes have been removed. For true P2P, nodes must:
+    # 1. Run DawnGuard on their Black Box
+    # 2. Connect to IPFS swarm
+    # 3. Announce themselves on the network
+    # 4. Use real Solana transactions for reputation
+    #
+    # If you want to see network activity, deploy on multiple Black Boxes
 
     my_shared_knowledge = SharedKnowledge.objects.filter(shared_by=node).count()
     received_knowledge = node.received_knowledge.count()
@@ -761,21 +695,21 @@ def download_knowledge(request, knowledge_id):
     try:
         knowledge = SharedKnowledge.objects.get(id=knowledge_id)
         my_node = BlackBoxNode.objects.get(user=request.user)
-        
+
         # Check if user has access
         if not knowledge.is_public and my_node not in knowledge.shared_with.all():
             return JsonResponse({'error': 'Access denied'}, status=403)
-        
+
         # Decrypt content
         decrypted_content = encryption_manager.decrypt(knowledge.content)
-        
+
         # Increment download count
         knowledge.downloads += 1
         knowledge.save()
-        
+
         # Add to received knowledge
         knowledge.shared_with.add(my_node)
-        
+
         return JsonResponse({
             'success': True,
             'title': knowledge.title,
@@ -783,9 +717,46 @@ def download_knowledge(request, knowledge_id):
             'shared_by': str(knowledge.shared_by),
             'category': knowledge.category
         })
-        
+
     except SharedKnowledge.DoesNotExist:
         return JsonResponse({'error': 'Knowledge not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@csrf_exempt
+def delete_knowledge(request, knowledge_id):
+    """
+    Delete knowledge entry (cleanup for failed blockchain transactions)
+    Only allows deletion by the owner
+    """
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+
+    try:
+        knowledge = SharedKnowledge.objects.get(id=knowledge_id)
+        my_node = BlackBoxNode.objects.get(user=request.user)
+
+        # Only allow owner to delete
+        if knowledge.shared_by != my_node:
+            return JsonResponse({'error': 'Access denied'}, status=403)
+
+        # Delete the knowledge entry
+        knowledge.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Knowledge deleted successfully'
+        })
+
+    except SharedKnowledge.DoesNotExist:
+        # Already deleted or doesn't exist - return success anyway
+        return JsonResponse({
+            'success': True,
+            'message': 'Knowledge not found (may already be deleted)'
+        })
+    except BlackBoxNode.DoesNotExist:
+        return JsonResponse({'error': 'Node not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 

@@ -1,0 +1,537 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, var(--dawn-cream), #FFF8F5); min-height: 100vh;">
+
+    <!-- TRUE DAPP Badge -->
+    <div class="alert text-center mb-4 animate-fade-in" style="background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; color: white; border-radius: 20px; box-shadow: 0 8px 30px rgba(76,175,80,0.3);">
+        <h4 class="mb-2 fw-bold">
+            <i class="bi bi-shield-check me-2"></i>
+            TRUE DAPP MODE - Family Dashboard
+        </h4>
+        <p class="mb-0">
+            🌐 Gun.js P2P Database • 🔐 Wallet Authentication • 📡 Real-time Sync • 🚫 No Central Server
+        </p>
+    </div>
+
+    <!-- Wallet Connection -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            <i class="bi bi-house-heart-fill me-2" style="color: var(--dawn-orange);"></i>
+                            Welcome to Your Family Dashboard
+                        </h3>
+                        <p class="mb-0 text-muted">
+                            Manage your family, files, and AI access - all decentralized!
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div id="wallet-status">
+                            <button class="btn btn-dawn" onclick="connectWallet()">
+                                <i class="bi bi-wallet2 me-2"></i> Connect Phantom Wallet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Family Members -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,107,53,0.05)); border-left: 5px solid var(--dawn-orange);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">FAMILY MEMBERS</div>
+                        <div class="h2 fw-bold mb-0" style="color: var(--dawn-orange);">
+                            <span id="family-member-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-people-fill" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Synced via Gun.js</small>
+            </div>
+        </div>
+
+        <!-- Files Stored -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(107,53,255,0.05)); border-left: 5px solid var(--dawn-purple);">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">FILES ON IPFS</div>
+                        <div class="h2 fw-bold mb-0" style="color: var(--dawn-purple);">
+                            <span id="files-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-files" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Decentralized storage</small>
+            </div>
+        </div>
+
+        <!-- AI Conversations -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(76,175,80,0.05)); border-left: 5px solid #4CAF50;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">AI CHATS</div>
+                        <div class="h2 fw-bold mb-0" style="color: #4CAF50;">
+                            <span id="conversations-count">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #4CAF50, #66BB6A); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-robot" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Local Ollama LLM</small>
+            </div>
+        </div>
+
+        <!-- Network Status -->
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, rgba(33,150,243,0.1), rgba(33,150,243,0.05)); border-left: 5px solid #2196F3;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.9rem;">P2P STATUS</div>
+                        <div class="h4 fw-bold mb-0" style="color: #2196F3;">
+                            <span id="network-status">ONLINE</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon" style="width: 50px; height: 50px; background: linear-gradient(135deg, #2196F3, #64B5F6); border-radius: 15px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-diagram-3-fill" style="font-size: 24px; color: white;"></i>
+                    </div>
+                </div>
+                <small class="text-muted">Gun.js + IPFS</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'vault_dapp' %}" class="feature-card" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), white); text-decoration: none;">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon me-3" style="background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a);">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">Family Vault</h5>
+                        <small class="text-muted">IPFS Decentralized Storage</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-0">Upload and manage files on IPFS. Encrypted, decentralized, and yours forever.</p>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'kids_ai_dapp' %}" class="feature-card" style="background: linear-gradient(135deg, rgba(107,53,255,0.1), white); text-decoration: none;">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon me-3" style="background: linear-gradient(135deg, var(--dawn-purple), #8b5aff);">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">Kids AI Tutor</h5>
+                        <small class="text-muted">Local AI with Parental Controls</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-0">Safe AI chat for homework help. Conversations stored in Gun.js, AI runs on your Black Box.</p>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'p2p_dapp' %}" class="feature-card" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), white); text-decoration: none;">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="feature-icon me-3" style="background: linear-gradient(135deg, #4CAF50, #66BB6A);">
+                        <i class="bi bi-share-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: var(--dawn-dark);">P2P Knowledge</h5>
+                        <small class="text-muted">Share Knowledge Decentrally</small>
+                    </div>
+                </div>
+                <p class="text-muted mb-0">Share knowledge with the community. Real-time P2P sync with blockchain verification.</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Family Members Management -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="dawn-card">
+                <h4 class="fw-bold mb-4">
+                    <i class="bi bi-people-fill me-2" style="color: var(--dawn-orange);"></i>
+                    Family Members (Gun.js P2P Database)
+                </h4>
+
+                <!-- Add Member Form -->
+                <div class="row mb-4">
+                    <div class="col-md-5">
+                        <input type="text" id="member-name" class="form-control" placeholder="Member name">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="member-role" class="form-select">
+                            <option value="parent">Parent</option>
+                            <option value="child">Child</option>
+                            <option value="teen">Teen</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-dawn w-100" onclick="addFamilyMember()">
+                            <i class="bi bi-plus-circle me-2"></i> Add Member
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Members List -->
+                <div id="family-members-list" class="row g-3">
+                    <div class="col-12 text-center text-muted py-4">
+                        <i class="bi bi-people" style="font-size: 48px; opacity: 0.3;"></i>
+                        <p class="mt-2">No family members yet. Add your first member!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dawn-card">
+                <h4 class="fw-bold mb-4">
+                    <i class="bi bi-info-circle me-2" style="color: var(--dawn-purple);"></i>
+                    How It Works
+                </h4>
+
+                <div class="tech-stack mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill me-2" style="color: #4CAF50;"></i>
+                        <strong>Gun.js Database</strong>
+                    </div>
+                    <small class="text-muted ms-4 d-block mb-3">Family data syncs P2P between devices in real-time</small>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill me-2" style="color: #4CAF50;"></i>
+                        <strong>IPFS Storage</strong>
+                    </div>
+                    <small class="text-muted ms-4 d-block mb-3">Files stored decentrally with content addressing</small>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill me-2" style="color: #4CAF50;"></i>
+                        <strong>Local Ollama AI</strong>
+                    </div>
+                    <small class="text-muted ms-4 d-block mb-3">AI runs on YOUR Black Box hardware</small>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill me-2" style="color: #4CAF50;"></i>
+                        <strong>Phantom Wallet</strong>
+                    </div>
+                    <small class="text-muted ms-4 d-block">Wallet-based auth, no passwords needed</small>
+                </div>
+
+                <div class="alert alert-success mt-4">
+                    <i class="bi bi-shield-check me-2"></i>
+                    <strong>100% Private</strong>
+                    <p class="mb-0 small">All data stays on your devices. No central server can access it.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize Gun.js databases
+let myWalletAddress = localStorage.getItem('dawnguard_wallet') || 'demo_' + Date.now();
+const familyDB = window.dawnguardGun.get('dawnguard').get('families').get(myWalletAddress);
+const vaultDB = window.dawnguardGun.get('dawnguard').get('vault').get(myWalletAddress);
+
+// Load data on page load
+window.addEventListener('load', async () => {
+    // Wait for Phantom to be ready
+    if (window.solana) {
+        try {
+            await window.solana.connect({ onlyIfTrusted: true });
+        } catch (e) {
+            // User hasn't connected before, that's ok
+        }
+    }
+
+    // Small delay to ensure Phantom is ready
+    setTimeout(() => {
+        updateWalletStatus();
+        loadFamilyMembers();
+        loadStats();
+    }, 500);
+});
+
+async function connectWallet() {
+    if (typeof window.solana !== 'undefined' && window.solana.isPhantom) {
+        try {
+            const resp = await window.solana.connect();
+            myWalletAddress = resp.publicKey.toString();
+            localStorage.setItem('dawnguard_wallet', myWalletAddress);
+
+            updateWalletStatus();
+            location.reload();
+        } catch (err) {
+            alert('Failed to connect wallet: ' + err.message);
+        }
+    } else {
+        alert('Phantom wallet not found! Please install from phantom.app');
+        window.open('https://phantom.app/', '_blank');
+    }
+}
+
+function updateWalletStatus() {
+    const statusDiv = document.getElementById('wallet-status');
+
+    if (window.solana && window.solana.isConnected) {
+        myWalletAddress = window.solana.publicKey.toString();
+        localStorage.setItem('dawnguard_wallet', myWalletAddress);
+
+        statusDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <div class="text-muted small">Connected Wallet</div>
+                    <code style="font-size: 0.9rem;">${myWalletAddress.slice(0, 8)}...${myWalletAddress.slice(-6)}</code>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="disconnectWallet()">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </div>
+        `;
+    } else {
+        statusDiv.innerHTML = `
+            <button class="btn btn-dawn" onclick="connectWallet()">
+                <i class="bi bi-wallet2 me-2"></i> Connect Phantom Wallet
+            </button>
+        `;
+    }
+}
+
+async function disconnectWallet() {
+    if (window.solana) {
+        await window.solana.disconnect();
+        localStorage.removeItem('dawnguard_wallet');
+        location.reload();
+    }
+}
+
+function loadFamilyMembers() {
+    const listDiv = document.getElementById('family-members-list');
+    let memberCount = 0;
+
+    const roleColors = {
+        parent: 'var(--dawn-orange)',
+        child: '#4CAF50',
+        teen: 'var(--dawn-purple)'
+    };
+
+    const roleIcons = {
+        parent: 'bi-person-badge',
+        child: 'bi-person-heart',
+        teen: 'bi-person'
+    };
+
+    // Use .on() instead of .once() for real-time updates
+    familyDB.get('members').map().on((member, memberId) => {
+        if (!member || !member.name) {
+            // Member was deleted, remove from UI
+            const existingCard = document.getElementById(`member-${memberId}`);
+            if (existingCard) {
+                existingCard.remove();
+                memberCount--;
+            }
+            return;
+        }
+
+        memberCount++;
+
+        // Check if already exists
+        if (document.getElementById(`member-${memberId}`)) {
+            return; // Already displayed
+        }
+
+        // Clear "no members" message on first member
+        if (listDiv.innerHTML.includes('No family members yet')) {
+            listDiv.innerHTML = '';
+        }
+
+        const memberCard = document.createElement('div');
+        memberCard.className = 'col-md-6';
+        memberCard.id = `member-${memberId}`;
+        memberCard.innerHTML = `
+            <div class="member-card" style="background: white; border-radius: 15px; padding: 20px; border-left: 5px solid ${roleColors[member.role] || '#ccc'}; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="member-icon me-3" style="width: 50px; height: 50px; background: linear-gradient(135deg, ${roleColors[member.role]}, ${roleColors[member.role]}dd); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi ${roleIcons[member.role]} text-white" style="font-size: 24px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">${escapeHtml(member.name)}</h6>
+                            <small class="text-muted text-capitalize">${member.role}</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeFamilyMember('${memberId}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i> Added ${new Date(member.timestamp).toLocaleDateString()}
+                    </small>
+                </div>
+            </div>
+        `;
+        listDiv.appendChild(memberCard);
+
+        // Update count
+        document.getElementById('family-member-count').textContent = memberCount;
+    });
+}
+
+function addFamilyMember() {
+    const name = document.getElementById('member-name').value.trim();
+    const role = document.getElementById('member-role').value;
+
+    if (!name) {
+        alert('Please enter a member name!');
+        return;
+    }
+
+    const memberId = Date.now().toString();
+    familyDB.get('members').get(memberId).put({
+        id: memberId,
+        name: name,
+        role: role,
+        timestamp: Date.now(),
+        addedBy: myWalletAddress,
+        aiChatEnabled: role === 'parent'
+    });
+
+    document.getElementById('member-name').value = '';
+
+    alert(`✅ ${name} added to family!\n\nData stored in Gun.js P2P database. Will sync to other devices automatically.`);
+
+    // No need to reload - Gun.js .on() listener will update UI automatically
+}
+
+function removeFamilyMember(memberId) {
+    if (confirm('Remove this family member?')) {
+        familyDB.get('members').get(memberId).put(null);
+        setTimeout(() => location.reload(), 500);
+    }
+}
+
+function loadStats() {
+    // Count files
+    let filesCount = 0;
+    vaultDB.map().once((file) => {
+        if (file && file.cid) filesCount++;
+    });
+
+    setTimeout(() => {
+        document.getElementById('files-count').textContent = filesCount;
+    }, 500);
+
+    // Count conversations (from Kids AI)
+    const conversationsDB = window.dawnguardGun.get('dawnguard').get('conversations').get(myWalletAddress);
+    let conversationsCount = 0;
+    conversationsDB.map().once((conv) => {
+        if (conv && conv.id) conversationsCount++;
+    });
+
+    setTimeout(() => {
+        document.getElementById('conversations-count').textContent = conversationsCount;
+    }, 500);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+
+<style>
+.dawn-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.feature-card {
+    display: block;
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    border-color: var(--dawn-orange);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 28px;
+}
+
+.btn-dawn {
+    background: linear-gradient(135deg, var(--dawn-orange), #ff8c5a);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-dawn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,107,53,0.3);
+    color: white;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+}
+</style>
+{% endblock %}

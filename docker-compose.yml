@@ -18,8 +18,11 @@ services:
       - ENCRYPTION_KEY=hackathon-encryption-key-32chars
       - ALLOWED_HOSTS=*
       - OLLAMA_HOST=http://ollama:11434
+      - IPFS_API_URL=http://ipfs:5001
+      - IPFS_GATEWAY=http://ipfs:8080
     depends_on:
       - ollama
+      - ipfs
     networks:
       - cyphervault_network
     restart: unless-stopped
@@ -36,10 +39,33 @@ services:
       - cyphervault_network
     restart: unless-stopped
 
+  # IPFS for Decentralized File Storage
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    container_name: dawnguard_ipfs
+    environment:
+      - IPFS_PROFILE=default  # Changed from 'server' to allow public connectivity
+      - IPFS_PATH=/data/ipfs
+    volumes:
+      - ipfs_data:/data/ipfs
+      - ipfs_staging:/export
+    ports:
+      - "4001:4001"     # P2P swarm (TCP & UDP for DHT)
+      - "4001:4001/udp" # UDP explicitly for DHT
+      - "5001:5001"     # API
+      - "8080:8080"     # Gateway
+    networks:
+      - cyphervault_network
+    restart: unless-stopped
+    # Enable DHT and public network connectivity
+    command: ["daemon", "--migrate=true", "--enable-gc", "--routing=dhtclient"]
+
 volumes:
   static_volume:
   media_volume:
   ollama_data:
+  ipfs_data:
+  ipfs_staging:
 
 networks:
   cyphervault_network:

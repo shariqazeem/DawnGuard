@@ -404,22 +404,9 @@
         pulsePhase: 0
     };
 
-    // Create peer nodes
-    const nodeCount = Math.min(parseInt('{{ total_nodes }}') || 4, 10);
-    for (let i = 0; i < nodeCount - 1; i++) {
-        const angle = (i / (nodeCount - 1)) * 2 * Math.PI;
-        const distance = 100 + Math.random() * 40;
-        nodes.push({
-            x: centerNode.x + Math.cos(angle) * distance,
-            y: centerNode.y + Math.sin(angle) * distance,
-            radius: 12,
-            color: '#4CAF50',
-            velocityX: (Math.random() - 0.5) * 0.5,
-            velocityY: (Math.random() - 0.5) * 0.5,
-            pulsePhase: Math.random() * Math.PI * 2,
-            dataPackets: []
-        });
-    }
+    // ✅ TRUE DAPP: No demo nodes!
+    // Nodes only appear when REAL peers connect via WebRTC
+    // Empty initially - will populate when peers discover each other
 
     // Data packets flying between nodes
     let dataPackets = [];
@@ -575,10 +562,41 @@
         return;
     }
 
-    // Check if wallet is connected
+    // ✅ BLOCKCHAIN REQUIRED - Wallet MUST be connected
     if (!window.solana || !window.solana.isConnected) {
-        showNotification('⚠️ Please connect your Solana wallet first', 'warning');
+        showNotification('🔗 Blockchain Required: Please connect your Solana wallet to share on P2P network', 'error');
+
+        // Try to connect wallet
+        try {
+            await window.solana.connect();
+        } catch (err) {
+            showNotification('❌ Wallet connection required. Install Phantom wallet to participate in P2P network.', 'error');
+            return;
+        }
+    }
+
+    // Check if Solana Web3 is loaded
+    if (!window.solanaWeb3) {
+        showNotification('❌ Solana Web3 library not loaded. Please refresh the page.', 'error');
+        console.error('window.solanaWeb3 is undefined');
         return;
+    }
+
+    // Check wallet balance (need SOL for transaction fees)
+    try {
+        const connection = new window.solanaWeb3.Connection('https://api.devnet.solana.com', 'confirmed');
+        const balance = await connection.getBalance(window.solana.publicKey);
+        console.log(`💰 Wallet balance: ${balance / 1e9} SOL`);
+
+        if (balance === 0) {
+            showNotification('⚠️ No devnet SOL found! Get free devnet SOL from: https://faucet.solana.com/', 'warning');
+            // Open faucet in new tab
+            window.open(`https://faucet.solana.com/?address=${window.solana.publicKey.toString()}`, '_blank');
+            return;
+        }
+    } catch (balanceError) {
+        console.warn('Could not check balance:', balanceError);
+        // Continue anyway - balance check is not critical
     }
 
     showNotification('🔐 Encrypting content...', 'success');
@@ -670,12 +688,34 @@
                 }
                 
             } catch (walletError) {
-                console.error('Wallet error:', walletError);
-                showNotification('⚠️ Transaction cancelled. Knowledge saved locally only.', 'warning');
-                bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
+                console.error('❌ Wallet/Transaction error:', walletError);
+                console.error('Error details:', {
+                    message: walletError.message,
+                    name: walletError.name,
+                    stack: walletError.stack
+                });
 
-                // Refresh knowledge grid instead of full page reload
-                setTimeout(() => refreshKnowledgeGrid(), 1000);
+                // Show detailed error message
+                let errorMsg = '❌ Transaction failed: ';
+                if (walletError.message) {
+                    errorMsg += walletError.message;
+                } else if (walletError.toString) {
+                    errorMsg += walletError.toString();
+                } else {
+                    errorMsg += 'Unknown error. Check browser console for details.';
+                }
+
+                showNotification(errorMsg, 'error');
+
+                // Delete the knowledge entry that was created
+                fetch(`/p2p/delete-knowledge/${data.knowledge_id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                }).catch(err => console.error('Cleanup error:', err));
+
+                bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
             }
         } else {
             showNotification('❌ Error: ' + data.error, 'error');
@@ -689,26 +729,33 @@
 // Helper: Create REAL Solana Memo Transaction
 async function createSolanaMemoTransaction(memoData) {
     const { Connection, Transaction, TransactionInstruction, PublicKey } = window.solanaWeb3;
-    
+
     // Connect to Solana Devnet
     const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
     const walletPublicKey = window.solana.publicKey;
-    
+
+    // Convert string to Uint8Array (browser-compatible, no Buffer needed)
+    const encoder = new TextEncoder();
+    const dataBytes = encoder.encode(memoData);
+
     // Create Memo instruction (Memo Program stores data on-chain)
     const memoInstruction = new TransactionInstruction({
         keys: [{ pubkey: walletPublicKey, isSigner: true, isWritable: false }],
         programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'), // Solana Memo Program
-        data: Buffer.from(memoData, 'utf8')
+        data: dataBytes
     });
-    
+
     // Create transaction
     const transaction = new Transaction().add(memoInstruction);
     transaction.feePayer = walletPublicKey;
-    
+
     // Get recent blockhash
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
-    
+
+    console.log('✅ Transaction created successfully');
+    console.log('Memo data length:', dataBytes.length, 'bytes');
+
     return transaction;
 }
 
@@ -794,43 +841,60 @@ async function createSolanaMemoTransaction(memoData) {
     }
 
     function discoverNodes() {
-        showNotification('🔍 Scanning P2P network for Black Box nodes...', 'success');
+        showNotification('🔍 Scanning for REAL P2P nodes via WebRTC...', 'success');
 
-        // Simulate network discovery and add new nodes to animation
-        setTimeout(() => {
-            const currentNodeCount = nodes.length + 1; // +1 for center node
-            const maxNodes = 10;
+        // ✅ TRUE DAPP: Discover real peers via Gun.js
+        if (!window.dawnguardGun) {
+            showNotification('⚠️ Gun.js not initialized. Enable P2P database first.', 'warning');
+            return;
+        }
 
-            if (currentNodeCount < maxNodes) {
-                // Add 1-3 new nodes to the network
-                const newNodesCount = Math.min(Math.floor(Math.random() * 3) + 1, maxNodes - currentNodeCount);
+        const myAddress = window.solana?.publicKey?.toString() || 'anonymous_' + Date.now();
 
-                for (let i = 0; i < newNodesCount; i++) {
+        // Announce yourself
+        window.dawnguardGun.get('dawnguard').get('peers').get(myAddress).put({
+            online: true,
+            timestamp: Date.now(),
+            lastSeen: Date.now()
+        });
+
+        // Listen for other peers
+        let discoveredCount = 0;
+        window.dawnguardGun.get('dawnguard').get('peers').map().once((peerData, address) => {
+            if (address !== myAddress && peerData && peerData.online) {
+                // Check if peer is recent (within 5 minutes)
+                if (Date.now() - peerData.lastSeen < 300000) {
+                    // Add to mesh visualization
                     const angle = Math.random() * Math.PI * 2;
                     const distance = 100 + Math.random() * 40;
 
-                    nodes.push({
-                        x: centerNode.x + Math.cos(angle) * distance,
-                        y: centerNode.y + Math.sin(angle) * distance,
-                        radius: 12,
-                        color: '#4CAF50',
-                        velocityX: (Math.random() - 0.5) * 0.5,
-                        velocityY: (Math.random() - 0.5) * 0.5,
-                        pulsePhase: Math.random() * Math.PI * 2,
-                        isNew: true // Mark as new for effect
-                    });
+                    // Check if peer already exists
+                    const exists = nodes.find(n => n.peerId === address);
+                    if (!exists) {
+                        nodes.push({
+                            x: centerNode.x + Math.cos(angle) * distance,
+                            y: centerNode.y + Math.sin(angle) * distance,
+                            radius: 12,
+                            color: '#4CAF50',
+                            velocityX: (Math.random() - 0.5) * 0.5,
+                            velocityY: (Math.random() - 0.5) * 0.5,
+                            pulsePhase: Math.random() * Math.PI * 2,
+                            isNew: true,
+                            peerId: address
+                        });
+                        discoveredCount++;
+                    }
                 }
+            }
+        });
 
-                showNotification(`✅ Discovered ${newNodesCount} new node${newNodesCount > 1 ? 's' : ''}! Total: ${nodes.length + 1}`, 'success');
-
-                // Update the stats display
+        setTimeout(() => {
+            if (discoveredCount > 0) {
+                showNotification(`✅ Discovered ${discoveredCount} REAL peer${discoveredCount > 1 ? 's' : ''}!`, 'success');
                 document.querySelector('.glow-text').textContent = nodes.length + 1;
             } else {
-                showNotification('✅ Network scan complete. All nodes already discovered!', 'success');
+                showNotification('No other peers online. Deploy on another Black Box to see P2P mesh!', 'info');
             }
-
-            // Refresh knowledge grid in background (don't break animation)
-            setTimeout(() => refreshKnowledgeGrid(), 500);
         }, 2000);
     }
 
@@ -957,6 +1021,94 @@ async function createSolanaMemoTransaction(memoData) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function showBlockchainConfirmation(data) {
+        /**
+         * Show blockchain confirmation modal with transaction details
+         */
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.8);" id="blockchainConfirmModal">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content" style="border-radius: 20px; border: 2px solid #4CAF50;">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; border-radius: 18px 18px 0 0;">
+                            <h5 class="modal-title fw-bold">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Blockchain Verified!
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('blockchainConfirmModal').remove()"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="text-center mb-4">
+                                <div style="font-size: 64px; animation: bounce 2s infinite;">✅</div>
+                                <h4 class="fw-bold mt-3" style="color: #4CAF50;">Transaction Confirmed on Solana</h4>
+                                <p class="text-muted">Your knowledge has been permanently recorded on the blockchain</p>
+                            </div>
+
+                            <div class="card mb-3" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(255,255,255,0.5)); border: 2px solid rgba(76,175,80,0.3); border-radius: 15px;">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2"></i>Knowledge Details</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Title</small>
+                                            <strong>${escapeHtml(data.title || 'N/A')}</strong>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Category</small>
+                                            <span class="badge" style="background: var(--dawn-purple); color: white;">${escapeHtml(data.category || 'General')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-3" style="background: linear-gradient(135deg, rgba(107,53,255,0.1), rgba(255,255,255,0.5)); border: 2px solid rgba(107,53,255,0.3); border-radius: 15px;">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2"></i>Blockchain Details</h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Transaction Signature</small>
+                                        <code style="font-size: 0.85rem; word-break: break-all;">${data.tx_signature || 'N/A'}</code>
+                                    </div>
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">Block Time</small>
+                                            <strong>${data.block_time ? new Date(data.block_time * 1000).toLocaleString() : 'Pending'}</strong>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">Slot</small>
+                                            <strong>${data.slot || 'N/A'}</strong>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">Fee</small>
+                                            <strong>${data.fee ? (data.fee / 1e9).toFixed(6) : '0.000005'} SOL</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a href="${data.explorer_url || '#'}" target="_blank" class="btn btn-lg" style="background: linear-gradient(135deg, var(--dawn-purple), #8b5aff); color: white; border-radius: 15px; font-weight: 600;">
+                                    <i class="bi bi-box-arrow-up-right me-2"></i>
+                                    View on Solana Explorer
+                                </a>
+                                <button class="btn btn-outline-secondary" onclick="document.getElementById('blockchainConfirmModal').remove()" style="border-radius: 15px;">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Remove modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     }
 
     function getCookie(name) {
