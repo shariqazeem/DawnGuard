@@ -1,0 +1,625 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: var(--dawn-cream);">
+
+    <!-- TRUE DAPP Badge -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert text-center" style="background: linear-gradient(135deg, #4CAF50, #66BB6A); border: none; color: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(76,175,80,0.3);">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-shield-check me-2"></i>
+                    TRUE DAPP - Files on IPFS • Metadata in Gun.js P2P • NO Central Database
+                </h6>
+                <small class="mt-1 d-block">
+                    <i class="bi bi-info-circle me-1"></i>
+                    100% Decentralized | Encrypted with AES-256 | Runs on YOUR Black Box
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(107,53,255,0.1)); border: none;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2 fw-bold" style="color: var(--dawn-dark);">
+                            <i class="bi bi-shield-lock-fill"></i> Decentralized Family Vault
+                        </h2>
+                        <p class="mb-0" style="color: #666; font-size: 1.1rem;">
+                            💰 <strong>Save $240/year</strong> • 🏠 100% Private • ☁️ IPFS Storage on YOUR Black Box
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge" style="background: #4CAF50; color: white; padding: 8px 16px; font-size: 14px;">
+                                <i class="bi bi-diagram-3"></i> IPFS Storage
+                            </span>
+                            <span class="badge" style="background: var(--dawn-purple); color: white; padding: 8px 16px; font-size: 14px;">
+                                <i class="bi bi-lock-fill"></i> AES-256 Encrypted
+                            </span>
+                            <span class="badge" style="background: #2196F3; color: white; padding: 8px 16px; font-size: 14px;">
+                                <i class="bi bi-cloud"></i> Gun.js P2P
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <button class="btn btn-dawn btn-lg mb-2 w-100" onclick="document.getElementById('ipfs-file-input').click()">
+                            <i class="bi bi-cloud-upload-fill"></i> Upload to IPFS
+                        </button>
+                        <input type="file" id="ipfs-file-input" style="display: none;" onchange="uploadToIPFS()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Stats -->
+    <div class="row mb-4 g-4">
+        <div class="col-md-4">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 fw-bold" style="color: #4CAF50;" id="file-count">0</div>
+                <div style="color: #666; font-weight: 500;">Files on IPFS</div>
+                <small class="text-success">
+                    <i class="bi bi-arrow-up"></i> Encrypted & Decentralized
+                </small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 fw-bold" style="color: var(--dawn-blue);" id="wallet-address-short">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div style="color: #666; font-weight: 500;">Your Wallet</div>
+                <small style="color: var(--dawn-blue);">
+                    <i class="bi bi-shield-check"></i> P2P Identity
+                </small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="dawn-card text-center">
+                <div class="h2 mb-2 fw-bold" style="color: #FF6B35;">$240</div>
+                <div style="color: #666; font-weight: 500;">Annual Savings</div>
+                <small style="color: #FF6B35;">
+                    <i class="bi bi-piggy-bank-fill"></i> vs Dropbox
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Search (AI Powered - Coming Soon) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dawn-card">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text" style="background: white; border-right: none;">
+                        <i class="bi bi-search" style="color: var(--dawn-orange);"></i>
+                    </span>
+                    <input type="text" class="form-control" id="search-input"
+                           placeholder="🔍 Search your files... (type to filter)"
+                           style="border-left: none; font-size: 1.1rem;"
+                           onkeyup="searchFiles(this.value)">
+                </div>
+                <div id="search-results" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Files Area -->
+        <div class="col-lg-12">
+            <!-- My Files -->
+            <div class="dawn-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0 fw-bold" style="color: var(--dawn-dark);">
+                        <i class="bi bi-files"></i> My Files (IPFS + Gun.js)
+                    </h4>
+                </div>
+
+                <!-- Files List -->
+                <div id="files-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr style="border-bottom: 2px solid rgba(0,0,0,0.1);">
+                                    <th>File</th>
+                                    <th>Size</th>
+                                    <th>IPFS CID</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="files-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-5">
+                                        <i class="bi bi-cloud-upload" style="font-size: 64px; opacity: 0.2; color: var(--dawn-orange);"></i>
+                                        <p class="mt-3 mb-3 h5" style="color: #999;">No files yet. Start by uploading!</p>
+                                        <button class="btn btn-dawn btn-lg" onclick="document.getElementById('ipfs-file-input').click()">
+                                            <i class="bi bi-cloud-upload-fill"></i> Upload Your First File to IPFS
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Value Proposition -->
+    <div class="row">
+        <div class="col-12">
+            <div class="dawn-card" style="background: linear-gradient(135deg, rgba(76,175,80,0.1), rgba(33,150,243,0.1));">
+                <h5 class="mb-3 fw-bold" style="color: var(--dawn-dark);">
+                    💡 Why Decentralized Storage Matters
+                </h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3" style="background: rgba(76,175,80,0.1); border-radius: 12px; border-left: 3px solid #4CAF50;">
+                            <h6 class="fw-bold" style="color: #4CAF50;"><i class="bi bi-shield-check"></i> True Privacy</h6>
+                            <small style="color: #666;">No company can access your files. Encrypted before IPFS upload.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3" style="background: rgba(33,150,243,0.1); border-radius: 12px; border-left: 3px solid #2196F3;">
+                            <h6 class="fw-bold" style="color: #2196F3;"><i class="bi bi-diagram-3"></i> P2P Database</h6>
+                            <small style="color: #666;">Gun.js syncs metadata across devices without central server.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3" style="background: rgba(255,107,53,0.1); border-radius: 12px; border-left: 3px solid var(--dawn-orange);">
+                            <h6 class="fw-bold" style="color: var(--dawn-orange);"><i class="bi bi-fingerprint"></i> Content-Addressed</h6>
+                            <small style="color: #666;">Files identified by CID - cryptographic hash proves authenticity.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="p-3" style="background: rgba(156,39,176,0.1); border-radius: 12px; border-left: 3px solid #9C27B0;">
+                            <h6 class="fw-bold" style="color: #9C27B0;"><i class="bi bi-piggy-bank"></i> Zero Fees</h6>
+                            <small style="color: #666;">No monthly subscription. Storage on YOUR Black Box hardware.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Progress (appears in bottom right) -->
+<div id="upload-progress-toast" class="position-fixed bottom-0 end-0 m-4" style="z-index: 9999; display: none;">
+    <div class="dawn-card" style="width: 350px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+        <h6 class="mb-3 fw-bold">
+            <i class="bi bi-cloud-upload-fill"></i> Uploading to IPFS
+        </h6>
+        <div class="progress mb-2" style="height: 20px; border-radius: 10px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" id="upload-progress-bar" style="background: var(--dawn-orange); width: 100%;"></div>
+        </div>
+        <div id="upload-status" class="small text-muted">Encrypting and uploading...</div>
+    </div>
+</div>
+
+<script>
+// Initialize Gun.js file storage
+let myWalletAddress = localStorage.getItem('dawnguard_wallet');
+
+if (!myWalletAddress) {
+    // Check if Phantom is connected
+    if (window.solana?.publicKey) {
+        myWalletAddress = window.solana.publicKey.toString();
+        localStorage.setItem('dawnguard_wallet', myWalletAddress);
+    } else {
+        // Create or use existing demo address
+        myWalletAddress = localStorage.getItem('dawnguard_demo_wallet');
+        if (!myWalletAddress) {
+            myWalletAddress = 'demo_user_' + Date.now();
+            localStorage.setItem('dawnguard_demo_wallet', myWalletAddress);
+        }
+    }
+}
+
+const filesDB = window.dawnguardGun.get('dawnguard').get('vault').get(myWalletAddress);
+
+console.log('🔑 Vault using wallet:', myWalletAddress);
+
+// Display short wallet address
+document.getElementById('wallet-address-short').innerHTML =
+    myWalletAddress.slice(0, 6) + '...' + myWalletAddress.slice(-4);
+
+// Load files from Gun.js on page load
+loadFilesFromGun();
+
+let allFiles = [];
+
+function loadFilesFromGun() {
+    const tbody = document.getElementById('files-table-body');
+    let fileCount = 0;
+
+    console.log('📂 Loading files for wallet:', myWalletAddress);
+
+    // Use .on() for real-time updates
+    filesDB.map().on((fileData, fileId) => {
+        console.log('📄 Gun.js file event:', fileId, fileData);
+
+        if (!fileData || !fileData.cid) {
+            // File was deleted, remove from UI
+            const existingRow = document.getElementById(`file-${fileId}`);
+            if (existingRow) {
+                existingRow.remove();
+                fileCount--;
+            }
+            allFiles = allFiles.filter(f => f.id !== fileId);
+            updateFileCount();
+            return;
+        }
+
+        // Check if already exists
+        if (document.getElementById(`file-${fileId}`)) {
+            return; // Already displayed
+        }
+
+        fileCount++;
+        allFiles.push({id: fileId, ...fileData});
+        console.log('✅ Adding file to UI:', fileData.name, 'CID:', fileData.cid);
+
+        // Clear "no files" message on first file
+        if (tbody.innerHTML.includes('No files yet')) {
+            tbody.innerHTML = '';
+        }
+
+        // Add file row
+        const row = document.createElement('tr');
+        row.id = `file-${fileId}`;
+        row.style.cursor = 'pointer';
+        row.style.transition = 'all 0.2s';
+        row.onmouseover = () => row.style.background = 'rgba(255,107,53,0.05)';
+        row.onmouseout = () => row.style.background = 'transparent';
+
+        row.innerHTML = `
+            <td>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-file-earmark text-primary me-2" style="font-size: 32px; color: var(--dawn-orange) !important;"></i>
+                    <div>
+                        <div class="fw-bold">${escapeHtml(fileData.name || 'Unnamed')}</div>
+                        <small class="text-muted">
+                            <i class="bi bi-shield-check"></i> Encrypted
+                        </small>
+                    </div>
+                </div>
+            </td>
+            <td>${formatBytes(fileData.size || 0)}</td>
+            <td>
+                <code style="font-size: 0.85rem; background: rgba(33,150,243,0.1); padding: 4px 8px; border-radius: 6px;">${fileData.cid.slice(0, 10)}...</code>
+                <button class="btn btn-sm btn-outline-secondary ms-1" onclick="copyToClipboard('${fileData.cid}', event)">
+                    <i class="bi bi-clipboard"></i>
+                </button>
+            </td>
+            <td>${new Date(fileData.uploaded).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="downloadAndDecrypt('${fileData.cid}', '${escapeHtml(fileData.name || 'file')}', event)">
+                    <i class="bi bi-download"></i> Download
+                </button>
+                <button class="btn btn-sm btn-info" onclick="viewRawIPFS('${fileData.cid}', event)">
+                    <i class="bi bi-eye"></i> Raw
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteFile('${fileId}', event)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+        updateFileCount();
+    });
+}
+
+function updateFileCount() {
+    document.getElementById('file-count').textContent = allFiles.length;
+}
+
+async function uploadToIPFS() {
+    const fileInput = document.getElementById('ipfs-file-input');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        showNotification('⚠️ Please select a file first!', 'warning');
+        return;
+    }
+
+    const progressDiv = document.getElementById('upload-progress-toast');
+    const statusDiv = document.getElementById('upload-status');
+
+    // Show loading state
+    progressDiv.style.display = 'block';
+    statusDiv.textContent = `Encrypting ${file.name}...`;
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        statusDiv.textContent = `Uploading ${file.name} to IPFS...`;
+
+        const response = await fetch('/vault/ipfs/upload/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Store in Gun.js (P2P database)
+            const fileId = Date.now().toString();
+            const fileData = {
+                id: fileId,
+                name: file.name,
+                size: file.size,
+                cid: data.ipfs_cid,
+                mimeType: data.mime_type,
+                encrypted: true,
+                uploaded: Date.now(),
+                uploader: myWalletAddress,
+                localGateway: data.gateway_url
+            };
+
+            console.log('💾 Saving to Gun.js:', fileData);
+            console.log('🔑 Wallet:', myWalletAddress);
+
+            statusDiv.textContent = `Saving metadata to Gun.js...`;
+
+            filesDB.get(fileId).put(fileData, (ack) => {
+                console.log('✅ Gun.js saved:', ack);
+            });
+
+            // Clear file input
+            fileInput.value = '';
+
+            showNotification(`✅ ${file.name} uploaded to IPFS successfully!`, 'success');
+
+            console.log('⏳ Waiting for Gun.js to sync and display file...');
+        } else {
+            showNotification(`❌ Upload failed: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        showNotification(`❌ Error: ${error.message}`, 'error');
+    } finally {
+        // Hide progress after 2 seconds
+        setTimeout(() => {
+            progressDiv.style.display = 'none';
+        }, 2000);
+    }
+}
+
+async function downloadAndDecrypt(cid, fileName, event) {
+    event.stopPropagation();
+    console.log('📥 Downloading and decrypting:', cid, fileName);
+
+    const loadingNotif = showNotification('🔄 Downloading from IPFS and decrypting...', 'info', 0);
+
+    try {
+        const response = await fetch('/vault/ipfs/download/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ cid: cid })
+        });
+
+        const data = await response.json();
+
+        if (loadingNotif) loadingNotif.remove();
+
+        if (data.success) {
+            console.log('✅ File decrypted successfully');
+
+            // Decode base64 content to binary
+            const binaryString = atob(data.content);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            // Create a blob from the binary data
+            const blob = new Blob([bytes], { type: 'application/octet-stream' });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+
+            // Cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showNotification('✅ File downloaded and decrypted!', 'success');
+        } else {
+            console.error('❌ Download failed:', data.error);
+            showNotification('❌ Download failed: ' + data.error, 'error');
+        }
+    } catch (error) {
+        if (loadingNotif) loadingNotif.remove();
+        console.error('Download error:', error);
+        showNotification('❌ Error: ' + error.message, 'error');
+    }
+}
+
+function viewRawIPFS(cid, event) {
+    event.stopPropagation();
+    const gatewayUrl = `http://127.0.0.1:8080/ipfs/${cid}`;
+    const newWindow = window.open(gatewayUrl, '_blank');
+
+    if (!newWindow) {
+        alert(`Please allow pop-ups, then manually open:\n\n${gatewayUrl}`);
+    } else {
+        showNotification('ℹ️ Opening encrypted file on IPFS gateway', 'info');
+    }
+}
+
+function copyToClipboard(text, event) {
+    event.stopPropagation();
+    navigator.clipboard.writeText(text);
+    showNotification('✅ CID copied to clipboard!', 'success');
+}
+
+function deleteFile(fileId, event) {
+    event.stopPropagation();
+    if (confirm('Delete this file? It will remain on IPFS but be removed from your list.')) {
+        filesDB.get(fileId).put(null);
+        showNotification('🗑️ File removed from your vault', 'info');
+    }
+}
+
+function searchFiles(query) {
+    query = query.toLowerCase().trim();
+
+    const rows = document.querySelectorAll('#files-table-body tr');
+
+    if (!query) {
+        // Show all files
+        rows.forEach(row => row.style.display = '');
+        return;
+    }
+
+    rows.forEach(row => {
+        const fileName = row.textContent.toLowerCase();
+        if (fileName.includes(query)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showNotification(message, type = 'success', duration = 3000) {
+    const colors = {
+        success: {
+            bg: '#4CAF50',
+            text: '#FFFFFF',
+            border: '#388E3C'
+        },
+        error: {
+            bg: '#f44336',
+            text: '#FFFFFF',
+            border: '#D32F2F'
+        },
+        warning: {
+            bg: '#ff9800',
+            text: '#FFFFFF',
+            border: '#F57C00'
+        },
+        info: {
+            bg: '#1976D2',
+            text: '#FFFFFF',
+            border: '#0D47A1'
+        }
+    };
+
+    const colorScheme = colors[type] || colors.info;
+
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed bottom-0 end-0 m-4 p-4 rounded-3';
+    notification.style.cssText = `
+        background: ${colorScheme.bg} !important;
+        background-color: ${colorScheme.bg} !important;
+        color: ${colorScheme.text} !important;
+        border: 2px solid ${colorScheme.border};
+        border-radius: 16px;
+        z-index: 9999;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s;
+        font-weight: 600;
+        font-size: 15px;
+        min-width: 280px;
+        max-width: 400px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        opacity: 1 !important;
+    `;
+    notification.innerHTML = `<div style="color: ${colorScheme.text};">${message}</div>`;
+    document.body.appendChild(notification);
+
+    if (duration > 0) {
+        setTimeout(() => notification.remove(), duration);
+    }
+
+    return notification;
+}
+
+// Add slide-in animation
+if (!document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+
+<style>
+.dawn-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.btn-dawn {
+    background: linear-gradient(135deg, var(--dawn-orange), #ff8659);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.btn-dawn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,107,53,0.3);
+    color: white;
+}
+</style>
+{% endblock %}

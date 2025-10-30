@@ -360,8 +360,8 @@ def p2p_network_view(request):
     public_knowledge = SharedKnowledge.objects.filter(is_public=True).exclude(shared_by=node).order_by('-created_at')[:10]
     my_knowledge = SharedKnowledge.objects.filter(shared_by=node).order_by('-created_at')[:10]
     
-    # Get connected nodes - show ALL nodes except self
-    connected_nodes = BlackBoxNode.objects.exclude(id=node.id)[:10]
+    # Get connected nodes - show REAL nodes only (exclude self and demo nodes)
+    connected_nodes = BlackBoxNode.objects.exclude(id=node.id).exclude(node_id__startswith='demo_node_')[:10]
     
     context = {
         'node': node,

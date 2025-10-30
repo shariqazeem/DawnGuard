@@ -109,6 +109,7 @@ urlpatterns = [
     path('vault/family/add/', vault_views.add_family_member, name='vault_add_member'),
     path('vault/family/<int:member_id>/update/', vault_views.update_member_permissions, name='vault_update_member'),
     path('vault/family/<int:member_id>/delete/', vault_views.delete_family_member, name='vault_delete_member'),
+    path('vault/family/quota/update/', vault_views.update_family_quota, name='vault_update_quota'),
     path('vault/analytics/', vault_views.storage_analytics, name='vault_analytics'),
 
     # ============================================================

@@ -641,6 +641,48 @@ def family_settings(request):
 
 
 @login_required
+def update_family_quota(request):
+    """
+    Update storage quota for a family member (IPFS integration)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
+
+    try:
+        import json
+        data = json.loads(request.body)
+        username = data.get('username')
+        storage_quota_gb = data.get('storage_quota_gb')
+
+        if not username or storage_quota_gb is None:
+            return JsonResponse({'success': False, 'error': 'Missing parameters'}, status=400)
+
+        # Verify admin
+        admin = FamilyMember.objects.get(user=request.user)
+        if admin.role != 'admin':
+            return JsonResponse({'success': False, 'error': 'Only admins can update quotas'}, status=403)
+
+        # Get the family member
+        from django.contrib.auth.models import User
+        target_user = User.objects.get(username=username)
+        target_member = FamilyMember.objects.get(user=target_user)
+
+        # Update quota
+        target_member.storage_quota_gb = int(storage_quota_gb)
+        target_member.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Updated {username} quota to {storage_quota_gb} GB'
+        })
+
+    except FamilyMember.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Member not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
 def storage_analytics(request):
     """
     Detailed storage analytics and usage breakdown
