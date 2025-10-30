@@ -18,6 +18,18 @@ def check_setup_required(request):
         return True
     return False
 
+def welcome_animation(request):
+    """
+    Epic welcome animation - First screen users see
+    Only shown on very first app open (no users exist)
+    """
+    # Check if setup already done
+    if not check_setup_required(request):
+        # Setup already complete, redirect to login
+        return redirect('login')
+
+    return render(request, 'welcome_animation.html')
+
 def setup_wizard(request):
     """
     One-time setup wizard view

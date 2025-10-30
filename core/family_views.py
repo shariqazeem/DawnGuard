@@ -16,6 +16,7 @@ def family_home(request):
     New family-focused homepage
     Clear, simple, focused on 2 features: Family Vault + Kids AI
     """
+    # Note: Middleware handles first-time redirect to welcome animation
     return render(request, 'family_home.html', {
         'llm_available': llm_handler.available,
     })

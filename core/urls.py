@@ -13,6 +13,7 @@ urlpatterns = [
     # ============================================================
     # ONE-TIME SETUP WIZARD (First Run Experience)
     # ============================================================
+    path('welcome/', setup_views.welcome_animation, name='welcome_animation'),
     path('setup/', setup_views.setup_wizard, name='setup_wizard'),
     path('setup/complete/', setup_views.complete_setup, name='complete_setup'),
     path('setup/status/', setup_views.get_setup_status, name='setup_status'),
