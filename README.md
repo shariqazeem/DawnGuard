@@ -1,6 +1,6 @@
-# ☀️🔐 HomeGuardian AI - Your Family's Private AI + Cloud Storage on Black Box
+# ☀️🔐 DawnGuard - Your Family's Private AI + Cloud Storage on Black Box
 
-![HomeGuardian AI](https://img.shields.io/badge/DAWN-Black%20Box-orange) ![Solana](https://img.shields.io/badge/Solana-Devnet-purple) ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![DawnGuard](https://img.shields.io/badge/DAWN-Black%20Box-orange) ![Solana](https://img.shields.io/badge/Solana-Devnet-purple) ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 
 **Replace Dropbox + ChatGPT with ONE Black Box. Save $240/year. 100% Private.**
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 💰 Why Every Family Needs HomeGuardian AI
+## 💰 Why Every Family Needs DawnGuard
 
 ### The Problem
 - 💸 **Dropbox costs $240/year** (2TB at $20/month)
@@ -16,7 +16,7 @@
 - 🔓 **ChatGPT has no parental controls** for kids
 - 🌐 **Cloud storage = Privacy nightmare**
 
-### The HomeGuardian Solution
+### The DawnGuard Solution
 
 #### 🏠 **Family Vault** (Dropbox Killer)
 - ☁️ **Unlimited storage** on YOUR Black Box
@@ -43,7 +43,7 @@
 
 ### 🆕 **FAMILY VAULT** - Replace Dropbox for $0/month
 
-The killer feature that makes HomeGuardian AI a must-have for every family:
+The killer feature that makes DawnGuard a must-have for every family:
 
 #### 💾 Unlimited Private Storage
 - Upload unlimited files to YOUR Black Box
@@ -104,9 +104,9 @@ The killer feature that makes HomeGuardian AI a must-have for every family:
 
 ## 🎯 Perfect for DAWN's Cypherpunk Vision
 
-HomeGuardian AI embodies the **"Praise the Sun"** ethos:
+DawnGuard embodies the **"Praise the Sun"** ethos:
 
-| DAWN Principle | HomeGuardian AI Implementation |
+| DAWN Principle | DawnGuard Implementation |
 |----------------|------------------------|
 | **Decentralization** | No central server - pure P2P mesh |
 | **User Ownership** | Your AI, your data, your Black Box |
@@ -333,7 +333,7 @@ MIT License - Own your code, own your AI, own your data.
 
 <div align="center">
 
-**☀️ Rise with HomeGuardian AI. Privacy is the new power. 🔐**
+**☀️ Rise with DawnGuard. Privacy is the new power. 🔐**
 
 *Built for DAWN Black Box | Powered by Solana | Secured by Cryptography*
 
