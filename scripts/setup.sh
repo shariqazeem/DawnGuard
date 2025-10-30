@@ -5,7 +5,7 @@
 
 set -e  # Exit on error
 
-echo "🔒 CypherVault - Privacy-First AI Assistant Setup"
+echo "🔒 DawnGuard - Privacy-First AI Assistant Setup"
 echo "=================================================="
 echo ""
 
@@ -13,6 +13,7 @@ echo ""
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Check if Docker is installed
@@ -29,6 +30,26 @@ fi
 echo -e "${GREEN}✓ Docker is installed${NC}"
 echo ""
 
+# Domain configuration
+echo "🌐 Domain Configuration"
+echo "======================="
+read -p "Enter your DuckDNS domain (e.g., dawnguard.duckdns.org): " DOMAIN_NAME
+read -p "Enter your email for SSL certificate: " SSL_EMAIL
+
+if [ -z "$DOMAIN_NAME" ]; then
+    echo -e "${RED}❌ Domain name is required!${NC}"
+    exit 1
+fi
+
+if [ -z "$SSL_EMAIL" ]; then
+    echo -e "${RED}❌ Email is required for SSL certificate!${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Domain: $DOMAIN_NAME${NC}"
+echo -e "${GREEN}✓ Email: $SSL_EMAIL${NC}"
+echo ""
+
 # Generate secure keys
 echo "🔑 Generating secure encryption keys..."
 SECRET_KEY=$(python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())' 2>/dev/null || openssl rand -base64 50)
@@ -40,7 +61,7 @@ cat > .env << EOF
 # Django Configuration
 SECRET_KEY=${SECRET_KEY}
 DEBUG=False
-ALLOWED_HOSTS=*
+ALLOWED_HOSTS=${DOMAIN_NAME},localhost,127.0.0.1
 
 # Encryption
 ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -51,6 +72,10 @@ DATABASE_URL=sqlite:///db.sqlite3
 # Ollama
 OLLAMA_HOST=http://ollama:11434
 DEFAULT_MODEL=llama3.2:3b
+
+# Domain & SSL
+DOMAIN_NAME=${DOMAIN_NAME}
+SSL_EMAIL=${SSL_EMAIL}
 EOF
 
 echo -e "${GREEN}✓ Environment file created${NC}"
@@ -65,8 +90,8 @@ echo "🐳 Building Docker containers..."
 docker-compose build
 
 echo ""
-echo "🚀 Starting services..."
-docker-compose up -d
+echo "🚀 Starting services (without SSL first)..."
+docker-compose up -d web ollama ipfs
 
 # Wait for services to be ready
 echo ""
@@ -80,6 +105,45 @@ docker-compose exec -T web python manage.py migrate
 # Collect static files
 echo "📦 Collecting static files..."
 docker-compose exec -T web python manage.py collectstatic --noinput
+
+# Start Nginx without SSL initially
+echo ""
+echo "🌐 Starting Nginx (HTTP only for now)..."
+docker-compose up -d nginx
+
+# Obtain SSL certificate
+echo ""
+echo "🔐 Obtaining SSL certificate from Let's Encrypt..."
+echo "   This may take a moment..."
+
+# Check if certificate already exists
+if [ ! -d "./certbot/conf/live/${DOMAIN_NAME}" ]; then
+    docker-compose run --rm certbot certonly \
+        --webroot \
+        --webroot-path=/var/www/certbot \
+        --email ${SSL_EMAIL} \
+        --agree-tos \
+        --no-eff-email \
+        -d ${DOMAIN_NAME}
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ SSL certificate obtained successfully!${NC}"
+    else
+        echo -e "${YELLOW}⚠ SSL certificate failed. Running in HTTP mode.${NC}"
+        echo -e "${YELLOW}   Make sure your domain points to this server's IP.${NC}"
+        echo -e "${YELLOW}   You can retry SSL later with: docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos -d ${DOMAIN_NAME}${NC}"
+    fi
+else
+    echo -e "${GREEN}✓ SSL certificate already exists${NC}"
+fi
+
+# Restart Nginx to apply SSL
+echo "🔄 Restarting Nginx with SSL..."
+docker-compose restart nginx
+
+# Start certbot renewal service
+echo "🤖 Starting SSL auto-renewal service..."
+docker-compose up -d certbot
 
 # Pull LLM model
 echo ""
@@ -106,7 +170,8 @@ echo -e "${GREEN}✓ DawnGuard TRUE DAPP is ready!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "📍 Access your private AI assistant at:"
-echo "   → http://localhost:8000"
+echo -e "   → ${BLUE}https://${DOMAIN_NAME}${NC}"
+echo -e "   → ${BLUE}http://${DOMAIN_NAME}${NC} (redirects to HTTPS)"
 echo ""
 echo "🔐 Your encryption key has been saved to .env"
 echo "   Keep this file secure!"
@@ -118,16 +183,17 @@ echo "🛑 Stop services with:"
 echo "   → docker-compose down"
 echo ""
 echo "🎯 Next steps:"
-echo "   1. Open http://localhost:8000 in your browser"
+echo "   1. Open https://${DOMAIN_NAME} in your browser"
 echo "   2. Create an account"
 echo "   3. Start chatting with your private AI"
 echo ""
 echo "🚀 TRUE DAPP Features:"
-echo "   → IPFS Vault: http://localhost:8000/vault/dapp/"
-echo "   → P2P Knowledge: http://localhost:8000/p2p/dapp/"
+echo "   → IPFS Vault: https://${DOMAIN_NAME}/vault/dapp/"
+echo "   → P2P Knowledge: https://${DOMAIN_NAME}/p2p/dapp/"
 echo "   → Gun.js P2P Database: Automatically syncing"
 echo "   → Solana Blockchain: Connect Phantom wallet"
 echo ""
-echo -e "${YELLOW}⚠️  Remember: Your data never leaves this device!${NC}"
+echo -e "${YELLOW}⚠️  Remember: Your data never leaves this server!${NC}"
 echo -e "${GREEN}✨ TRUE DECENTRALIZATION: IPFS + Gun.js + Solana${NC}"
+echo -e "${GREEN}🔒 SSL Certificate: Auto-renewing every 12 hours${NC}"
 echo ""

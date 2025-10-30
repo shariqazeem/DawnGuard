@@ -10,8 +10,8 @@ services:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-hackathon-demo-key-change-in-production
@@ -23,6 +23,39 @@ services:
     depends_on:
       - ollama
       - ipfs
+    networks:
+      - cyphervault_network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy with SSL
+  nginx:
+    build: ./nginx
+    container_name: dawnguard_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+    depends_on:
+      - web
+    networks:
+      - cyphervault_network
+    restart: unless-stopped
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: dawnguard_certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - cyphervault_network
     restart: unless-stopped
@@ -66,6 +99,8 @@ volumes:
   ollama_data:
   ipfs_data:
   ipfs_staging:
+  certbot_conf:
+  certbot_www:
 
 networks:
   cyphervault_network:
