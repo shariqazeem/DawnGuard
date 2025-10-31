@@ -30,6 +30,22 @@ fi
 echo -e "${GREEN}✓ Docker is ready${NC}"
 echo ""
 
+# Generate self-signed SSL certificate for Phantom wallet support
+echo "🔐 Generating SSL certificate (for Phantom wallet)..."
+if [ ! -d "ssl" ]; then
+    mkdir -p ssl
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+      -keyout ssl/privkey.pem \
+      -out ssl/fullchain.pem \
+      -subj "/C=US/ST=State/L=City/O=DawnGuard/CN=$SERVER_IP" \
+      -addext "subjectAltName=IP:$SERVER_IP,DNS:localhost,IP:127.0.0.1" \
+      2>/dev/null
+    echo -e "${GREEN}✓ SSL certificate generated${NC}"
+else
+    echo -e "${YELLOW}✓ SSL certificate already exists${NC}"
+fi
+echo ""
+
 # Generate keys
 echo "🔑 Generating encryption keys..."
 SECRET_KEY=$(openssl rand -base64 50)
@@ -96,18 +112,24 @@ echo -e "${GREEN}✓ DawnGuard is LIVE!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "📍 Access your app at:"
-echo -e "   ${BLUE}http://${SERVER_IP}${NC}"
+echo -e "   ${BLUE}https://${SERVER_IP}${NC} (HTTPS - for Phantom wallet)"
+echo -e "   ${BLUE}http://${SERVER_IP}${NC} (HTTP - also works)"
 echo ""
 echo "🎯 Features:"
-echo "   → Main App: http://${SERVER_IP}"
-echo "   → IPFS Vault: http://${SERVER_IP}/vault/dapp/"
-echo "   → P2P Knowledge: http://${SERVER_IP}/p2p/dapp/"
+echo "   → Main App: https://${SERVER_IP}"
+echo "   → IPFS Vault: https://${SERVER_IP}/vault/dapp/"
+echo "   → P2P Knowledge: https://${SERVER_IP}/p2p/dapp/"
+echo ""
+echo -e "${YELLOW}⚠️  Browser Warning: Self-signed certificate${NC}"
+echo "   Click 'Advanced' → 'Proceed to ${SERVER_IP}' to access"
+echo "   This is normal for self-signed certificates"
+echo ""
+echo "💡 Phantom Wallet: Now works with HTTPS!"
 echo ""
 echo "📊 Useful commands:"
 echo "   → View logs: docker-compose -f docker-compose.simple.yml logs -f"
 echo "   → Restart: docker-compose -f docker-compose.simple.yml restart"
 echo "   → Stop: docker-compose -f docker-compose.simple.yml down"
 echo ""
-echo -e "${YELLOW}⚠️  Note: Using HTTP (not HTTPS) for quick deployment${NC}"
-echo -e "${BLUE}💡 To add HTTPS later, see DEPLOYMENT.md${NC}"
+echo -e "${BLUE}💡 For production SSL (no browser warning), see DEPLOYMENT.md${NC}"
 echo ""

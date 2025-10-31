@@ -58,6 +58,11 @@ venv.bak/
 /certbot/
 certbot_conf/
 certbot_www/
+/ssl/
+*.pem
+*.key
+*.crt
+*.csr
 
 # Backup files
 *.bak

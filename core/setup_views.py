@@ -20,41 +20,44 @@ def check_setup_required(request):
 
 def welcome_animation(request):
     """
-    Epic welcome animation - First screen users see
-    Only shown on very first app open (no users exist)
+    Epic welcome animation - First screen new visitors see
+    Shown to anyone who hasn't logged in yet
     """
-    # Check if setup already done
-    if not check_setup_required(request):
-        # Setup already complete, redirect to login
-        return redirect('login')
+    # If user is already logged in, redirect to home
+    if request.user.is_authenticated:
+        return redirect('home')
 
     return render(request, 'welcome_animation.html')
 
 def setup_wizard(request):
     """
-    One-time setup wizard view
-    Only accessible if no users exist yet
+    Setup wizard view for creating new accounts
+    Can be accessed by anyone not logged in
     """
-    # Check if setup already done
-    if not check_setup_required(request):
-        # Setup already complete, redirect to login
-        return redirect('login')
+    # If user is already logged in, redirect to home
+    if request.user.is_authenticated:
+        return redirect('home')
 
-    return render(request, 'setup_wizard.html')
+    # Check if this is the FIRST user ever (show different messaging)
+    is_first_user = User.objects.count() == 0
+
+    return render(request, 'setup_wizard.html', {
+        'is_first_user': is_first_user
+    })
 
 
 @csrf_exempt
 def complete_setup(request):
     """
-    Complete the initial setup
-    Creates admin user and family members with auto-generated credentials
+    Complete the setup - creates new user account
+    Can be called multiple times to create multiple accounts
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
 
-    # Check if setup already done
-    if not check_setup_required(request):
-        return JsonResponse({'success': False, 'error': 'Setup already completed'}, status=400)
+    # If user is already logged in, they can't create another account
+    if request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Already logged in'}, status=400)
 
     try:
         data = json.loads(request.body)
