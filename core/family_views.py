@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 from .models import FamilyMember, VaultFile, Conversation
 from .vault_views import vault_home
 from .utils.llm_handler import LLMHandler
@@ -114,10 +116,11 @@ def kids_ai_home(request):
         return redirect('family_dashboard')
 
 
-@login_required
+@csrf_exempt
 def kids_ai_chat(request):
     """
     Kids AI chat endpoint - sends messages to Ollama with safety filtering
+    Works with or without authentication (dApp mode)
     """
     import json
 
@@ -125,14 +128,20 @@ def kids_ai_chat(request):
         return JsonResponse({'error': 'Invalid method'}, status=405)
 
     try:
-        family_member = FamilyMember.objects.get(user=request.user)
-
-        # Check permissions
-        if not family_member.ai_chat_enabled:
-            return JsonResponse({
-                'success': False,
-                'error': 'AI Chat is disabled for your account'
-            }, status=403)
+        # Check if user is authenticated (Django mode) or anonymous (dApp mode)
+        if request.user.is_authenticated:
+            try:
+                family_member = FamilyMember.objects.get(user=request.user)
+                # Check permissions
+                if not family_member.ai_chat_enabled:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'AI Chat is disabled for your account'
+                    }, status=403)
+            except FamilyMember.DoesNotExist:
+                # User exists but no family member profile - allow anyway
+                pass
+        # If not authenticated, allow anonymous usage (dApp mode)
 
         # Get message
         data = json.loads(request.body)
@@ -142,49 +151,54 @@ def kids_ai_chat(request):
         if not user_message:
             return JsonResponse({'error': 'No message provided'}, status=400)
 
-        # If conversation_id provided, continue that conversation
-        if conversation_id:
-            try:
-                conversation = Conversation.objects.get(id=conversation_id, user=request.user)
-                # Mark it as active and update timestamp
-                conversation.is_active = True
-                conversation.save()
-            except Conversation.DoesNotExist:
-                return JsonResponse({'error': 'Conversation not found'}, status=404)
-        else:
-            # Close any other active conversations for this user
-            Conversation.objects.filter(user=request.user, is_active=True).update(is_active=False)
+        # Conversation tracking (only for authenticated users)
+        conversation = None
+        if request.user.is_authenticated:
+            # If conversation_id provided, continue that conversation
+            if conversation_id:
+                try:
+                    conversation = Conversation.objects.get(id=conversation_id, user=request.user)
+                    # Mark it as active and update timestamp
+                    conversation.is_active = True
+                    conversation.save()
+                except Conversation.DoesNotExist:
+                    return JsonResponse({'error': 'Conversation not found'}, status=404)
+            else:
+                # Close any other active conversations for this user
+                Conversation.objects.filter(user=request.user, is_active=True).update(is_active=False)
 
-            # Create new conversation
-            conversation = Conversation.objects.create(
-                user=request.user,
-                title=user_message[:50],  # Use first message as title
-                is_active=True
-            )
+                # Create new conversation
+                conversation = Conversation.objects.create(
+                    user=request.user,
+                    title=user_message[:50],  # Use first message as title
+                    is_active=True
+                )
+        # For anonymous users (dApp mode), skip conversation tracking
 
         # Check if Ollama is available
         if not llm_handler.available:
             # Return mock response
             response_text = get_mock_kids_response(user_message)
 
-            # Save messages to database
-            from .models import Message
-            Message.objects.create(
-                conversation=conversation,
-                role='user',
-                content=user_message
-            )
-            Message.objects.create(
-                conversation=conversation,
-                role='assistant',
-                content=response_text
-            )
+            # Save messages to database (only if authenticated)
+            if conversation:
+                from .models import Message
+                Message.objects.create(
+                    conversation=conversation,
+                    role='user',
+                    content=user_message
+                )
+                Message.objects.create(
+                    conversation=conversation,
+                    role='assistant',
+                    content=response_text
+                )
 
             return JsonResponse({
                 'success': True,
                 'response': response_text,
                 'mock_mode': True,
-                'conversation_id': conversation.id
+                'conversation_id': conversation.id if conversation else None
             })
 
         # Create kid-safe system prompt
@@ -210,52 +224,55 @@ Remember: You're helping them learn, not doing their homework for them!"""
                 }]
             )
 
-            # Save conversation to database for parental monitoring
-            from .models import Message
-            Message.objects.create(
-                conversation=conversation,
-                role='user',
-                content=user_message
-            )
-            Message.objects.create(
-                conversation=conversation,
-                role='assistant',
-                content=response_text
-            )
+            # Save conversation to database for parental monitoring (only if authenticated)
+            if conversation:
+                from .models import Message
+                Message.objects.create(
+                    conversation=conversation,
+                    role='user',
+                    content=user_message
+                )
+                Message.objects.create(
+                    conversation=conversation,
+                    role='assistant',
+                    content=response_text
+                )
 
             return JsonResponse({
                 'success': True,
                 'response': response_text,
                 'mock_mode': False,
-                'conversation_id': conversation.id
+                'conversation_id': conversation.id if conversation else None
             })
 
         except Exception as e:
             # Fallback to mock
             response_text = get_mock_kids_response(user_message)
 
-            # Still save to database
-            from .models import Message
-            Message.objects.create(
-                conversation=conversation,
-                role='user',
-                content=user_message
-            )
-            Message.objects.create(
-                conversation=conversation,
-                role='assistant',
-                content=response_text
-            )
+            # Still save to database (only if authenticated)
+            if conversation:
+                from .models import Message
+                Message.objects.create(
+                    conversation=conversation,
+                    role='user',
+                    content=user_message
+                )
+                Message.objects.create(
+                    conversation=conversation,
+                    role='assistant',
+                    content=response_text
+                )
 
             return JsonResponse({
                 'success': True,
                 'response': response_text,
                 'mock_mode': True,
                 'note': f'Ollama error: {str(e)}',
-                'conversation_id': conversation.id
+                'conversation_id': conversation.id if conversation else None
             })
 
     except FamilyMember.DoesNotExist:
+        # This exception won't be raised anymore since we made it optional
         return JsonResponse({'error': 'Family member not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

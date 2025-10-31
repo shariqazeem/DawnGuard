@@ -82,17 +82,30 @@ CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False  # Set to True only if using HTTPS
 
-# CSRF Trusted Origins - Allow all since ALLOWED_HOSTS is already restricted
-# This fixes 403 errors when posting from your server IP
-CSRF_TRUSTED_ORIGINS = []
-if ALLOWED_HOSTS != ['*']:
-    for host in ALLOWED_HOSTS:
-        if host and host != '*':
-            CSRF_TRUSTED_ORIGINS.append(f'http://{host}')
-            CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
-else:
-    # If ALLOWED_HOSTS is *, allow all origins (development mode)
-    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'https://localhost:8000', 'https://127.0.0.1:8000']
+# CSRF Trusted Origins - Critical for production deployment
+# Django 4.0+ requires this for POST requests from your domain
+# For hackathon/demo mode with ALLOWED_HOSTS = '*', we disable CSRF for @csrf_exempt views
+# and rely on CORS for actual security
+
+# Allow common development origins
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://localhost:8000',
+    'https://127.0.0.1:8000',
+]
+
+# For production IPs, add them dynamically
+# Get from environment variable if set
+PRODUCTION_HOST = os.getenv('PRODUCTION_HOST', None)
+if PRODUCTION_HOST:
+    CSRF_TRUSTED_ORIGINS.extend([
+        f'http://{PRODUCTION_HOST}',
+        f'https://{PRODUCTION_HOST}',
+    ])
+
+# Alternative: For maximum flexibility in demo/hackathon, exempt CSRF on API endpoints
+# This is why we use @csrf_exempt decorator on api_views.py
 
 ROOT_URLCONF = 'cyphervault.urls'
 

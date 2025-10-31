@@ -170,24 +170,50 @@ def download_file_ipfs(request):
         try:
             import base64
 
+            # Debug logging
+            print(f"📦 IPFS content length: {len(encrypted_content)} bytes")
+            print(f"📦 First 100 chars: {encrypted_content[:100]}")
+
             # First, try to decode as UTF-8 string (encrypted format)
-            encrypted_str = encrypted_content.decode('utf-8')
+            try:
+                encrypted_str = encrypted_content.decode('utf-8')
+                print(f"✅ Decoded as UTF-8, length: {len(encrypted_str)}")
+            except UnicodeDecodeError as e:
+                print(f"❌ Failed to decode as UTF-8: {e}")
+                # File is binary, not encrypted text - return as-is
+                content_b64 = base64.b64encode(encrypted_content).decode('utf-8')
+                return JsonResponse({
+                    'success': True,
+                    'content': content_b64,
+                    'cid': cid,
+                    'encoding': 'base64',
+                    'note': 'File was not encrypted (binary mode)'
+                })
 
             # Try to decrypt
             try:
                 # Decrypt the encrypted content (returns base64 string of original binary)
                 decrypted_b64 = encryption_manager.decrypt(encrypted_str)
+                print(f"✅ Decrypted successfully, length: {len(decrypted_b64)}")
+
                 # Decode base64 to get original binary data
                 original_bytes = base64.b64decode(decrypted_b64)
+                print(f"✅ Decoded base64, got {len(original_bytes)} bytes")
+
                 # Convert to base64 for safe JSON transport
                 content_b64 = base64.b64encode(original_bytes).decode('utf-8')
+                print(f"✅ Final base64 length: {len(content_b64)}")
+
             except ValueError as decrypt_err:
-                # If decryption fails, the file might not be encrypted
+                # If decryption fails, the file might not be encrypted properly
                 # Try to return raw content as base64
-                print(f"Decryption error, trying raw content: {decrypt_err}")
+                print(f"⚠️  Decryption error, trying raw content: {decrypt_err}")
                 content_b64 = base64.b64encode(encrypted_content).decode('utf-8')
 
         except Exception as decrypt_error:
+            import traceback
+            print(f"❌ Download error: {decrypt_error}")
+            print(traceback.format_exc())
             return JsonResponse({
                 'success': False,
                 'error': f'Download processing failed: {str(decrypt_error)}'
