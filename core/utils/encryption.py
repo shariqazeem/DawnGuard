@@ -43,8 +43,9 @@ class EncryptionManager:
             decoded = base64.urlsafe_b64decode(encrypted_data.encode())
             decrypted = self.cipher.decrypt(decoded)
             return decrypted.decode()
-        except Exception:
-            return "[Decryption Error]"
+        except Exception as e:
+            # Re-raise with more context for debugging
+            raise ValueError(f"Decryption failed: {str(e)}")
     
     def generate_key(self):
         """Generate a new encryption key"""

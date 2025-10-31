@@ -6,8 +6,16 @@ from django.views.decorators.http import require_http_methods
 import json
 from .utils.llm_handler import LLMHandler
 
-# Initialize LLM handler
-llm_handler = LLMHandler()
+# Initialize LLM handler (lazy initialization pattern)
+llm_handler = None
+
+
+def get_llm_handler():
+    """Get or create LLM handler instance"""
+    global llm_handler
+    if llm_handler is None:
+        llm_handler = LLMHandler()
+    return llm_handler
 
 
 @csrf_exempt
@@ -29,8 +37,13 @@ def api_chat(request):
                 'error': 'No message provided'
             }, status=400)
 
-        # Check if Ollama is available
-        if not llm_handler.available:
+        # Get LLM handler instance
+        handler = get_llm_handler()
+
+        # Check if Ollama is available (re-check each time)
+        handler.available = handler.check_ollama()
+
+        if not handler.available:
             return JsonResponse({
                 'success': False,
                 'error': 'Ollama AI is not available. Please start Ollama: docker-compose up -d ollama'
@@ -49,7 +62,7 @@ def api_chat(request):
             else:
                 full_prompt = user_message
 
-            ai_response = llm_handler.generate_response(full_prompt)
+            ai_response = handler.generate_response(full_prompt)
 
             if not ai_response or ai_response.strip() == '':
                 ai_response = "I'm having trouble generating a response right now. Could you try rephrasing your question?"
@@ -84,8 +97,12 @@ def api_chat_status(request):
     """
     Check if Ollama AI is available
     """
+    handler = get_llm_handler()
+    # Re-check availability
+    handler.available = handler.check_ollama()
+
     return JsonResponse({
-        'available': llm_handler.available,
-        'model': llm_handler.model if llm_handler.available else None,
-        'endpoint': llm_handler.ollama_url if llm_handler.available else None
+        'available': handler.available,
+        'model': handler.default_model if handler.available else None,
+        'endpoint': handler.ollama_host if handler.available else None
     })

@@ -169,16 +169,28 @@ def download_file_ipfs(request):
         # Decrypt content
         try:
             import base64
-            # Decrypt the encrypted content (returns base64 string)
-            decrypted_b64 = encryption_manager.decrypt(encrypted_content.decode('utf-8'))
-            # Decode base64 to get original binary data
-            original_bytes = base64.b64decode(decrypted_b64)
-            # Convert to base64 for safe JSON transport
-            content_b64 = base64.b64encode(original_bytes).decode('utf-8')
+
+            # First, try to decode as UTF-8 string (encrypted format)
+            encrypted_str = encrypted_content.decode('utf-8')
+
+            # Try to decrypt
+            try:
+                # Decrypt the encrypted content (returns base64 string of original binary)
+                decrypted_b64 = encryption_manager.decrypt(encrypted_str)
+                # Decode base64 to get original binary data
+                original_bytes = base64.b64decode(decrypted_b64)
+                # Convert to base64 for safe JSON transport
+                content_b64 = base64.b64encode(original_bytes).decode('utf-8')
+            except ValueError as decrypt_err:
+                # If decryption fails, the file might not be encrypted
+                # Try to return raw content as base64
+                print(f"Decryption error, trying raw content: {decrypt_err}")
+                content_b64 = base64.b64encode(encrypted_content).decode('utf-8')
+
         except Exception as decrypt_error:
             return JsonResponse({
                 'success': False,
-                'error': f'Decryption failed: {str(decrypt_error)}'
+                'error': f'Download processing failed: {str(decrypt_error)}'
             }, status=500)
 
         return JsonResponse({
