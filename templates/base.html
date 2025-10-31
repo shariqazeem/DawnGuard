@@ -15,7 +15,11 @@
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script>
         // Initialize Gun.js for TRUE decentralization
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+        // Use only local storage (no external relay servers to avoid connection errors)
+        const gun = Gun({
+            localStorage: true,
+            radisk: true
+        });
         window.dawnguardGun = gun;
         console.log('✅ Gun.js P2P Database initialized - TRUE DAPP MODE');
     </script>

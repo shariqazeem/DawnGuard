@@ -119,8 +119,6 @@ def kids_ai_chat(request):
     """
     Kids AI chat endpoint - sends messages to Ollama with safety filtering
     """
-    from django.http import JsonResponse
-    from django.views.decorators.csrf import csrf_exempt
     import json
 
     if request.method != 'POST':

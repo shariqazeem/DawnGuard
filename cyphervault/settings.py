@@ -81,10 +81,18 @@ SESSION_COOKIE_SECURE = False  # Set to True only if using HTTPS
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False  # Set to True only if using HTTPS
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
-# Add your server IPs/domains here
-# CSRF_TRUSTED_ORIGINS.append('http://YOUR_SERVER_IP')
+# CSRF Trusted Origins - Allow all since ALLOWED_HOSTS is already restricted
+# This fixes 403 errors when posting from your server IP
+CSRF_TRUSTED_ORIGINS = []
+if ALLOWED_HOSTS != ['*']:
+    for host in ALLOWED_HOSTS:
+        if host and host != '*':
+            CSRF_TRUSTED_ORIGINS.append(f'http://{host}')
+            CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
+else:
+    # If ALLOWED_HOSTS is *, allow all origins (development mode)
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'https://localhost:8000', 'https://127.0.0.1:8000']
 
 ROOT_URLCONF = 'cyphervault.urls'
 
