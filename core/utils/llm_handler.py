@@ -1,17 +1,24 @@
 import ollama
 import time
+import os
 
 class LLMHandler:
     def __init__(self):
+        # Configure Ollama client with host from environment
+        self.ollama_host = os.getenv('OLLAMA_HOST', 'http://localhost:11434')
+        # Create client with custom host
+        self.client = ollama.Client(host=self.ollama_host)
+
         self.available = self.check_ollama()
         self.default_model = "llama3.2:3b"
-    
+
     def check_ollama(self):
         """Check if Ollama is available"""
         try:
-            ollama.list()
+            self.client.list()
             return True
-        except:
+        except Exception as e:
+            print(f"Ollama connection error: {e}")
             return False
     
     def generate_response(self, prompt, context=None, model=None, max_tokens=None):
@@ -38,7 +45,7 @@ class LLMHandler:
                 options['num_predict'] = max_tokens
 
             # Generate response
-            response = ollama.chat(
+            response = self.client.chat(
                 model=model or self.default_model,
                 messages=messages,
                 stream=False,
@@ -76,7 +83,7 @@ class LLMHandler:
             })
             
             # Generate streaming response
-            stream = ollama.chat(
+            stream = self.client.chat(
                 model=model or self.default_model,
                 messages=messages,
                 stream=True

@@ -126,12 +126,13 @@ def upload_file_ipfs(request):
         }, status=500)
 
 
-@login_required
+@csrf_exempt
 def download_file_ipfs(request):
     """
     TRUE DAPP: Download file from IPFS
 
     Frontend provides CID, we fetch from IPFS and decrypt
+    No login required for TRUE DAPP mode (wallet-based auth)
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=405)
