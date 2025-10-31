@@ -10,10 +10,11 @@ class IPFSHandler:
     Uses IPFS HTTP API (no Python SDK needed)
     """
 
-    def __init__(self, ipfs_api_url=None):
+    def __init__(self, ipfs_api_url=None, gateway_url=None):
         """
         Initialize IPFS handler
         :param ipfs_api_url: IPFS API endpoint
+        :param gateway_url: IPFS gateway URL (for file retrieval)
         """
         # Try multiple endpoints
         if ipfs_api_url:
@@ -27,7 +28,14 @@ class IPFSHandler:
             else:
                 self.api_url = 'http://localhost:5001'  # Default fallback
 
-        self.gateway_url = 'http://localhost:8080'  # IPFS gateway for retrieval
+        # Set gateway URL - use environment variable or passed parameter
+        import os
+        if gateway_url:
+            self.gateway_url = gateway_url
+        else:
+            # Try to get from environment, otherwise use current host
+            self.gateway_url = os.getenv('IPFS_GATEWAY', 'http://ipfs:8080')
+
         self.available = self.check_ipfs_connection()
 
         if self.available:

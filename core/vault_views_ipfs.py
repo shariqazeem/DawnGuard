@@ -14,11 +14,12 @@ encryption_manager = EncryptionManager()
 # Direct IPFS connection (works in Docker network)
 # Get from environment or use defaults
 import os
-IPFS_API_URL = os.getenv('IPFS_API_URL', 'http://localhost:5001')
-IPFS_GATEWAY = os.getenv('IPFS_GATEWAY', 'http://localhost:8080')
+IPFS_API_URL = os.getenv('IPFS_API_URL', 'http://ipfs:5001')
+IPFS_GATEWAY = os.getenv('IPFS_GATEWAY', 'http://ipfs:8080')
 
-# For public sharing, always use localhost gateway (accessible from browser)
-IPFS_PUBLIC_GATEWAY = 'http://localhost:8080'
+# For public sharing - use current request host
+# This will be dynamically set based on the request
+IPFS_PUBLIC_GATEWAY = None  # Will be set per-request
 
 
 @login_required
@@ -97,12 +98,19 @@ def upload_file_ipfs(request):
                 'error': f'IPFS error: {str(ipfs_error)}'
             }, status=500)
 
+        # Get current host from request for gateway URL
+        request_host = request.get_host()
+        # Determine protocol (http or https)
+        protocol = 'https' if request.is_secure() else 'http'
+        # Build gateway URL using current host
+        gateway_url = f"{protocol}://{request_host}/ipfs/{cid}"
+
         # Return CID and metadata (frontend will store in Gun.js)
         return JsonResponse({
             'success': True,
             'message': 'File uploaded to IPFS successfully!',
             'ipfs_cid': cid,
-            'gateway_url': f"{IPFS_PUBLIC_GATEWAY}/ipfs/{cid}",  # Browser-accessible URL
+            'gateway_url': gateway_url,  # Browser-accessible URL using current host
             'file_name': uploaded_file.name,
             'file_size': file_size,
             'mime_type': mime_type,
