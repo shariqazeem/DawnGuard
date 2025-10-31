@@ -265,7 +265,7 @@ CID: ${data.ipfs_cid}
 File will appear below in a few seconds (Gun.js sync).
 
 Access via:
-• Local: http://127.0.0.1:8080/ipfs/${data.ipfs_cid}
+• Gateway: ${window.location.protocol}//${window.location.host}/ipfs/${data.ipfs_cid}
 • Public: https://ipfs.io/ipfs/${data.ipfs_cid} (if pinned)`);
 
             // No need to reload - Gun.js .on() listener will update UI automatically
@@ -284,8 +284,10 @@ Access via:
 }
 
 function viewOnLocalIPFS(cid) {
-    // Use the proper gateway format
-    const gatewayUrl = `http://127.0.0.1:8080/ipfs/${cid}`;
+    // Use current host for gateway URL
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    const gatewayUrl = `${protocol}//${host}/ipfs/${cid}`;
 
     // Open in new tab
     const newWindow = window.open(gatewayUrl, '_blank');
@@ -296,8 +298,10 @@ function viewOnLocalIPFS(cid) {
 }
 
 function openPublicGateway(cid) {
-    // Try local gateway first
-    const localUrl = `http://127.0.0.1:8080/ipfs/${cid}`;
+    // Use current host for gateway URL
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    const localUrl = `${protocol}//${host}/ipfs/${cid}`;
 
     // Show options
     const choice = confirm(`This file is on your local IPFS node.\n\nClick OK to open local gateway\nClick Cancel to try public gateway (may not work)`);
@@ -373,7 +377,9 @@ async function downloadAndDecrypt(cid, fileName) {
 
 function viewRawIPFS(cid) {
     // View encrypted file on IPFS gateway (for verification)
-    const gatewayUrl = `http://127.0.0.1:8080/ipfs/${cid}`;
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    const gatewayUrl = `${protocol}//${host}/ipfs/${cid}`;
     const newWindow = window.open(gatewayUrl, '_blank');
 
     if (!newWindow) {

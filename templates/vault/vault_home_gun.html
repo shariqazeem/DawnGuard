@@ -450,7 +450,9 @@ async function downloadAndDecrypt(cid, fileName, event) {
 
 function viewRawIPFS(cid, event) {
     event.stopPropagation();
-    const gatewayUrl = `http://127.0.0.1:8080/ipfs/${cid}`;
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    const gatewayUrl = `${protocol}//${host}/ipfs/${cid}`;
     const newWindow = window.open(gatewayUrl, '_blank');
 
     if (!newWindow) {
