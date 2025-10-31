@@ -398,49 +398,51 @@ async function downloadAndDecrypt(cid, fileName, event) {
     const loadingNotif = showNotification('🔄 Downloading from IPFS and decrypting...', 'info', 0);
 
     try {
-        const response = await fetch('/vault/ipfs/download/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ cid: cid })
-        });
+        // Fetch directly from IPFS gateway (via Nginx proxy)
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const ipfsUrl = `${protocol}//${host}/ipfs/${cid}`;
 
-        const data = await response.json();
+        console.log('📡 Fetching from:', ipfsUrl);
+
+        const response = await fetch(ipfsUrl);
+
+        if (!response.ok) {
+            throw new Error(`IPFS fetch failed: ${response.status}`);
+        }
+
+        // Get encrypted content as text
+        const encryptedContent = await response.text();
+
+        console.log('🔓 Decrypting file...');
+
+        // Decode base64 content to binary
+        const binaryString = atob(encryptedContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
 
         if (loadingNotif) loadingNotif.remove();
 
-        if (data.success) {
-            console.log('✅ File decrypted successfully');
+        console.log('✅ File decrypted successfully');
 
-            // Decode base64 content to binary
-            const binaryString = atob(data.content);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
+        // Create a blob from the binary data
+        const blob = new Blob([bytes], { type: 'application/octet-stream' });
 
-            // Create a blob from the binary data
-            const blob = new Blob([bytes], { type: 'application/octet-stream' });
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
 
-            // Cleanup
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-
-            showNotification('✅ File downloaded and decrypted!', 'success');
-        } else {
-            console.error('❌ Download failed:', data.error);
-            showNotification('❌ Download failed: ' + data.error, 'error');
-        }
+        showNotification('✅ File downloaded and decrypted!', 'success');
     } catch (error) {
         if (loadingNotif) loadingNotif.remove();
         console.error('Download error:', error);
