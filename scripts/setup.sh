@@ -128,7 +128,7 @@ sleep 5
 # Check if certificate already exists
 if [ ! -d "./certbot/conf/live/${DOMAIN_NAME}" ]; then
     echo "Attempting to obtain SSL certificate..."
-    $DOCKER_COMPOSE run --rm certbot certonly \
+    $DOCKER_COMPOSE run --rm --entrypoint certbot certbot certonly \
         --webroot \
         --webroot-path=/var/www/certbot \
         --email ${SSL_EMAIL} \
@@ -150,7 +150,7 @@ if [ ! -d "./certbot/conf/live/${DOMAIN_NAME}" ]; then
         echo -e "${YELLOW}   - Firewall blocking certbot${NC}"
         echo ""
         echo -e "${YELLOW}   You can retry SSL later with:${NC}"
-        echo -e "${YELLOW}   $DOCKER_COMPOSE run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos -d ${DOMAIN_NAME}${NC}"
+        echo -e "${YELLOW}   $DOCKER_COMPOSE run --rm --entrypoint certbot certbot certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos -d ${DOMAIN_NAME}${NC}"
         echo -e "${YELLOW}   Then restart nginx: $DOCKER_COMPOSE restart nginx${NC}"
     fi
 else

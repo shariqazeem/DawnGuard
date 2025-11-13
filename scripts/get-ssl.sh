@@ -85,7 +85,7 @@ fi
 # Obtain SSL certificate
 echo ""
 echo "Obtaining SSL certificate from Let's Encrypt..."
-$DOCKER_COMPOSE run --rm certbot certonly \
+$DOCKER_COMPOSE run --rm --entrypoint certbot certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
     --email ${SSL_EMAIL} \

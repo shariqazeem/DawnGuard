@@ -51,7 +51,7 @@ fi
 
 # Run certbot renewal
 echo "Attempting to renew SSL certificate..."
-$DOCKER_COMPOSE run --rm certbot renew $DRY_RUN
+$DOCKER_COMPOSE run --rm --entrypoint certbot certbot renew $DRY_RUN
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Certificate renewal successful (or not needed yet)${NC}"
@@ -76,7 +76,7 @@ echo ""
 echo -e "${GREEN}✓ SSL renewal process complete${NC}"
 echo ""
 echo "Certificate details:"
-$DOCKER_COMPOSE run --rm certbot certificates
+$DOCKER_COMPOSE run --rm --entrypoint certbot certbot certificates
 
 echo ""
 echo -e "${BLUE}Tip: Add this to cron for automatic renewal:${NC}"

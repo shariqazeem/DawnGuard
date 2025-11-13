@@ -4,13 +4,22 @@ This guide helps you troubleshoot SSL certificate issues with DawnGuard.
 
 ## Common Issue: "No renewals attempted"
 
-This message from certbot means there are no certificates to renew yet. It's shown when:
-- Certificates haven't been obtained in the first place
-- Certificates are not close to expiration (Let's Encrypt renews 30 days before expiry)
+This message from certbot usually means one of two things:
+1. **Wrong entrypoint**: The certbot container's entrypoint is set to run `certbot renew` instead of `certbot certonly`
+2. **No certificates to renew**: Certificates don't exist yet or aren't close to expiration
 
-**Solution**: Obtain certificates first using the manual script:
+**Root Cause**: The docker-compose.yml certbot service has a custom entrypoint for auto-renewal. When running certbot manually, this entrypoint must be overridden with `--entrypoint certbot`.
+
+**Solution**: Use the fixed scripts that properly override the entrypoint:
 ```bash
 ./scripts/get-ssl.sh
+```
+
+**Manual Fix**: If running certbot directly, always include `--entrypoint certbot`:
+```bash
+docker compose run --rm --entrypoint certbot certbot certonly \
+    --webroot --webroot-path=/var/www/certbot \
+    --email your@email.com --agree-tos -d your-domain.com
 ```
 
 ## Common Issues and Solutions
@@ -141,13 +150,13 @@ curl http://your-domain.duckdns.org/.well-known/acme-challenge/test.txt
 
 ### Force Certificate Renewal
 ```bash
-docker compose run --rm certbot renew --force-renewal
+docker compose run --rm --entrypoint certbot certbot renew --force-renewal
 docker compose restart nginx
 ```
 
 ### View Certificate Details
 ```bash
-docker compose run --rm certbot certificates
+docker compose run --rm --entrypoint certbot certbot certificates
 ```
 
 ## Emergency: Running Without SSL
