@@ -272,17 +272,48 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions including DuckDNS s
 
 ```bash
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Restart services
-docker-compose restart
+docker compose restart
 
 # Stop everything
-docker-compose down
+docker compose down
 
 # Pull AI model manually
-docker-compose exec ollama ollama pull llama3.2:3b
+docker compose exec ollama ollama pull llama3.2:3b
 ```
+
+### Troubleshooting SSL Issues
+
+If the setup script fails at the SSL certificate step:
+
+**Option 1: Use the manual SSL script**
+```bash
+./scripts/get-ssl.sh
+```
+
+**Option 2: Access via HTTP**
+If SSL fails, your app is still accessible via HTTP:
+```bash
+http://your-domain.duckdns.org
+```
+
+**Option 3: Renew/Fix SSL later**
+```bash
+# Test renewal
+./scripts/renew-ssl.sh --dry-run
+
+# Force renewal
+./scripts/renew-ssl.sh
+```
+
+**Common Issues:**
+- Domain DNS not pointing to server → Check with `dig your-domain.duckdns.org`
+- Port 80 blocked → Check firewall with `sudo ufw status`
+- "No renewals attempted" → Means certificates don't exist yet, run `./scripts/get-ssl.sh`
+
+See [docs/SSL-TROUBLESHOOTING.md](docs/SSL-TROUBLESHOOTING.md) for detailed troubleshooting guide.
 
 ---
 

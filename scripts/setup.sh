@@ -22,12 +22,18 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+# Check for docker compose (new syntax) or docker-compose (old syntax)
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
     echo -e "${RED}❌ Docker Compose is not installed. Please install Docker Compose first.${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}✓ Docker is installed${NC}"
+echo -e "${GREEN}✓ Using: $DOCKER_COMPOSE${NC}"
 echo ""
 
 # Domain configuration
@@ -87,11 +93,11 @@ mkdir -p logs staticfiles media
 
 # Build and start containers
 echo "🐳 Building Docker containers..."
-docker-compose build
+$DOCKER_COMPOSE build
 
 echo ""
 echo "🚀 Starting services (without SSL first)..."
-docker-compose up -d web ollama ipfs
+$DOCKER_COMPOSE up -d web ollama ipfs
 
 # Wait for services to be ready
 echo ""
@@ -100,25 +106,29 @@ sleep 10
 
 # Run migrations
 echo "🗄️  Setting up database..."
-docker-compose exec -T web python manage.py migrate
+$DOCKER_COMPOSE exec -T web python manage.py migrate
 
 # Collect static files
 echo "📦 Collecting static files..."
-docker-compose exec -T web python manage.py collectstatic --noinput
+$DOCKER_COMPOSE exec -T web python manage.py collectstatic --noinput
 
 # Start Nginx without SSL initially
 echo ""
 echo "🌐 Starting Nginx (HTTP only for now)..."
-docker-compose up -d nginx
+$DOCKER_COMPOSE up -d nginx
 
 # Obtain SSL certificate
 echo ""
 echo "🔐 Obtaining SSL certificate from Let's Encrypt..."
 echo "   This may take a moment..."
 
+# Wait a moment for nginx to be fully ready
+sleep 5
+
 # Check if certificate already exists
 if [ ! -d "./certbot/conf/live/${DOMAIN_NAME}" ]; then
-    docker-compose run --rm certbot certonly \
+    echo "Attempting to obtain SSL certificate..."
+    $DOCKER_COMPOSE run --rm certbot certonly \
         --webroot \
         --webroot-path=/var/www/certbot \
         --email ${SSL_EMAIL} \
@@ -128,28 +138,37 @@ if [ ! -d "./certbot/conf/live/${DOMAIN_NAME}" ]; then
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓ SSL certificate obtained successfully!${NC}"
+        # Restart Nginx to apply SSL
+        echo "🔄 Restarting Nginx with SSL..."
+        $DOCKER_COMPOSE restart nginx
     else
         echo -e "${YELLOW}⚠ SSL certificate failed. Running in HTTP mode.${NC}"
         echo -e "${YELLOW}   Make sure your domain points to this server's IP.${NC}"
-        echo -e "${YELLOW}   You can retry SSL later with: docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos -d ${DOMAIN_NAME}${NC}"
+        echo -e "${YELLOW}   Common issues:${NC}"
+        echo -e "${YELLOW}   - Domain DNS not pointing to this server${NC}"
+        echo -e "${YELLOW}   - Port 80 not accessible from internet${NC}"
+        echo -e "${YELLOW}   - Firewall blocking certbot${NC}"
+        echo ""
+        echo -e "${YELLOW}   You can retry SSL later with:${NC}"
+        echo -e "${YELLOW}   $DOCKER_COMPOSE run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos -d ${DOMAIN_NAME}${NC}"
+        echo -e "${YELLOW}   Then restart nginx: $DOCKER_COMPOSE restart nginx${NC}"
     fi
 else
     echo -e "${GREEN}✓ SSL certificate already exists${NC}"
+    # Restart Nginx to ensure it's using SSL
+    echo "🔄 Restarting Nginx with SSL..."
+    $DOCKER_COMPOSE restart nginx
 fi
-
-# Restart Nginx to apply SSL
-echo "🔄 Restarting Nginx with SSL..."
-docker-compose restart nginx
 
 # Start certbot renewal service
 echo "🤖 Starting SSL auto-renewal service..."
-docker-compose up -d certbot
+$DOCKER_COMPOSE up -d certbot
 
 # Pull LLM model
 echo ""
 echo "🤖 Downloading AI model (this may take a few minutes)..."
 echo "   Model: Llama 3.2 3B"
-docker-compose exec ollama ollama pull llama3.2:3b
+$DOCKER_COMPOSE exec ollama ollama pull llama3.2:3b
 
 # Wait for IPFS to be ready
 echo ""
@@ -158,7 +177,7 @@ sleep 5
 
 # Test IPFS connection
 echo "   Testing IPFS connection..."
-if docker-compose exec -T web curl -s -o /dev/null -w "%{http_code}" http://ipfs:5001/api/v0/version | grep -q "200"; then
+if $DOCKER_COMPOSE exec -T web curl -s -o /dev/null -w "%{http_code}" http://ipfs:5001/api/v0/version | grep -q "200"; then
     echo -e "${GREEN}   ✓ IPFS is ready${NC}"
 else
     echo -e "${YELLOW}   ⚠ IPFS may need a moment to start${NC}"
@@ -177,10 +196,10 @@ echo "🔐 Your encryption key has been saved to .env"
 echo "   Keep this file secure!"
 echo ""
 echo "📊 View logs with:"
-echo "   → docker-compose logs -f"
+echo "   → $DOCKER_COMPOSE logs -f"
 echo ""
 echo "🛑 Stop services with:"
-echo "   → docker-compose down"
+echo "   → $DOCKER_COMPOSE down"
 echo ""
 echo "🎯 Next steps:"
 echo "   1. Open https://${DOMAIN_NAME} in your browser"
